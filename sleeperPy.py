@@ -62,7 +62,10 @@ def Diff(li1, li2):
 
 # ISSUES/TODO
 # TODO: not taking account into flex, e.g noah fant tier 5 better than desean tier 7
-# TODO: formatting kind of shitty and hard to read
+# TODO: stdout formatting kind of shitty and hard to read
+# TODO: needs functions really badly
+# TODO: clean up whitespace and shit
+# TODO: can I run this on wboll.dev? take input of sleeper username, output text file
 
 
 
