@@ -3,6 +3,9 @@
 # Description: used to fetch user's current roster, across multiple leagues, and compare
 # to http://www.borischen.co/ tiers
 
+# Main Goal: use boris chen tiers to see if you should sub out players based on boris chen tier
+# possibly with trending/WW players too
+
 import requests
 import json
 import os, time
@@ -20,6 +23,10 @@ playersFile = "players.txt"
 # Functions
 def file_age(filepath):
     return time.time() - os.path.getmtime(filepath)
+
+def Diff(li1, li2): 
+    li_dif = [i for i in li1 + li2 if i not in li1 or i not in li2] 
+    return li_dif
 
 
 # API
@@ -150,15 +157,57 @@ while i < len(leagues):
 # first list of players, 15
 i = 0
 
-while i < len(players):
+
+
+
+# all players
+# while i < len(players):
+#     print("")
+#     print("League" + ": " + str(leagueNames[i]))
+#     print("")
+#     for key in playerData:
+#         # key is definitely the ids
+#         j = 0
+#         while j < len(players[i]):
+#             if key == players[i][j]:
+#                 print(playerData[players[i][j]]['first_name'] + " " + playerData[players[i][j]]['last_name'])
+#             j = j + 1
+#     # end of main while        
+#     i = i + 1
+
+# starters
+i = 0
+bench = []
+while i < len(starters):
     print("")
     print("League" + ": " + str(leagueNames[i]))
     print("")
+
+    bench = Diff(players[i], starters[i])
+    # print(players[i])
+    # print(starters[i])
+    
+    # list starters
+    print("Starters:")
     for key in playerData:
         # key is definitely the ids
         j = 0
-        while j < len(players[i]):
-            if key == players[i][j]:
-                print(playerData[players[i][j]]['last_name'])
+        while j < len(starters[i]):
+            if key == starters[i][j]:
+                print(playerData[starters[i][j]]['first_name'] + " " + playerData[starters[i][j]]['last_name'])
             j = j + 1
+         
+    # bench
+    print("\nBench:")
+    for key in playerData:
+        # key is definitely the ids
+        # should iterate through 5
+        j = 0
+        while j < len(bench):
+            if key == bench[j]:
+                print(playerData[bench[j]]['first_name'] + " " + playerData[bench[j]]['last_name'])
+            j = j + 1
+
+    # end of main while    
     i = i + 1
+
