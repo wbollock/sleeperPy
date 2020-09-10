@@ -11,8 +11,26 @@ import json
 import os, time
 from pathlib import Path
 
-# Variables
-username = "puffplants"
+# Variables - Adjust Sleeper Username Here
+#username = "KingDedede"
+#username = "puffplants"
+username = "Jz904"
+
+# https://github.com/abhinavk99/espn-borischentiers/blob/master/src/js/espn-borischentiers.js
+# qb = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_QB.txt"
+# rbStd = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_RB.txt"
+# rbHalfPPR = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_RB-HALF.txt"
+# rbPPR = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_RB-PPR.txt"
+# wrSTD = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_WR.txt"
+# wrHalfPPR = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_WR-HALF.txt"
+# wrPPR = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_WR-PPR.txt"
+# teSTD = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_TE.txt"
+# teHALFPPR = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_TE-HALF.txt"
+# tePPR = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_TE-PPR.txt"
+# dst = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_DST.txt"
+# k = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_K.txt"
+
+
 
 # Variables - not user adjustable
 sport = "nfl"
@@ -27,6 +45,19 @@ def file_age(filepath):
 def Diff(li1, li2): 
     li_dif = [i for i in li1 + li2 if i not in li1 or i not in li2] 
     return li_dif
+
+# def scoringMode(scoring):
+#     i = 0 
+#     mode = []
+#     while i < len(scoring):
+#         if scoring[i] == 1.0:
+#             mode.append("PPR")
+#         elif scoring[i] == 0.5:
+#             mode.append("HPPR")
+#         elif scoring[i] == 0.0:
+#             mode.append("STD")
+#         i = 1 + 1
+#     return mode
 
 
 # API
@@ -66,13 +97,25 @@ data = r.json()
 
 leagues = []
 leagueNames = []
+scoring = []
 i = 0
 
 while i < len(data):
     jsonDict = data[i]
+    #print(jsonDict)
     leagues.append(jsonDict['league_id'])
     leagueNames.append(jsonDict['name'])
+    scoring.append(jsonDict['scoring_settings']['rec'])
     i = i + 1
+
+#print(scoring)
+#list, e.g [1.0, 1.0]
+
+
+
+# set scoring mode
+
+
 
 # leagues, e.g 
 # ['603501445962080256', '597557922544807936']
@@ -125,8 +168,6 @@ while i < len(leagues):
     r = requests.get(url)
     data = r.json()
     # data is a list here
-    #print(data)
-    # print(len(data))
     # length is number of teams
     j = 0
     while j < len(data):
@@ -158,45 +199,144 @@ while i < len(leagues):
 i = 0
 
 
-
-
-# all players
-# while i < len(players):
-#     print("")
-#     print("League" + ": " + str(leagueNames[i]))
-#     print("")
-#     for key in playerData:
-#         # key is definitely the ids
-#         j = 0
-#         while j < len(players[i]):
-#             if key == players[i][j]:
-#                 print(playerData[players[i][j]]['first_name'] + " " + playerData[players[i][j]]['last_name'])
-#             j = j + 1
-#     # end of main while        
-#     i = i + 1
-
-# starters
+# Print roster from each league, bench and starters
 i = 0
 bench = []
+
+
 while i < len(starters):
+    # for each league, do:
     print("")
     print("League" + ": " + str(leagueNames[i]))
     print("")
+    # mode = scoringMode(scoring)
+    #print(scoring)
+    #print(mode)
+
+    # figure out what lists to use
+    # god i dont think this should be here
+    qbBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_QB.txt"
+    dstBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_DST.txt"
+    kBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_K.txt"
+    
+    if scoring[i] == 1.0:
+        rbBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_RB-PPR.txt"
+        wrBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_WR-PPR.txt"
+        teBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_TE-PPR.txt"    
+    elif scoring[i] == 0.5:
+        rbBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_RB-HALF.txt"
+        wrBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_WR-HALF.txt"
+        teBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_TE-HALF.txt"
+    elif scoring[i] == 0.0:
+        rbBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_RB.txt"
+        wrBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_WR.txt"
+        teBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_TE.txt"
+
+
+    r = requests.get(rbBoris)
+    data = r.text
+    tierListRB = data.splitlines()
+
+    # tierListRB[0] = Tier 1: Christian McCaffrey, Ezekiel Elliott
+
+    r = requests.get(wrBoris)
+    data = r.text
+    tierListWR = data.splitlines()
+
+    r = requests.get(teBoris)
+    data = r.text
+    tierListTE = data.splitlines()
+
+    r = requests.get(qbBoris)
+    data = r.text
+    tierListQB = data.splitlines()
+
+    r = requests.get(kBoris)
+    data = r.text
+    tierListK = data.splitlines()
+
+    r = requests.get(dstBoris)
+    data = r.text
+    tierListDST = data.splitlines()
+
+    # hey this works nicely
+    # tfw when python has no switch/case
+    
 
     bench = Diff(players[i], starters[i])
-    # print(players[i])
-    # print(starters[i])
     
     # list starters
+    tierSum = 0
     print("Starters:")
     for key in playerData:
         # key is definitely the ids
         j = 0
+        tier = 99
         while j < len(starters[i]):
             if key == starters[i][j]:
-                print(playerData[starters[i][j]]['first_name'] + " " + playerData[starters[i][j]]['last_name'])
+                # one player from each loop... add tiers here i guess?
+                fName = playerData[starters[i][j]]['first_name']  
+                lName = playerData[starters[i][j]]['last_name']
+                pos = playerData[starters[i][j]]['position']
+                fullName = fName + " " + lName
+
+                # iterate through tierlists based on pos
+                # DEF, WR, TE, K, RB
+                #print(len(tierListQB))
+                
+                # len is amount of tiers
+                if pos == "QB":
+                    q = 0
+                    while q < len(tierListQB):
+                        if fullName in tierListQB[q]:
+                            tier = q
+                        q = q + 1
+
+                if pos == "RB":
+                    q = 0
+                    while q < len(tierListRB):
+                        if fullName in tierListRB[q]:
+                            tier = q
+                        q = q + 1
+
+                if pos == "WR":
+                    q = 0
+                    while q < len(tierListWR):
+                        if fullName in tierListWR[q]:
+                            tier = q
+                        q = q + 1
+
+                if pos == "K":
+                    q = 0
+                    while q < len(tierListK):
+                        if fullName in tierListK[q]:
+                            tier = q
+                        q = q + 1   
+
+                if pos == "DEF":
+                    q = 0
+                    while q < len(tierListDST):
+                        if fullName in tierListDST[q]:
+                            tier = q
+                        q = q + 1     
+
+                if pos == "TE":
+                    q = 0
+                    while q < len(tierListTE):
+                        if fullName in tierListTE[q]:
+                            tier = q
+                        q = q + 1   
+
+                
+                tier = tier + 1
+                tierSum = tier + tierSum
+
+                
+                print(fName + " " + lName + " " + "[" +  "Tier " + str(tier) + "]")
             j = j + 1
-         
+
+    
+    print("\nAverage Tier of Starters is (lower is better): " + str(tierSum / (len(starters[i]))))
     # bench
     print("\nBench:")
     for key in playerData:
@@ -205,9 +345,61 @@ while i < len(starters):
         j = 0
         while j < len(bench):
             if key == bench[j]:
-                print(playerData[bench[j]]['first_name'] + " " + playerData[bench[j]]['last_name'])
+                fName = playerData[bench[j]]['first_name']
+                lName = playerData[bench[j]]['last_name']
+                pos = playerData[bench[j]]['position']
+                fullName = fName + " " + lName
+
+                if pos == "QB":
+                    q = 0
+                    while q < len(tierListQB):
+                        if fullName in tierListQB[q]:
+                            tier = q
+                        q = q + 1
+
+                if pos == "RB":
+                    q = 0
+                    while q < len(tierListRB):
+                        if fullName in tierListRB[q]:
+                            tier = q
+                        q = q + 1
+
+                if pos == "WR":
+                    q = 0
+                    while q < len(tierListWR):
+                        if fullName in tierListWR[q]:
+                            tier = q
+                        q = q + 1
+
+                if pos == "K":
+                    q = 0
+                    while q < len(tierListK):
+                        if fullName in tierListK[q]:
+                            tier = q
+                        q = q + 1   
+
+                if pos == "DEF":
+                    q = 0
+                    while q < len(tierListDST):
+                        if fullName in tierListDST[q]:
+                            tier = q
+                        q = q + 1     
+
+                if pos == "TE":
+                    q = 0
+                    while q < len(tierListTE):
+                        if fullName in tierListTE[q]:
+                            tier = q
+                        q = q + 1   
+
+                tier = tier + 1
+
+                
+
+                print(fName + " " + lName + " " + "[" +  "Tier " + str(tier) + "]")
             j = j + 1
 
+    
     # end of main while    
     i = i + 1
 
