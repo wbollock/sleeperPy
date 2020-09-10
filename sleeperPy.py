@@ -66,6 +66,7 @@ def Diff(li1, li2):
 # TODO: needs functions really badly
 # TODO: clean up whitespace and shit
 # TODO: can I run this on wboll.dev? take input of sleeper username, output text file
+# TODO: waiver wire suggestions would be great, especially for D/K. If player on WW is higher tier, mention it.
 
 
 
