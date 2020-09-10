@@ -99,21 +99,66 @@ else:
 
 # read from players file
 with open(playersFile) as json_file:
-    data = json.load(json_file)
+    playerData = json.load(json_file)
 
 # data is a dict here
 
 # print roster for both leagues:
 
 i = 0
-
+starters = []
+players = []
+# get players and starters for user team in each league
 while i < len(leagues):
     # print league name
-    print("League" + ": " + str(leagueNames[i]))
+    #print("League" + ": " + str(leagueNames[i]))
+
+    # Get current roster
     url = "https://api.sleeper.app/v1/league/" + leagues[i] + "/rosters"
-    # iterate through players for length of roster
-    # len(players)
-    #for 
+    r = requests.get(url)
+    data = r.json()
+    # data is a list here
+    #print(data)
+    # print(len(data))
+    # length is number of teams
+    j = 0
+    while j < len(data):
+        jsonDict = data[j]
+        # for every team in league, do
+
+        if jsonDict['owner_id'] == userid:
+            # then this is current user
+            starters.append(jsonDict['starters'])
+            players.append(jsonDict['players'])
+            # shit but multiple leagues
+        # end of nested while loop
+        j = j + 1
+    # end of main while loop
     i = i + 1
 
 
+
+# for each league
+# print player names, cross reference with playerData
+# playerData is a dict
+# players/starters are lists
+
+#print(players[0][1])
+# second value from first list of players
+#print(players)
+#print(len(players[0]))
+# first list of players, 15
+i = 0
+
+while i < len(players):
+    print("")
+    print("League" + ": " + str(leagueNames[i]))
+    print("")
+    for key in playerData:
+        # key is definitely the ids
+        j = 0
+        while j < len(players[i]):
+            if key == players[i][j]:
+                print(playerData[players[i][j]]['last_name'])
+            j = j + 1
+    i = i + 1
