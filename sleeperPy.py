@@ -16,21 +16,6 @@ from pathlib import Path
 username = "puffplants"
 #username = "Jz904"
 
-# https://github.com/abhinavk99/espn-borischentiers/blob/master/src/js/espn-borischentiers.js
-# qb = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_QB.txt"
-# rbStd = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_RB.txt"
-# rbHalfPPR = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_RB-HALF.txt"
-# rbPPR = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_RB-PPR.txt"
-# wrSTD = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_WR.txt"
-# wrHalfPPR = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_WR-HALF.txt"
-# wrPPR = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_WR-PPR.txt"
-# teSTD = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_TE.txt"
-# teHALFPPR = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_TE-HALF.txt"
-# tePPR = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_TE-PPR.txt"
-# dst = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_DST.txt"
-# k = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_K.txt"
-
-
 
 # Variables - not user adjustable
 sport = "nfl"
@@ -46,25 +31,10 @@ def Diff(li1, li2):
     li_dif = [i for i in li1 + li2 if i not in li1 or i not in li2] 
     return li_dif
 
-# def scoringMode(scoring):
-#     i = 0 
-#     mode = []
-#     while i < len(scoring):
-#         if scoring[i] == 1.0:
-#             mode.append("PPR")
-#         elif scoring[i] == 0.5:
-#             mode.append("HPPR")
-#         elif scoring[i] == 0.0:
-#             mode.append("STD")
-#         i = 1 + 1
-#     return mode
-
 
 # ISSUES/TODO
 # TODO: not taking account into flex, e.g noah fant tier 5 better than desean tier 7
-# TODO: stdout formatting kind of shitty and hard to read
-# TODO: needs functions really badly
-# TODO: clean up whitespace and shit
+# TODO: needs functions
 # TODO: can I run this on wboll.dev? take input of sleeper username, output text file
 # TODO: waiver wire suggestions would be great, especially for D/K. If player on WW is higher tier, mention it.
 
@@ -72,18 +42,17 @@ def Diff(li1, li2):
 
 # API
 # https://docs.sleeper.app/
-
 # grab userid from username
 # curl "https://api.sleeper.app/v1/user/<username>"
 # curl "https://api.sleeper.app/v1/user/<user_id>"
-
 #curl "https://api.sleeper.app/v1/user/puffplants"
-
-
 # https://api.sleeper.app/v1/user/<user_id>/leagues/<sport>/<season>
-
 # get all leagues for user
 # curl "https://api.sleeper.app/v1/user/470054939452764160/leagues/nfl/2020"
+
+# Tiers
+# https://github.com/abhinavk99/espn-borischentiers/blob/master/src/js/espn-borischentiers.js
+
 
 
 # Get USERID
@@ -117,14 +86,6 @@ while i < len(data):
     leagueNames.append(jsonDict['name'])
     scoring.append(jsonDict['scoring_settings']['rec'])
     i = i + 1
-
-#print(scoring)
-#list, e.g [1.0, 1.0]
-
-
-
-# set scoring mode
-
 
 
 # leagues, e.g 
@@ -203,23 +164,18 @@ while i < len(leagues):
 
 #print(players[0][1])
 # second value from first list of players
-#print(players)
-#print(len(players[0]))
 # first list of players, 15
-i = 0
-
 
 # Print roster from each league, bench and starters
+
 i = 0
 bench = []
 
-
-
 while i < len(starters):
     # for each league, do:
-    print("")
+    print("\n#######################")
     print("League" + ": " + str(leagueNames[i]))
-    print("")
+    print("#######################\n")
 
     starterList = []
     benchList = []
@@ -238,8 +194,6 @@ while i < len(starters):
     dstBenchList = []
     kBenchList = []
     # mode = scoringMode(scoring)
-    #print(scoring)
-    #print(mode)
 
     # figure out what lists to use
     # god i dont think this should be here
@@ -290,12 +244,11 @@ while i < len(starters):
     # hey this works nicely
     # tfw when python has no switch/case
     
-
     bench = Diff(players[i], starters[i])
     
     # list starters
     tierSum = 0
-    print("Starters:")
+    print("**Starters:**")
     for key in playerData:
         # key is definitely the ids
         j = 0
@@ -311,8 +264,7 @@ while i < len(starters):
 
                 # iterate through tierlists based on pos
                 # DEF, WR, TE, K, RB, QB
-                #print(len(tierListQB))
-                
+            
                 # len is amount of tiers
                 
                 if pos == "QB":
@@ -522,6 +474,8 @@ while i < len(starters):
     if len(kBenchList) > 0:
         print("\n--WR---")
         print(*kBenchList, sep = "\n")
+
+    #print(data)
     
     # end of main while    
     i = i + 1
