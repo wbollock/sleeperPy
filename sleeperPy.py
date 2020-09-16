@@ -35,9 +35,13 @@ def Diff(li1, li2):
 # ISSUES/TODO
 # TODO: not taking account into flex, e.g noah fant tier 5 better than desean tier 7
 # TODO: needs functions
-# TODO: can I run this on wboll.dev? take input of sleeper username, output text file
-# TODO: waiver wire suggestions would be great, especially for D/K. If player on WW is higher tier, mention it.
-
+# TODO: Average Tier of Starters is (lower is better): 3.2222222222222223
+# TODO: waiver wire suggestions would be great, especially for DST/K. If player on WW is higher tier, mention it.
+# TODO: wbollock@boris /s/h/sleeperPy ❯❯❯ python3 sleeperPy.py puffplants                                                                    ✘ 1
+#Traceback (most recent call last):
+#  File "sleeperPy.py", line 79, in <module>
+#    os.chmod(tiersFilepath, 0o666)
+#PermissionError: [Errno 1] Operation not permitted: 'tiers/tiers_puffplants.txt'
 
 
 # API
@@ -397,7 +401,7 @@ while i < len(starters):
 
        
     
-    print("\nAverage Tier of Starters is (lower is better): " + str(tierSum / (len(starters[i]))))
+    print("\nAverage Tier of Starters is (lower is better): " + str(round(tierSum / (len(starters[i])),3)))
     # bench
     print("\nBench:")
     for key in playerData:
