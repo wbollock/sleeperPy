@@ -6,23 +6,35 @@ A program to allow users to easily parse their [Sleeper](https://sleeper.app/) F
 
 ## Features
 
-* Utilizies the Sleeper APISupport for multiple leagues. Simply enter your Sleeper username.
+* Utilizes the Sleeper APISupport for multiple leagues. Simply enter your Sleeper username.
 * Multiple scoring types accounted for, standard, 0.5 PPR and PPR. 
 * Shows the current tier of each player, dividing starters and bench.
 
 ## Usage
 
-Edit your username into the `username` variable, e.g:
+### Command Line
 
 ```
-username = "FooBarSleeper"
+python3 sleeperPy.py <username>
 ```
 
-Then run the program:
+Then find your tiers:
 
 ```
-python3 sleeperPy.py
+cat tiers/tiers_$username.txt
 ```
+
+### Web
+
+Requirements:
+
+ * php 7+
+
+```
+git clone https://github.com/wbollock/sleeperPy.git
+```
+
+
 
 ### Multiple League Support
 
