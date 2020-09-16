@@ -4,6 +4,10 @@ A program to allow users to easily parse their [Sleeper](https://sleeper.app/) F
 
 ![one team](img/one_team.png)
 
+Try it on my [personal website](https://wboll.dev/sleeperPy/).
+
+Only Sleeper Fantasy Football is supported.
+
 ## Features
 
 * Utilizes the Sleeper APISupport for multiple leagues. Simply enter your Sleeper username.
@@ -33,6 +37,8 @@ Requirements:
 ```
 git clone https://github.com/wbollock/sleeperPy.git
 ```
+
+Make sure your web server has permissions for the `tiers` folder, `sleeperPy.py`, and `index.php`.
 
 
 

@@ -33,6 +33,10 @@ Enter your Sleeper username: <input type="text" name="name">
 <br>
 <input type="submit" name="submit" value="Generate Tiers">
 
+<br>
+<br>
+<p>It is best to run this on Thursday, as tiers are mostly updated by then.</p>
+
 </form>
 
 

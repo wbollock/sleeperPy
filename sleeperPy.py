@@ -195,7 +195,8 @@ while i < len(leagues):
 i = 0
 bench = []
 print("SleeperPy: Boris Chen Tiers for Sleeper Leagues")
-print("Note: Tier 100 means player is not properly ranked.")
+print("Note: Tier 100 means player is not properly ranked on Boris Chen.")
+print("Username:", username)
 
 while i < len(starters):
     # for each league, do:
