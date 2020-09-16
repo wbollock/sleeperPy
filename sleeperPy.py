@@ -39,6 +39,7 @@ def Diff(li1, li2):
 # TODO: sorting by tier would be cool
 # TODO: converting.txt file to HTML would be prudent, and mobile-friendly. also dark mode i can't stand this shit
 # TODO: add average tier of opponent vs average tier of you
+# TODO: account for kicker-less and DST-less leagues by not printing "--k--" or "--dst--" when not needed
 
 # BUGS:
 # Average Tier doesn't always work
