@@ -35,14 +35,13 @@ def Diff(li1, li2):
 # ISSUES/TODO
 # TODO: not taking account into flex, e.g noah fant tier 5 better than desean tier 7
 # TODO: needs functions
-# TODO: Average Tier of Starters is (lower is better): 3.2222222222222223
 # TODO: waiver wire suggestions would be great, especially for DST/K. If player on WW is higher tier, mention it.
-# TODO: wbollock@boris /s/h/sleeperPy ❯❯❯ python3 sleeperPy.py puffplants                                                                    ✘ 1
-#Traceback (most recent call last):
-#  File "sleeperPy.py", line 79, in <module>
-#    os.chmod(tiersFilepath, 0o666)
-#PermissionError: [Errno 1] Operation not permitted: 'tiers/tiers_puffplants.txt'
+# TODO: error handling for bad username
 
+# BUGS:
+# players showing twice, https://wboll.dev/sleeperPy/tiers/tiers_cooliusboolius.txt
+# os.chmod(tiersFilepath, 0o666) | PermissionError: [Errno 1] Operation not permitted: 'tiers/tiers_puffplants.txt'
+# Random players showing under Kicker https://wboll.dev/sleeperPy/tiers/tiers_Veganasseater.txt
 
 # API
 # https://docs.sleeper.app/
@@ -306,7 +305,8 @@ while i < len(starters):
                     q = 0
                     while q < len(tierListQB):
                         if fullName in tierListQB[q]:
-                            tier = q - 1
+                            tier = q + 1
+                            qbStarterList.append(fullName  + " " + "[" +  "Tier " + str(tier) + "]")
                         q = q + 1
                     tier = tier + 1
                     
@@ -316,7 +316,8 @@ while i < len(starters):
                     q = 0
                     while q < len(tierListRB):
                         if fullName in tierListRB[q]:
-                            tier = q
+                            tier = q + 1
+                            rbStarterList.append(fullName  + " " + "[" +  "Tier " + str(tier) + "]")
                         q = q + 1
                     
                    
@@ -325,28 +326,32 @@ while i < len(starters):
                     q = 0
                     while q < len(tierListWR):
                         if fullName in tierListWR[q]:
-                            tier = q
+                            tier = q + 1
+                            wrStarterList.append(fullName  + " " + "[" +  "Tier " + str(tier) + "]")
                         q = q + 1
 
                 if pos == "K":
                     q = 0
                     while q < len(tierListK):
                         if fullName in tierListK[q]:
-                            tier = q
+                            tier = q + 1
+                            kStarterList.append(fullName  + " " + "[" +  "Tier " + str(tier) + "]")
                         q = q + 1   
 
                 if pos == "DEF":
                     q = 0
                     while q < len(tierListDST):
                         if fullName in tierListDST[q]:
-                            tier = q
+                            tier = q + 1
+                            dstStarterList.append(fullName  + " " + "[" +  "Tier " + str(tier) + "]")
                         q = q + 1     
 
                 if pos == "TE":
                     q = 0
                     while q < len(tierListTE):
                         if fullName in tierListTE[q]:
-                            tier = q
+                            tier = q + 1
+                            teStarterList.append(fullName  + " " + "[" +  "Tier " + str(tier) + "]")
                         q = q + 1   
 
                 
@@ -359,26 +364,6 @@ while i < len(starters):
             j = j + 1
 
     y = 0
-    #print(len(starterList))
-    while y < len(starterList):
-        if "QB" in starterList[y]:
-            qbStarterList.append(starterList[y])
-            
-        if "WR" in starterList[y]:
-            wrStarterList.append(starterList[y])
-            
-        if "RB" in starterList[y]:
-            rbStarterList.append(starterList[y])
-            
-        if "TE" in starterList[y]:
-            teStarterList.append(starterList[y])
-            
-        if "DEF" in starterList[y]:
-            dstStarterList.append(starterList[y])
-            
-        if "K" in starterList[y]:
-            kStarterList.append(starterList[y])
-        y = y + 1
 
     print("--QB---")
     print(*qbStarterList, sep = "\n")
@@ -419,42 +404,48 @@ while i < len(starters):
                     q = 0
                     while q < len(tierListQB):
                         if fullName in tierListQB[q]:
-                            tier = q
+                            tier = q + 1
+                            qbBenchList.append(fullName  + " " + "[" +  "Tier " + str(tier) + "]")
                         q = q + 1
 
                 if pos == "RB":
                     q = 0
                     while q < len(tierListRB):
                         if fullName in tierListRB[q]:
-                            tier = q
+                            tier = q + 1
+                            rbBenchList.append(fullName  + " " + "[" +  "Tier " + str(tier) + "]")
                         q = q + 1
 
                 if pos == "WR":
                     q = 0
                     while q < len(tierListWR):
                         if fullName in tierListWR[q]:
-                            tier = q
+                            tier = q + 1
+                            wrBenchList.append(fullName  + " " + "[" +  "Tier " + str(tier) + "]")
                         q = q + 1
 
                 if pos == "K":
                     q = 0
                     while q < len(tierListK):
                         if fullName in tierListK[q]:
-                            tier = q
+                            tier = q + 1
+                            kBenchList.append(fullName  + " " + "[" +  "Tier " + str(tier) + "]")
                         q = q + 1   
 
                 if pos == "DEF":
                     q = 0
                     while q < len(tierListDST):
                         if fullName in tierListDST[q]:
-                            tier = q
+                            tier = q + 1
+                            dstBenchList.append(fullName  + " " + "[" +  "Tier " + str(tier) + "]")
                         q = q + 1     
 
                 if pos == "TE":
                     q = 0
                     while q < len(tierListTE):
                         if fullName in tierListTE[q]:
-                            tier = q
+                            tier = q + 1
+                            teBenchList.append(fullName  + " " + "[" +  "Tier " + str(tier) + "]")
                         q = q + 1   
 
                 tier = tier + 1
@@ -465,27 +456,7 @@ while i < len(starters):
             j = j + 1
 
     y = 0
-    #print(len(benchList))
-    while y < len(benchList):
-        if "QB" in benchList[y]:
-            qbBenchList.append(benchList[y])
-            
-        if "WR" in benchList[y]:
-            wrBenchList.append(benchList[y])
-            
-        if "RB" in benchList[y]:
-            rbBenchList.append(benchList[y])
-            
-        if "TE" in benchList[y]:
-            teBenchList.append(benchList[y])
-            
-        if "DEF" in benchList[y]:
-            dstBenchList.append(benchList[y])
-            
-        if "K" in benchList[y]:
-            kBenchList.append(benchList[y])
-        y = y + 1
-
+    
     if len(qbBenchList) > 0:
         print("\n--QB---")
         print(*qbBenchList, sep = "\n")
