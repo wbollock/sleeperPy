@@ -39,9 +39,7 @@ def Diff(li1, li2):
 # TODO: error handling for bad username
 
 # BUGS:
-# players showing twice, https://wboll.dev/sleeperPy/tiers/tiers_cooliusboolius.txt
 # os.chmod(tiersFilepath, 0o666) | PermissionError: [Errno 1] Operation not permitted: 'tiers/tiers_puffplants.txt'
-# Random players showing under Kicker https://wboll.dev/sleeperPy/tiers/tiers_Veganasseater.txt
 
 # API
 # https://docs.sleeper.app/
@@ -89,7 +87,12 @@ url = url + username
 r = requests.get(url)
 
 data = r.json()
-userid = data['user_id']
+
+try:
+    userid = data['user_id']
+except TypeError:
+    print("Sorry, invalid Sleeper username. Please try again.")
+    sys.exit()
 # dict type
 
 # Get all leagues for user
