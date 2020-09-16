@@ -10,11 +10,11 @@ import requests
 import json
 import os, time
 from pathlib import Path
+import sys 
 
-# Variables - Adjust Sleeper Username Here
-#username = "KingDedede"
-username = "puffplants"
-#username = "Jz904"
+
+
+# Variables 
 
 
 # Variables - not user adjustable
@@ -53,6 +53,30 @@ def Diff(li1, li2):
 # Tiers
 # https://github.com/abhinavk99/espn-borischentiers/blob/master/src/js/espn-borischentiers.js
 
+# Web Arguments
+# total arguments 
+n = len(sys.argv) 
+if n < 2:
+    print("Error: please enter your Sleeper username.")
+elif n > 2:
+    print("Error: Too many arguments. Please type your sleeper username.")
+
+
+
+
+#username = "KingDedede"
+#username = "puffplants"
+#username = "Jz904"
+
+username = str(sys.argv[1])
+
+
+tiersFilename = "tiers_" + username + ".txt"
+tiersFilepath = "tiers/" + tiersFilename
+
+# open text file for writing
+sys.stdout = open(tiersFilepath, "w") 
+os.chmod(tiersFilepath, 0o666)
 
 
 # Get USERID
@@ -170,6 +194,8 @@ while i < len(leagues):
 
 i = 0
 bench = []
+print("SleeperPy: Boris Chen Tiers for Sleeper Leagues")
+print("Note: Tier 100 means player is not properly ranked.")
 
 while i < len(starters):
     # for each league, do:
@@ -271,7 +297,7 @@ while i < len(starters):
                     q = 0
                     while q < len(tierListQB):
                         if fullName in tierListQB[q]:
-                            tier = q
+                            tier = q - 1
                         q = q + 1
                     tier = tier + 1
                     
