@@ -203,6 +203,7 @@ while i < len(starters):
     print("\n#######################")
     print("League" + ": " + str(leagueNames[i]))
     print("#######################\n")
+    
 
     starterList = []
     benchList = []
@@ -231,15 +232,18 @@ while i < len(starters):
     if scoring[i] == 1.0:
         rbBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_RB-PPR.txt"
         wrBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_WR-PPR.txt"
-        teBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_TE-PPR.txt"    
+        teBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_TE-PPR.txt" 
+        print("Scoring Type: PPR")   
     elif scoring[i] == 0.5:
         rbBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_RB-HALF.txt"
         wrBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_WR-HALF.txt"
         teBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_TE-HALF.txt"
+        print("Scoring Type: Half PPR")   
     elif scoring[i] == 0.0:
         rbBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_RB.txt"
         wrBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_WR.txt"
         teBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_TE.txt"
+        print("Scoring Type: Standard")   
 
 
     r = requests.get(rbBoris)
