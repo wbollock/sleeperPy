@@ -82,13 +82,14 @@ tiersFilename = "tiers_" + username + ".txt"
 tiersFilepath = "tiers/" + tiersFilename
 
 # open text file for writing
-sys.stdout = open(tiersFilepath, "w") 
+if not os.path.isdir('tiers/'):
+    os.mkdir('tiers/')
+sys.stdout = open(tiersFilepath, "w")
 os.chmod(tiersFilepath, 0o666)
 
 
 # Get USERID
-url = "https://api.sleeper.app/v1/user/"
-url = url + username
+url = f"https://api.sleeper.app/v1/user/{username}"
 
 r = requests.get(url)
 
@@ -102,8 +103,7 @@ except TypeError:
 # dict type
 
 # Get all leagues for user
-url = "https://api.sleeper.app/v1/user/"
-url = url + userid + "/" + "leagues/" + sport + "/" + year
+url = f"https://api.sleeper.app/v1/user/{userid}/leagues/{sport}/{year}"
 
 r = requests.get(url)
 
@@ -115,13 +115,10 @@ leagueNames = []
 scoring = []
 i = 0
 
-while i < len(data):
-    jsonDict = data[i]
-    #print(jsonDict)
-    leagues.append(jsonDict['league_id'])
-    leagueNames.append(jsonDict['name'])
-    scoring.append(jsonDict['scoring_settings']['rec'])
-    i = i + 1
+for d in data:
+    leagues.append(d['league_id'])
+    leagueNames.append(d['name'])
+    scoring.append(d['scoring_settings']['rec'])
 
 
 # leagues, e.g 
@@ -166,30 +163,23 @@ i = 0
 starters = []
 players = []
 # get players and starters for user team in each league
-while i < len(leagues):
+for league in leagues:
     # print league name
     #print("League" + ": " + str(leagueNames[i]))
 
     # Get current roster
-    url = "https://api.sleeper.app/v1/league/" + leagues[i] + "/rosters"
+    url = f"https://api.sleeper.app/v1/league/{league}/rosters"
     r = requests.get(url)
     data = r.json()
     # data is a list here
     # length is number of teams
-    j = 0
-    while j < len(data):
-        jsonDict = data[j]
+    for d in data:
         # for every team in league, do
-
-        if jsonDict['owner_id'] == userid:
+        if d['owner_id'] == userid:
             # then this is current user
-            starters.append(jsonDict['starters'])
-            players.append(jsonDict['players'])
+            starters.append(d['starters'])
+            players.append(d['players'])
             # shit but multiple leagues
-        # end of nested while loop
-        j = j + 1
-    # end of main while loop
-    i = i + 1
 
 
 
@@ -215,7 +205,7 @@ print("\nUsername:", username)
 while i < len(starters):
     # for each league, do:
     print("\n#######################")
-    print("League" + ": " + str(leagueNames[i]))
+    print(f"League: {leagueNames[i]}")
     print("#######################\n")
     
 
@@ -242,22 +232,19 @@ while i < len(starters):
     qbBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_QB.txt"
     dstBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_DST.txt"
     kBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_K.txt"
-    
+
+    scoring_to_text_map = {1.0: '-PPR', 0.5: '-HALF', 0.0: ''}
+    rbBoris = f"https://s3-us-west-1.amazonaws.com/fftiers/out/text_RB{scoring_to_text_map[scoring[i]]}.txt"
+    wrBoris = f"https://s3-us-west-1.amazonaws.com/fftiers/out/text_WR{scoring_to_text_map[scoring[i]]}.txt"
+    teBoris = f"https://s3-us-west-1.amazonaws.com/fftiers/out/text_TE{scoring_to_text_map[scoring[i]]}.txt"
+
+
     if scoring[i] == 1.0:
-        rbBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_RB-PPR.txt"
-        wrBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_WR-PPR.txt"
-        teBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_TE-PPR.txt" 
-        print("Scoring Type: PPR\n")   
+        print("Scoring Type: PPR\n")
     elif scoring[i] == 0.5:
-        rbBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_RB-HALF.txt"
-        wrBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_WR-HALF.txt"
-        teBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_TE-HALF.txt"
-        print("Scoring Type: Half PPR\n")   
+        print("Scoring Type: Half PPR\n")
     elif scoring[i] == 0.0:
-        rbBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_RB.txt"
-        wrBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_WR.txt"
-        teBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_TE.txt"
-        print("Scoring Type: Standard\n")   
+        print("Scoring Type: Standard\n")
 
 
     r = requests.get(rbBoris)
@@ -313,64 +300,45 @@ while i < len(starters):
                 # len is amount of tiers
                 
                 if pos == "QB":
-                    q = 0
-                    while q < len(tierListQB):
+                    for q in range(len(tierListQB)):
                         if fullName in tierListQB[q]:
                             tier = q + 1
-                            qbStarterList.append(fullName  + " " + "[" + str(tier) + "]")
-                        q = q + 1
+                            qbStarterList.append(f"{fullName} [{tier}]")
                     tier = tier + 1
-                    
-                
+
+
                 if pos == "RB":
-                   
-                    q = 0
-                    while q < len(tierListRB):
+                    for q in range(len(tierListRB)):
                         if fullName in tierListRB[q]:
                             tier = q + 1
-                            rbStarterList.append(fullName  + " " + "[" + str(tier) + "]")
-                        q = q + 1
-                    
-                   
+                            rbStarterList.append(f"{fullName} [{tier}]")
 
                 if pos == "WR":
-                    q = 0
-                    while q < len(tierListWR):
+                    for q in range(len(tierListWR)):
                         if fullName in tierListWR[q]:
                             tier = q + 1
-                            wrStarterList.append(fullName  + " " + "[" + str(tier) + "]")
-                        q = q + 1
+                            wrStarterList.append(f"{fullName} [{tier}]")
 
                 if pos == "K":
-                    q = 0
-                    while q < len(tierListK):
+                    for q in range(len(tierListK)):
                         if fullName in tierListK[q]:
                             tier = q + 1
-                            kStarterList.append(fullName  + " " + "[" + str(tier) + "]")
-                        q = q + 1   
+                            kStarterList.append(f"{fullName} [{tier}]")
 
                 if pos == "DEF":
-                    q = 0
-                    while q < len(tierListDST):
+                    for q in range(len(tierListDST)):
                         if fullName in tierListDST[q]:
                             tier = q + 1
-                            dstStarterList.append(fullName  + " " + "[" + str(tier) + "]")
-                        q = q + 1     
+                            dstStarterList.append(f"{fullName} [{tier}]")
 
                 if pos == "TE":
-                    q = 0
-                    while q < len(tierListTE):
+                    for q in range(len(tierListTE)):
                         if fullName in tierListTE[q]:
                             tier = q + 1
-                            teStarterList.append(fullName  + " " + "[" + str(tier) + "]")
-                        q = q + 1   
-
+                            teStarterList.append(f"{fullName} [{tier}]")
                 tierSum = tier + tierSum
                 tier = tier + 1
-                
-
-                
-                starterList.append((fName + " " + lName + " " + "[" + pos + "]" + " " + "[" +  "Tier " + str(tier) + "]"))
+                starterList.append(f"{fName} {lName} [{pos}] [Tier {tier}]")
 
             j = j + 1
 
@@ -395,76 +363,58 @@ while i < len(starters):
     print(*kStarterList, sep = "\n")
             
 
-    
     tierSum = tierSum - 1
-    print("\nAverage Tier of Starters is: " + str(round(tierSum / (len(starters[i])),3)))
+    print(f"\nAverage Tier of Starters is: {round(tierSum / (len(starters[i])),3)}")
     # bench
     print("\nBench:")
     for key in playerData:
         # key is definitely the ids
         # should iterate through 5
-        j = 0
-        while j < len(bench):
-            if key == bench[j]:
-                fName = playerData[bench[j]]['first_name']
-                lName = playerData[bench[j]]['last_name']
-                pos = playerData[bench[j]]['position']
+        for b in bench:
+            if key == b:
+                fName = playerData[b]['first_name']
+                lName = playerData[b]['last_name']
+                pos = playerData[b]['position']
                 fullName = fName + " " + lName
 
                 if pos == "QB":
-                    q = 0
-                    while q < len(tierListQB):
+                    for q in range(len(tierListQB)):
                         if fullName in tierListQB[q]:
                             tier = q + 1
-                            qbBenchList.append(fullName  + " " + "[" + str(tier) + "]")
-                        q = q + 1
+                            qbBenchList.append(f"{fullName} [{tier}]")
 
                 if pos == "RB":
-                    q = 0
-                    while q < len(tierListRB):
+                    for q in range(len(tierListRB)):
                         if fullName in tierListRB[q]:
                             tier = q + 1
-                            rbBenchList.append(fullName  + " " + "[" + str(tier) + "]")
-                        q = q + 1
+                            rbBenchList.append(f"{fullName} [{tier}]")
 
                 if pos == "WR":
-                    q = 0
-                    while q < len(tierListWR):
+                    for q in range(len(tierListWR)):
                         if fullName in tierListWR[q]:
                             tier = q + 1
-                            wrBenchList.append(fullName  + " " + "[" + str(tier) + "]")
-                        q = q + 1
+                            wrBenchList.append(f"{fullName} [{tier}]")
 
                 if pos == "K":
-                    q = 0
-                    while q < len(tierListK):
+                    for q in range(len(tierListK)):
                         if fullName in tierListK[q]:
                             tier = q + 1
-                            kBenchList.append(fullName  + " " + "[" + str(tier) + "]")
-                        q = q + 1   
+                            kBenchList.append(f"{fullName} [{tier}]")
 
                 if pos == "DEF":
-                    q = 0
-                    while q < len(tierListDST):
+                    for q in range(len(tierListDST)):
                         if fullName in tierListDST[q]:
                             tier = q + 1
-                            dstBenchList.append(fullName  + " " + "[" + str(tier) + "]")
-                        q = q + 1     
+                            dstBenchList.append(f"{fullName} [{tier}]")
 
                 if pos == "TE":
-                    q = 0
-                    while q < len(tierListTE):
+                    for q in range(len(tierListTE)):
                         if fullName in tierListTE[q]:
                             tier = q + 1
-                            teBenchList.append(fullName  + " " + "[" + str(tier) + "]")
-                        q = q + 1   
+                            teBenchList.append(f"{fullName} [{tier}]")
 
                 tier = tier + 1
-
-                
-
-                benchList.append((fName + " " + lName + " " + "[" + pos + "]" + " " + "[" +  "Tier " + str(tier) + "]"))
-            j = j + 1
+                benchList.append(f"{fName} {lName} [{pos}] [Tier {tier}]")
 
     y = 0
     
