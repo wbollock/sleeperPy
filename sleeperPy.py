@@ -37,7 +37,15 @@ def Diff(li1, li2):
 # TODO: needs functions
 # TODO: waiver wire suggestions would be great, especially for DST/K. If player on WW is higher tier, mention it.
 # TODO: sorting by tier would be cool
+# TODO: converting.txt file to HTML would be prudent, and mobile-friendly. also dark mode i can't stand this shit
+# TODO: add average tier of opponent vs average tier of you
 
+# BUGS:
+# Average Tier doesn't always work
+# https://wboll.dev/sleeperPy/tiers/tiers_StuMac.txt
+# Average is 13.5
+# https://wboll.dev/sleeperPy/tiers/tiers_Nr2016.txt
+# Average 13.8
 
 # API
 # https://docs.sleeper.app/
@@ -200,7 +208,7 @@ i = 0
 bench = []
 print("SleeperPy: Boris Chen Tiers for Sleeper Leagues\n")
 print("Note:")
-print("Tier 100 means player is not properly ranked on Boris Chen.")
+#print("Tier 100 means player is not properly ranked on Boris Chen.")
 print("[X] indicates the tier of the player. Lower is better.")
 print("\nUsername:", username)
 
@@ -289,7 +297,7 @@ while i < len(starters):
     for key in playerData:
         # key is definitely the ids
         j = 0
-        tier = 99
+        tier = 0
         
         while j < len(starters[i]):
             if key == starters[i][j]:
@@ -357,11 +365,11 @@ while i < len(starters):
                             teStarterList.append(fullName  + " " + "[" + str(tier) + "]")
                         q = q + 1   
 
-                
-                tier = tier + 1
-                # tierSum = tier + tierSum
-
                 tierSum = tier + tierSum
+                tier = tier + 1
+                
+
+                
                 starterList.append((fName + " " + lName + " " + "[" + pos + "]" + " " + "[" +  "Tier " + str(tier) + "]"))
 
             j = j + 1
@@ -387,9 +395,9 @@ while i < len(starters):
     print(*kStarterList, sep = "\n")
             
 
-       
     
-    print("\nAverage Tier of Starters is (lower is better): " + str(round(tierSum / (len(starters[i])),3)))
+    tierSum = tierSum - 1
+    print("\nAverage Tier of Starters is: " + str(round(tierSum / (len(starters[i])),3)))
     # bench
     print("\nBench:")
     for key in playerData:
