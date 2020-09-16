@@ -1,0 +1,74 @@
+USERNAME = puffplants
+
+#######################
+League: Duvvvalllll
+#######################
+
+**Starters:**
+--QB---
+Matt Ryan [QB] [Tier 3]
+--WR---
+Robert Woods [WR] [Tier 2]
+Parris Campbell [WR] [Tier 10]
+Allen Robinson [WR] [Tier 1]
+--RB---
+James Robinson [RB] [Tier 100]
+Joe Mixon [RB] [Tier 4]
+Malcolm Brown [RB] [Tier 9]
+--TE---
+Evan Engram [TE] [Tier 3]
+--DST---
+Kansas City Chiefs [DEF] [Tier 1]
+--K---
+Mason Crosby [K] [Tier 3]
+Kansas City Chiefs [DEF] [Tier 1]
+
+Average Tier of Starters is (lower is better): 13.6
+
+Bench:
+
+--WR---
+Michael Thomas [WR] [Tier 1]
+
+--RB---
+Mark Ingram [RB] [Tier 6]
+James Conner [RB] [Tier 6]
+Alexander Mattison [RB] [Tier 7]
+Devin Singletary [RB] [Tier 7]
+
+#######################
+League: internet_randoms
+#######################
+
+**Starters:**
+--QB---
+Josh Allen [QB] [Tier 3]
+--WR---
+Stefon Diggs [WR] [Tier 5]
+Mike Evans [WR] [Tier 5]
+Tyreek Hill [WR] [Tier 1]
+--RB---
+James Robinson [RB] [Tier 100]
+Benny Snell [RB] [Tier 100]
+Derrick Henry [RB] [Tier 2]
+--TE---
+Darren Waller [TE] [Tier 2]
+--DST---
+Los Angeles Rams [DEF] [Tier 3]
+--K---
+Matt Prater [K] [Tier 3]
+
+Average Tier of Starters is (lower is better): 22.4
+
+Bench:
+
+--WR---
+Parris Campbell [WR] [Tier 10]
+
+--RB---
+Zack Moss [RB] [Tier 8]
+Leonard Fournette [RB] [Tier 9]
+Boston Scott [RB] [Tier 9]
+
+--TE---
+Evan Engram [TE] [Tier 3]

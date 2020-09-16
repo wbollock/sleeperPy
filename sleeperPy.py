@@ -10,11 +10,11 @@ import requests
 import json
 import os, time
 from pathlib import Path
+import sys 
+sys.stdout = open("tiers.txt", "w") 
 
-# Variables - Adjust Sleeper Username Here
-#username = "KingDedede"
-username = "puffplants"
-#username = "Jz904"
+
+# Variables 
 
 
 # Variables - not user adjustable
@@ -53,6 +53,21 @@ def Diff(li1, li2):
 # Tiers
 # https://github.com/abhinavk99/espn-borischentiers/blob/master/src/js/espn-borischentiers.js
 
+# Web Arguments
+# total arguments 
+n = len(sys.argv) 
+if n < 2:
+    print("Error: please enter your Sleeper username.")
+elif n > 2:
+    print("Error: Too many arguments. Please type your sleeper username.")
+
+
+#username = "KingDedede"
+#username = "puffplants"
+#username = "Jz904"
+
+username = str(sys.argv[1])
+print("USERNAME =", username)
 
 
 # Get USERID
@@ -271,7 +286,7 @@ while i < len(starters):
                     q = 0
                     while q < len(tierListQB):
                         if fullName in tierListQB[q]:
-                            tier = q
+                            tier = q - 1
                         q = q + 1
                     tier = tier + 1
                     
