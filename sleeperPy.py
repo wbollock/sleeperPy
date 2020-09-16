@@ -11,7 +11,7 @@ import json
 import os, time
 from pathlib import Path
 import sys 
-sys.stdout = open("tiers.txt", "w") 
+
 
 
 # Variables 
@@ -62,12 +62,21 @@ elif n > 2:
     print("Error: Too many arguments. Please type your sleeper username.")
 
 
+
+
 #username = "KingDedede"
 #username = "puffplants"
 #username = "Jz904"
 
 username = str(sys.argv[1])
-print("USERNAME =", username)
+
+
+tiersFilename = "tiers_" + username + ".txt"
+tiersFilepath = "tiers/" + tiersFilename
+
+# open text file for writing
+sys.stdout = open(tiersFilepath, "w") 
+os.chmod(tiersFilepath, 0o666)
 
 
 # Get USERID
@@ -185,6 +194,8 @@ while i < len(leagues):
 
 i = 0
 bench = []
+print("SleeperPy: Boris Chen Tiers for Sleeper Leagues")
+print("Note: Tier 100 means player is not properly ranked.")
 
 while i < len(starters):
     # for each league, do:
