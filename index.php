@@ -10,7 +10,7 @@ if(isset($_POST['submit'])){ //check if form was submitted
     #$output = shell_exec($command);
     #readfile("tiers.txt");
     exec($command);
-    $filepath = "tiers/"."tiers_".$username.".txt";
+    $filepath = "tiers/"."tiers_".$username.".html";
     #echo ("$filepath");
     $header = "Location: ".$filepath;
     header( "$header" );

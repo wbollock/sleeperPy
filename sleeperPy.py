@@ -11,6 +11,8 @@ import json
 import os, time
 from pathlib import Path
 import sys 
+import fileinput
+from shutil import copyfile
 
 
 
@@ -21,6 +23,7 @@ import sys
 sport = "nfl"
 year = "2020"
 playersFile = "players.txt"
+htmlFile  = "tiers.html"
 
 
 # Functions
@@ -42,6 +45,7 @@ def Diff(li1, li2):
 # TODO: account for kicker-less and DST-less leagues by not printing "--k--" or "--dst--" when not needed
 
 # BUGS:
+# Downloading player data.
 
 # API
 # https://docs.sleeper.app/
@@ -74,14 +78,23 @@ elif n > 2:
 username = str(sys.argv[1])
 
 
-tiersFilename = "tiers_" + username + ".txt"
+tiersFilename = "tiers_" + username + ".html"
 tiersFilepath = "tiers/" + tiersFilename
 
-# open text file for writing
+# mkdir if not exists
 if not os.path.isdir('tiers/'):
     os.mkdir('tiers/')
-sys.stdout = open(tiersFilepath, "w")
+
+# delete file if exists already
+if os.path.exists(tiersFilepath):
+  os.remove(tiersFilepath)
+
+
+# copy template html file to user specific file
+copyfile(htmlFile, tiersFilepath )
 os.chmod(tiersFilepath, 0o666)
+sys.stdout = open(tiersFilepath, "a")
+
 
 
 # Get USERID
@@ -90,6 +103,7 @@ url = f"https://api.sleeper.app/v1/user/{username}"
 r = requests.get(url)
 
 data = r.json()
+
 
 try:
     userid = data['user_id']
@@ -130,26 +144,31 @@ for d in data:
 # You should save this information on your own servers as this is not intended to be called every time you need to look up players due to the filesize being close to 5MB in size.
 # You do not need to call this endpoint more than once per day.
 
+
 if Path(playersFile).is_file():
     # if file exists but older than 1 day, recreate
     seconds = file_age(playersFile)
     if seconds > 86400:
-        print("Downloading player data.")
+        #print("Downloading player data.")
         with open(playersFile, 'w') as outfile:
             url = "https://api.sleeper.app/v1/players/nfl"
             r = requests.get(url)
             json.dump(r.json(), outfile)
 else:
     # if file doesn't exist at all
-    print("Downloading player data.")
+    #print("Downloading player data for the first time.")
     with open(playersFile, 'w') as outfile:
         url = "https://api.sleeper.app/v1/players/nfl"
         r = requests.get(url)
         json.dump(r.json(), outfile)
 
+
+
 # read from players file
 with open(playersFile) as json_file:
     playerData = json.load(json_file)
+
+
 
 # data is a dict here
 
@@ -192,17 +211,24 @@ for league in leagues:
 
 i = 0
 bench = []
-print("SleeperPy: Boris Chen Tiers for Sleeper Leagues\n")
-print("Note:")
+#print("SleeperPy: Boris Chen Tiers for Sleeper Leagues\n")
+#print("Note:")
 #print("Tier 100 means player is not properly ranked on Boris Chen.")
-print("[X] indicates the tier of the player. Lower is better.")
-print("\nUsername:", username)
+#print("[X] indicates the tier of the player. Lower is better.")
+#print("\nUsername:", username)
+
+
+
+
+
+
+
+print("<h3>Username: " + username + "</h3>")
 
 while i < len(starters):
     # for each league, do:
-    print("\n#######################")
-    print(f"League: {leagueNames[i]}")
-    print("#######################\n")
+    
+    
     
 
     starterList = []
@@ -215,12 +241,27 @@ while i < len(starters):
     dstStarterList = []
     kStarterList = []
 
+    qbTierList = []
+    rbTierList = []
+    wrTierList = []
+    dstTierList = []
+    teTierList = []
+    kTierList = []
+
+
     qbBenchList = []
     rbBenchList = []
     wrBenchList = []
     teBenchList = []
     dstBenchList = []
     kBenchList = []
+
+    qbTierBenchList = []
+    rbTierBenchList = []
+    wrTierBenchList = []
+    teTierBenchList = []
+    dstTierBenchList = []
+    kTierBenchList = []
     # mode = scoringMode(scoring)
 
     # figure out what lists to use
@@ -234,13 +275,19 @@ while i < len(starters):
     wrBoris = f"https://s3-us-west-1.amazonaws.com/fftiers/out/text_WR{scoring_to_text_map[scoring[i]]}.txt"
     teBoris = f"https://s3-us-west-1.amazonaws.com/fftiers/out/text_TE{scoring_to_text_map[scoring[i]]}.txt"
 
+    print("<table>")
+    print("<tr>")
+    print("<th colspan=\"2\" style=\"text-align:center;\">")
 
     if scoring[i] == 1.0:
-        print("Scoring Type: PPR\n")
+        print(f"League: {leagueNames[i]} | Scoring Type: PPR")
     elif scoring[i] == 0.5:
-        print("Scoring Type: Half PPR\n")
+        print(f"League: {leagueNames[i]} | Scoring Type: Half PPR")
     elif scoring[i] == 0.0:
-        print("Scoring Type: Standard\n")
+        print(f"League: {leagueNames[i]} | Scoring Type: Standard")
+
+        print("</th>")
+        print("</tr>")
 
 
     r = requests.get(rbBoris)
@@ -276,7 +323,6 @@ while i < len(starters):
     
     # list starters
     tierSum = 0
-    print("**Starters:**")
     for key in playerData:
         # key is definitely the ids
         j = 0
@@ -299,7 +345,9 @@ while i < len(starters):
                     for q in range(len(tierListQB)):
                         if fullName in tierListQB[q]:
                             tier = q + 1
-                            qbStarterList.append(f"{fullName} [{tier}]")
+                            qbStarterList.append(f"{fullName}")
+                            qbTierList.append(f"{tier}")
+
                     tier = tier + 1
 
 
@@ -307,62 +355,121 @@ while i < len(starters):
                     for q in range(len(tierListRB)):
                         if fullName in tierListRB[q]:
                             tier = q + 1
-                            rbStarterList.append(f"{fullName} [{tier}]")
+                            rbStarterList.append(f"{fullName}")
+                            rbTierList.append(f"{tier}")
 
                 if pos == "WR":
                     for q in range(len(tierListWR)):
                         if fullName in tierListWR[q]:
                             tier = q + 1
-                            wrStarterList.append(f"{fullName} [{tier}]")
+                            wrStarterList.append(f"{fullName}")
+                            wrTierList.append(f"{tier}")
 
                 if pos == "K":
                     for q in range(len(tierListK)):
                         if fullName in tierListK[q]:
                             tier = q + 1
-                            kStarterList.append(f"{fullName} [{tier}]")
+                            kStarterList.append(f"{fullName}")
+                            kTierList.append(f"{tier}")
 
                 if pos == "DEF":
                     for q in range(len(tierListDST)):
                         if fullName in tierListDST[q]:
                             tier = q + 1
-                            dstStarterList.append(f"{fullName} [{tier}]")
+                            dstStarterList.append(f"{fullName}")
+                            dstTierList.append(f"{tier}")
 
                 if pos == "TE":
                     for q in range(len(tierListTE)):
                         if fullName in tierListTE[q]:
                             tier = q + 1
-                            teStarterList.append(f"{fullName} [{tier}]")
+                            teStarterList.append(f"{fullName}")
+                            teTierList.append(f"{tier}")
                 tierSum = tier + tierSum
                 tier = tier + 1
-                starterList.append(f"{fName} {lName} [{pos}] [Tier {tier}]")
+                #starterList.append(f"{fName} {lName} [{pos}] [Tier {tier}]")
 
             j = j + 1
 
     y = 0
 
-    print("--QB---")
-    print(*qbStarterList, sep = "\n")
+    print("<tr>")
+    print("<th colspan=\"2\">Starters</th>")
+    print("</tr>")
 
-    print("--WR---")
-    print(*wrStarterList, sep = "\n")
+    if (len(qbStarterList) > 0):
+        print("<tr>")
+        print("<th>QB</th>")
+        print("<th>Tier</th>")
+        print("</tr>")
+        for x in range(len(qbStarterList)):
+            print("<tr>")
+            print("<td>" + qbStarterList[x] + "</td>")
+            print("<td>" + qbTierList[x] + "</td>")
+            print("</tr>")
+        
+    if (len(rbStarterList) > 0):
+        print("<tr>")
+        print("<th>RB</th>")
+        print("<th>Tier</th>")
+        print("</tr>")
+        for x in range(len(rbStarterList)):
+            print("<tr>")
+            print("<td>" + rbStarterList[x] + "</td>")
+            print("<td>" + rbTierList[x] + "</td>")
+            print("</tr>")
 
-    print("--RB---")
-    print(*rbStarterList, sep = "\n")
+    if (len(wrStarterList) > 0):
+        print("<tr>")
+        print("<th>WR</th>")
+        print("<th>Tier</th>")
+        print("</tr>")
+        for x in range(len(wrStarterList)):
+            print("<tr>")
+            print("<td>" + wrStarterList[x] + "</td>")
+            print("<td>" + wrTierList[x] + "</td>")
+            print("</tr>")
 
-    print("--TE---")
-    print(*teStarterList, sep = "\n")
+    if (len(teStarterList) > 0):
+        print("<tr>")
+        print("<th>TE</th>")
+        print("<th>Tier</th>")
+        print("</tr>")
+        for x in range(len(teStarterList)):
+            print("<tr>")
+            print("<td>" + teStarterList[x] + "</td>")
+            print("<td>" + teTierList[x] + "</td>")
+            print("</tr>")
 
-    print("--DST---")
-    print(*dstStarterList, sep = "\n")
+    if (len(kStarterList) > 0):
+        print("<tr>")
+        print("<th>K</th>")
+        print("<th>Tier</th>")
+        print("</tr>")
+        for x in range(len(teStarterList)):
+            print("<tr>")
+            print("<td>" + kStarterList[x] + "</td>")
+            print("<td>" + kTierList[x] + "</td>")
+            print("</tr>")
 
-    print("--K---")
-    print(*kStarterList, sep = "\n")
+    if (len(dstStarterList) > 0):
+        print("<tr>")
+        print("<th>DST</th>")
+        print("<th>Tier</th>")
+        print("</tr>")
+        for x in range(len(dstStarterList)):
+            print("<tr>")
+            print("<td>" + dstStarterList[x] + "</td>")
+            print("<td>" + dstTierList[x] + "</td>")
+            print("</tr>")
+
             
 
     tierSum = tierSum - 1
-    print(f"\nAverage Tier of Starters is: {round(tierSum / (len(starters[i])),3)}")
+    print(f"<tr><th colspan=\"2\" style=\"text-align:center;\">Average Tier: {round(tierSum / (len(starters[i])),3)}</th></tr>")
     # bench
-    print("\nBench:")
+    print("<br>")
+    print("<br>")
     for key in playerData:
         # key is definitely the ids
         # should iterate through 5
@@ -377,69 +484,129 @@ while i < len(starters):
                     for q in range(len(tierListQB)):
                         if fullName in tierListQB[q]:
                             tier = q + 1
-                            qbBenchList.append(f"{fullName} [{tier}]")
+                            qbBenchList.append(f"{fullName}")
+                            qbTierBenchList.append(f"{tier}")
 
                 if pos == "RB":
                     for q in range(len(tierListRB)):
                         if fullName in tierListRB[q]:
                             tier = q + 1
-                            rbBenchList.append(f"{fullName} [{tier}]")
+                            rbBenchList.append(f"{fullName}")
+                            rbTierBenchList.append(f"{tier}")
 
                 if pos == "WR":
                     for q in range(len(tierListWR)):
                         if fullName in tierListWR[q]:
                             tier = q + 1
-                            wrBenchList.append(f"{fullName} [{tier}]")
+                            wrBenchList.append(f"{fullName}")
+                            wrTierBenchList.append(f"{tier}")
 
                 if pos == "K":
                     for q in range(len(tierListK)):
                         if fullName in tierListK[q]:
                             tier = q + 1
-                            kBenchList.append(f"{fullName} [{tier}]")
+                            kBenchList.append(f"{fullName}")
+                            kTierBenchList.append(f"{tier}")
 
                 if pos == "DEF":
                     for q in range(len(tierListDST)):
                         if fullName in tierListDST[q]:
                             tier = q + 1
-                            dstBenchList.append(f"{fullName} [{tier}]")
+                            dstBenchList.append(f"{fullName}")
+                            dstTierBenchList.append(f"{tier}")
 
                 if pos == "TE":
                     for q in range(len(tierListTE)):
                         if fullName in tierListTE[q]:
                             tier = q + 1
-                            teBenchList.append(f"{fullName} [{tier}]")
+                            teBenchList.append(f"{fullName}")
+                            teTierBenchList.append(f"{tier}")
 
                 tier = tier + 1
-                benchList.append(f"{fName} {lName} [{pos}] [Tier {tier}]")
+                #benchList.append(f"{fName} {lName} [{pos}] [Tier {tier}]")
 
     y = 0
     
-    if len(qbBenchList) > 0:
-        print("\n--QB---")
-        print(*qbBenchList, sep = "\n")
+    print("<tr>")
+    print("<th colspan=\"2\">Bench</th>")
+    print("</tr>")
 
-    if len(wrBenchList) > 0:
-        print("\n--WR---")
-        print(*wrBenchList, sep = "\n")
+    if (len(qbBenchList) > 0):
+        print("<tr>")
+        print("<th>QB</th>")
+        print("<th>Tier</th>")
+        print("</tr>")
+        for x in range(len(qbBenchList)):
+            print("<tr>")
+            print("<td>" + qbBenchList[x] + "</td>")
+            print("<td>" + qbTierBenchList[x] + "</td>")
+            print("</tr>")
+        
+    if (len(rbBenchList) > 0):
+        print("<tr>")
+        print("<th>RB</th>")
+        print("<th>Tier</th>")
+        print("</tr>")
+        for x in range(len(rbBenchList)):
+            print("<tr>")
+            print("<td>" + rbBenchList[x] + "</td>")
+            print("<td>" + rbTierBenchList[x] + "</td>")
+            print("</tr>")
 
-    if len(rbBenchList) > 0:
-        print("\n--RB---")
-        print(*rbBenchList, sep = "\n")
+    if (len(wrBenchList) > 0):
+        print("<tr>")
+        print("<th>WR</th>")
+        print("<th>Tier</th>")
+        print("</tr>")
+        for x in range(len(wrBenchList)):
+            print("<tr>")
+            print("<td>" + wrBenchList[x] + "</td>")
+            print("<td>" + wrTierBenchList[x] + "</td>")
+            print("</tr>")
 
-    if len(teBenchList) > 0:
-        print("\n--TE---")
-        print(*teBenchList, sep = "\n")
+    if (len(teBenchList) > 0):
+        print("<tr>")
+        print("<th>TE</th>")
+        print("<th>Tier</th>")
+        print("</tr>")
+        for x in range(len(teBenchList)):
+            print("<tr>")
+            print("<td>" + teBenchList[x] + "</td>")
+            print("<td>" + teTierBenchList[x] + "</td>")
+            print("</tr>")
 
-    if len(dstBenchList) > 0:
-        print("\n--DST---")
-        print(*dstBenchList, sep = "\n")
+    if (len(kBenchList) > 0):
+        print("<tr>")
+        print("<th>K</th>")
+        print("<th>Tier</th>")
+        print("</tr>")
+        for x in range(len(kBenchList)):
+            print("<tr>")
+            print("<td>" + kBenchList[x] + "</td>")
+            print("<td>" + kTierBenchList[x] + "</td>")
+            print("</tr>")
 
-    if len(kBenchList) > 0:
-        print("\n--K---")
-        print(*kBenchList, sep = "\n")
-
-    #print(data)
+    if (len(dstBenchList) > 0):
+        print("<tr>")
+        print("<th>DST</th>")
+        print("<th>Tier</th>")
+        print("</tr>")
+        for x in range(len(dstBenchList)):
+            print("<tr>")
+            print("<td>" + dstBenchList[x] + "</td>")
+            print("<td>" + dstTierBenchList[x] + "</td>")
+            print("</tr>")
     
+
+
+
+
+    # end of all output for league
+    print("</table>")
     # end of main while    
     i = i + 1
+
+print("</body>")
+print("</html>")
+
 
