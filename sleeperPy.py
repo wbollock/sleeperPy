@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
 # sleeperPy
-# Description: used to fetch user's current roster, across multiple leagues, and compare
-# to http://www.borischen.co/ tiers
-
-# Main Goal: use boris chen tiers to see if you should sub out players based on boris chen tier
-# possibly with trending/WW players too
 
 import requests
 import json
@@ -14,12 +9,7 @@ import sys
 import fileinput
 from shutil import copyfile
 
-
-
-# Variables 
-
-
-# Variables - not user adjustable
+# Variables
 sport = "nfl"
 year = "2020"
 playersFile = "players.txt"
@@ -45,7 +35,7 @@ def Diff(li1, li2):
 # TODO: account for kicker-less and DST-less leagues by not printing "--k--" or "--dst--" when not needed
 
 # BUGS:
-# Downloading player data.
+# Downloading player data hangs web stuff
 
 # API
 # https://docs.sleeper.app/
@@ -140,29 +130,6 @@ for d in data:
 
 # first, fetch all players so I can cross reference IDs
 
-# from sleeper:
-# You should save this information on your own servers as this is not intended to be called every time you need to look up players due to the filesize being close to 5MB in size.
-# You do not need to call this endpoint more than once per day.
-
-
-if Path(playersFile).is_file():
-    # if file exists but older than 1 day, recreate
-    seconds = file_age(playersFile)
-    if seconds > 86400:
-        #print("Downloading player data.")
-        with open(playersFile, 'w') as outfile:
-            url = "https://api.sleeper.app/v1/players/nfl"
-            r = requests.get(url)
-            json.dump(r.json(), outfile)
-else:
-    # if file doesn't exist at all
-    #print("Downloading player data for the first time.")
-    with open(playersFile, 'w') as outfile:
-        url = "https://api.sleeper.app/v1/players/nfl"
-        r = requests.get(url)
-        json.dump(r.json(), outfile)
-
-
 
 # read from players file
 with open(playersFile) as json_file:
@@ -197,31 +164,8 @@ for league in leagues:
             # shit but multiple leagues
 
 
-
-# for each league
-# print player names, cross reference with playerData
-# playerData is a dict
-# players/starters are lists
-
-#print(players[0][1])
-# second value from first list of players
-# first list of players, 15
-
-# Print roster from each league, bench and starters
-
 i = 0
 bench = []
-#print("SleeperPy: Boris Chen Tiers for Sleeper Leagues\n")
-#print("Note:")
-#print("Tier 100 means player is not properly ranked on Boris Chen.")
-#print("[X] indicates the tier of the player. Lower is better.")
-#print("\nUsername:", username)
-
-
-
-
-
-
 
 print("<h5>Username: " + username + "</h5>")
 print("</div>")
@@ -230,9 +174,6 @@ print("<div class=\"flex-container container\">")
 
 while i < len(starters):
     # for each league, do:
-    
-    
-    
 
     starterList = []
     benchList = []
