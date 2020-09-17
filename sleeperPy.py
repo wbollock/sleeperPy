@@ -282,11 +282,11 @@ while i < len(starters):
     
     print("<table class=\"table-fill\">")
     if scoring[i] == 1.0:
-        print(f"<th colspan=\"2\" style=\"text-align:center;\">League: {leagueNames[i]} (PPR) | Starters</th>")
+        print(f"<th class=\"league-title\" colspan=\"2\">League: {leagueNames[i]} (PPR) | Starters</th>")
     elif scoring[i] == 0.5:
-        print(f"<th colspan=\"2\" style=\"text-align:center;\">League: {leagueNames[i]} (Half PPR) | Starters</th>")
+        print(f"<th class=\"league-title\" colspan=\"2\">League: {leagueNames[i]} (Half PPR) | Starters</th>")
     elif scoring[i] == 0.0:
-        print(f"<th colspan=\"2\" style=\"text-align:center;\">League: {leagueNames[i]} (Standard) | Starters</th>")
+        print(f"<th class=\"league-title\" colspan=\"2\">League: {leagueNames[i]} (Standard) | Starters</th>")
 
     print("</tr>")
 

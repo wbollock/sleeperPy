@@ -1,7 +1,7 @@
 @import url(https://fonts.googleapis.com/css?family=Roboto:400,500,700,300,100);
  /* credit: https://codepen.io/alassetter/pen/cyrfB */
 body {
-  background-color: #cfcdcd93;
+  background-color: #62616185;
   font-family: "Roboto", helvetica, arial, sans-serif;
   font-size: 16px;
   font-weight: 400;
@@ -11,6 +11,17 @@ body {
 .flex-container {
   display: flex;
   flex-wrap: wrap;
+}
+
+.league-title {
+  background:#193164ab;
+  text-align: center;
+  color: black;
+  font-weight: bold;
+}
+
+h5 {
+  font-weight: bold;
 }
 
 div.table-title {
@@ -39,7 +50,7 @@ div.table-title {
   border-radius:3px;
   border-collapse: collapse;
   height: 320px;
-  margin: auto;
+  margin: 60px;
   max-width: 400px;
   padding:5px;
   width: 100%;
