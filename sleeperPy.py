@@ -226,7 +226,7 @@ bench = []
 print("<h5>Username: " + username + "</h5>")
 print("</div>")
 print("</div>")
-print("<div class=\"flex-container\">")
+print("<div class=\"flex-container container\">")
 
 while i < len(starters):
     # for each league, do:
