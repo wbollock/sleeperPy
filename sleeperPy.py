@@ -224,6 +224,7 @@ bench = []
 
 
 print("<h3>Username: " + username + "</h3>")
+print("<div class=\"flex-container\">")
 
 while i < len(starters):
     # for each league, do:
@@ -274,20 +275,18 @@ while i < len(starters):
     rbBoris = f"https://s3-us-west-1.amazonaws.com/fftiers/out/text_RB{scoring_to_text_map[scoring[i]]}.txt"
     wrBoris = f"https://s3-us-west-1.amazonaws.com/fftiers/out/text_WR{scoring_to_text_map[scoring[i]]}.txt"
     teBoris = f"https://s3-us-west-1.amazonaws.com/fftiers/out/text_TE{scoring_to_text_map[scoring[i]]}.txt"
-
-    print("<table>")
-    print("<tr>")
-    print("<th colspan=\"2\" style=\"text-align:center;\">")
-
+    
+   
+    
+    print("<table class=\"table-fill\">")
     if scoring[i] == 1.0:
-        print(f"League: {leagueNames[i]} | Scoring Type: PPR")
+        print(f"<th colspan=\"2\" style=\"text-align:center;\">League: {leagueNames[i]} (PPR) | Starters</th>")
     elif scoring[i] == 0.5:
-        print(f"League: {leagueNames[i]} | Scoring Type: Half PPR")
+        print(f"<th colspan=\"2\" style=\"text-align:center;\">League: {leagueNames[i]} (Half PPR) | Starters</th>")
     elif scoring[i] == 0.0:
-        print(f"League: {leagueNames[i]} | Scoring Type: Standard")
+        print(f"<th colspan=\"2\" style=\"text-align:center;\">League: {leagueNames[i]} (Standard) | Starters</th>")
 
-        print("</th>")
-        print("</tr>")
+    print("</tr>")
 
 
     r = requests.get(rbBoris)
@@ -323,6 +322,7 @@ while i < len(starters):
     
     # list starters
     tierSum = 0
+    
     for key in playerData:
         # key is definitely the ids
         j = 0
@@ -393,9 +393,7 @@ while i < len(starters):
 
     y = 0
 
-    print("<tr>")
-    print("<th colspan=\"2\">Starters</th>")
-    print("</tr>")
+    
 
     if (len(qbStarterList) > 0):
         print("<tr>")
@@ -466,7 +464,7 @@ while i < len(starters):
             
 
     tierSum = tierSum - 1
-    print(f"<tr><th colspan=\"2\" style=\"text-align:center;\">Average Tier: {round(tierSum / (len(starters[i])),3)}</th></tr>")
+    print(f"<tr><td colspan=\"2\" style=\"text-align: center\">Average Tier {round(tierSum / (len(starters[i])),3)}</td></tr>")
     # bench
     print("<br>")
     print("<br>")
@@ -528,7 +526,7 @@ while i < len(starters):
     y = 0
     
     print("<tr>")
-    print("<th colspan=\"2\">Bench</th>")
+    print("<th colspan=\"2\" style=\"text-align:center;\">Bench</th>")
     print("</tr>")
 
     if (len(qbBenchList) > 0):
@@ -605,6 +603,8 @@ while i < len(starters):
     print("</table>")
     # end of main while    
     i = i + 1
+
+print("</div>")
 
 print("</body>")
 print("</html>")
