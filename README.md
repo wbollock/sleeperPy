@@ -2,7 +2,7 @@
 
 A program to allow users to easily parse their [Sleeper](https://sleeper.app/) Fantasy Football team using [Boris Chen's](http://www.borischen.co/) tiers (accumulated from all FantasyPros.com experts).
 
-![one team](img/web.png)
+![one team](img/web_view.png)
 
 Use it on my [personal website](https://wboll.dev/sleeperPy/). Try the username "puffplants" if you don't have a Sleeper FF team.
 
