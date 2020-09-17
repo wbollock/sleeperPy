@@ -10,7 +10,7 @@ Only Sleeper Fantasy Football is supported.
 
 ## Features
 
-* Utilizes the Sleeper APISupport for multiple leagues. Simply enter your Sleeper username.
+* Utilizes the Sleeper API for multiple leagues. Simply enter your Sleeper username, and get player's associated Boris Chen tiers.
 * Multiple scoring types accounted for, standard, 0.5 PPR and PPR. 
 * Shows the current tier of each player, dividing starters and bench.
 * Represents each league in simple HTML tables.

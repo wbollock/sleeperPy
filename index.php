@@ -1,4 +1,15 @@
 <html>
+<head>
+        <meta charset="utf-8">
+        <title>SleeperPy</title>
+        <meta name="author" content="Will bollock">
+        <link rel="stylesheet" href="tiers/style.css">
+        <link rel="stylesheet" href="css/normalize.css">
+         <link rel="stylesheet" href="css/skeleton.css">
+         <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
+         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- https://codepen.io/alassetter/pen/cyrfB -->
+</head>
 <body>
 
 <?php
@@ -23,21 +34,28 @@ if(isset($_POST['submit'])){ //check if form was submitted
 
 
 <form action="" method="post">
+<div class="container">
+<div class="row">
 <h1>SleeperPy</h1>
-<p>Outputs your team's <a href="http://www.borischen.co/">Boris Chen</a> tiers across all Sleeper leagues. </p>
-<a href="https://github.com/wbollock/sleeperPy">GitHub Link</a>
-<br>
-<br>
+
+<ul>
+    <li>Outputs your team's <a href="http://www.borischen.co/">Boris Chen</a> tiers across all Sleeper leagues.</li>
+    <li><a href="https://github.com/wbollock/sleeperPy">GitHub Link</a></li>
+    <li>It is best to run this on Thursday, as tiers are mostly updated by then.</li>
+</ul>
+
 Enter your Sleeper username: <input type="text" name="name">
-<br>
 <br>
 <input type="submit" name="submit" value="Generate Tiers">
 
 <br>
 <br>
-<p>It is best to run this on Thursday, as tiers are mostly updated by then.</p>
+
 
 </form>
+</div>
+    </div>
+  </div>
 
 
 
