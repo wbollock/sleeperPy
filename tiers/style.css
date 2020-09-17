@@ -50,7 +50,8 @@ div.table-title {
   border-radius:3px;
   border-collapse: collapse;
   height: 320px;
-  margin: 60px;
+  margin-left: 30px;
+  margin-bottom: 100px;
   max-width: 400px;
   padding:5px;
   width: 100%;
