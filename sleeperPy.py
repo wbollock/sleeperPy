@@ -42,11 +42,6 @@ def Diff(li1, li2):
 # TODO: account for kicker-less and DST-less leagues by not printing "--k--" or "--dst--" when not needed
 
 # BUGS:
-# Average Tier doesn't always work
-# https://wboll.dev/sleeperPy/tiers/tiers_StuMac.txt
-# Average is 13.5
-# https://wboll.dev/sleeperPy/tiers/tiers_Nr2016.txt
-# Average 13.8
 
 # API
 # https://docs.sleeper.app/
@@ -440,7 +435,7 @@ while i < len(starters):
         print(*dstBenchList, sep = "\n")
 
     if len(kBenchList) > 0:
-        print("\n--WR---")
+        print("\n--K---")
         print(*kBenchList, sep = "\n")
 
     #print(data)
