@@ -30,12 +30,8 @@ def Diff(li1, li2):
 # TODO: needs functions
 # TODO: waiver wire suggestions would be great, especially for DST/K. If player on WW is higher tier, mention it.
 # TODO: sorting by tier would be cool
-# TODO: converting.txt file to HTML would be prudent, and mobile-friendly. also dark mode i can't stand this shit
 # TODO: add average tier of opponent vs average tier of you
-# TODO: account for kicker-less and DST-less leagues by not printing "--k--" or "--dst--" when not needed
 
-# BUGS:
-# Downloading player data hangs web stuff
 
 # API
 # https://docs.sleeper.app/
@@ -57,8 +53,6 @@ if n < 2:
     print("Error: please enter your Sleeper username.")
 elif n > 2:
     print("Error: Too many arguments. Please type your sleeper username.")
-
-
 
 
 #username = "KingDedede"
@@ -86,12 +80,9 @@ os.chmod(tiersFilepath, 0o666)
 sys.stdout = open(tiersFilepath, "a")
 
 
-
 # Get USERID
 url = f"https://api.sleeper.app/v1/user/{username}"
-
 r = requests.get(url)
-
 data = r.json()
 
 
@@ -123,22 +114,17 @@ for d in data:
 
 # leagues, e.g 
 # ['603501445962080256', '597557922544807936']
-
-
 # Get current players of user for * leagues
 # GET https://api.sleeper.app/v1/league/<league_id>/rosters
-
 # first, fetch all players so I can cross reference IDs
-
-
 # read from players file
+
 with open(playersFile) as json_file:
     playerData = json.load(json_file)
 
 
 
 # data is a dict here
-
 # print roster for both leagues:
 
 i = 0
@@ -146,14 +132,13 @@ starters = []
 players = []
 # get players and starters for user team in each league
 for league in leagues:
-    # print league name
-    #print("League" + ": " + str(leagueNames[i]))
 
     # Get current roster
     url = f"https://api.sleeper.app/v1/league/{league}/rosters"
     r = requests.get(url)
     data = r.json()
     # data is a list here
+    
     # length is number of teams
     for d in data:
         # for every team in league, do
