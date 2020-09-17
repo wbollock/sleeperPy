@@ -223,7 +223,9 @@ bench = []
 
 
 
-print("<h3>Username: " + username + "</h3>")
+print("<h5>Username: " + username + "</h5>")
+print("</div>")
+print("</div>")
 print("<div class=\"flex-container\">")
 
 while i < len(starters):
@@ -605,7 +607,7 @@ while i < len(starters):
     i = i + 1
 
 print("</div>")
-
+print("<br>")
 print("</body>")
 print("</html>")
 

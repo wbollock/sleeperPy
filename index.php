@@ -4,11 +4,13 @@
         <title>SleeperPy</title>
         <meta name="author" content="Will bollock">
         <link rel="stylesheet" href="tiers/style.css">
+        <!-- https://codepen.io/alassetter/pen/cyrfB -->
+        <!-- credit for skeleton http://getskeleton.com/ -->
         <link rel="stylesheet" href="css/normalize.css">
          <link rel="stylesheet" href="css/skeleton.css">
          <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
          <meta name="viewport" content="width=device-width, initial-scale=1">
-        <!-- https://codepen.io/alassetter/pen/cyrfB -->
+        
 </head>
 <body>
 
@@ -53,7 +55,7 @@ Enter your Sleeper username: <input type="text" name="name">
 
 
 </form>
-</div>
+
     </div>
   </div>
 
