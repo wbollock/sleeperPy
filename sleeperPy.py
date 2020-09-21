@@ -169,6 +169,8 @@ while i < len(starters):
     teStarterList = []
     dstStarterList = []
     kStarterList = []
+    # ur = unranked
+    urStarterList = []
 
     qbTierList = []
     rbTierList = []
@@ -184,6 +186,8 @@ while i < len(starters):
     teBenchList = []
     dstBenchList = []
     kBenchList = []
+    # ur = unranked
+    urBenchList = []
 
     qbTierBenchList = []
     rbTierBenchList = []
@@ -258,7 +262,7 @@ while i < len(starters):
         
         while j < len(starters[i]):
             if key == starters[i][j]:
-                # one player from each loop... add tiers here i guess?
+                # one player from each loop... 
                 fName = playerData[starters[i][j]]['first_name']  
                 lName = playerData[starters[i][j]]['last_name']
                 pos = playerData[starters[i][j]]['position']
@@ -268,48 +272,78 @@ while i < len(starters):
                 # DEF, WR, TE, K, RB, QB
             
                 # len is amount of tiers
-                
+                # Kenny Murphy credit for flags
                 if pos == "QB":
+                    flag = False
                     for q in range(len(tierListQB)):
+                        # tierListQB[q] means: Tier 1: Lamar Jackson, Dak Prescott, Patrick Mahomes II
+                        # iterates through each line of tier
                         if fullName in tierListQB[q]:
                             tier = q + 1
                             qbStarterList.append(f"{fullName}")
                             qbTierList.append(f"{tier}")
+                            flag = True
+                    if flag == False:
+                        urStarterList.append(f"{fullName}")
                 elif pos == "RB":
+                    flag = False
                     for q in range(len(tierListRB)):
                         if fullName in tierListRB[q]:
                             tier = q + 1
                             rbStarterList.append(f"{fullName}")
                             rbTierList.append(f"{tier}")
+                            flag = True
+                    if flag == False:
+                        urStarterList.append(f"{fullName}")
                 elif pos == "WR":
+                    flag = False
                     for q in range(len(tierListWR)):
                         if fullName in tierListWR[q]:
                             tier = q + 1
                             wrStarterList.append(f"{fullName}")
                             wrTierList.append(f"{tier}")
+                            flag = True
+                    if flag == False:
+                        urStarterList.append(f"{fullName}")
                 elif pos == "K":
+                    flag = False
                     for q in range(len(tierListK)):
                         if fullName in tierListK[q]:
                             tier = q + 1
                             kStarterList.append(f"{fullName}")
                             kTierList.append(f"{tier}")
+                            flag = True
+                    if flag == False:
+                        urStarterList.append(f"{fullName}")
                 elif pos == "DEF":
+                    flag = False
                     for q in range(len(tierListDST)):
                         if fullName in tierListDST[q]:
                             tier = q + 1
                             dstStarterList.append(f"{fullName}")
                             dstTierList.append(f"{tier}")
+                            flag = True
+                    if flag == False:
+                        urStarterList.append(f"{fullName}")
                 elif pos == "TE":
+                    flag = False
                     for q in range(len(tierListTE)):
                         if fullName in tierListTE[q]:
                             tier = q + 1
                             teStarterList.append(f"{fullName}")
                             teTierList.append(f"{tier}")
+                            flag = True
+                    if flag == False:
+                        urStarterList.append(f"{fullName}")
+                    
+
                 tierSum = tier + tierSum
                 tier = tier + 1
                 #starterList.append(f"{fName} {lName} [{pos}] [Tier {tier}]")
-
+                
             j = j + 1
+            
+                
 
     y = 0
 
@@ -381,6 +415,15 @@ while i < len(starters):
             print("<td>" + dstTierList[x] + "</td>")
             print("</tr>")
 
+    if (len(urStarterList) > 0):
+        print("<tr>")
+        print("<th colspan=\"2\" style=\"text-align: center\">Not Ranked</th>")
+        print("</tr>")
+        for x in range(len(urStarterList)):
+            print("<tr>")
+            print("<td>" + urStarterList[x] + "</td>")
+            print("</tr>")
+
             
 
     tierSum = tierSum - 1
@@ -399,44 +442,68 @@ while i < len(starters):
                 fullName = fName + " " + lName
 
                 if pos == "QB":
+                    flag = False
                     for q in range(len(tierListQB)):
                         if fullName in tierListQB[q]:
                             tier = q + 1
                             qbBenchList.append(f"{fullName}")
                             qbTierBenchList.append(f"{tier}")
+                            flag = True
+                    if flag == False:
+                        urBenchList.append(f"{fullName}")
                 elif pos == "RB":
+                    flag = False
                     for q in range(len(tierListRB)):
                         if fullName in tierListRB[q]:
                             tier = q + 1
                             rbBenchList.append(f"{fullName}")
                             rbTierBenchList.append(f"{tier}")
+                            flag = True
+                    if flag == False:
+                        urBenchList.append(f"{fullName}")
                 elif pos == "WR":
+                    flag = False
                     for q in range(len(tierListWR)):
                         if fullName in tierListWR[q]:
                             tier = q + 1
                             wrBenchList.append(f"{fullName}")
                             wrTierBenchList.append(f"{tier}")
+                            flag = True
+                    if flag == False:
+                        urBenchList.append(f"{fullName}")
                 elif pos == "K":
+                    flag = False
                     for q in range(len(tierListK)):
                         if fullName in tierListK[q]:
                             tier = q + 1
                             kBenchList.append(f"{fullName}")
                             kTierBenchList.append(f"{tier}")
+                            flag = True
+                    if flag == False:
+                        urBenchList.append(f"{fullName}")
                 elif pos == "DEF":
+                    flag = False
                     for q in range(len(tierListDST)):
                         if fullName in tierListDST[q]:
                             tier = q + 1
                             dstBenchList.append(f"{fullName}")
                             dstTierBenchList.append(f"{tier}")
+                            flag = True
+                    if flag == False:
+                        urBenchList.append(f"{fullName}")
                 elif pos == "TE":
+                    flag = False
                     for q in range(len(tierListTE)):
                         if fullName in tierListTE[q]:
                             tier = q + 1
                             teBenchList.append(f"{fullName}")
                             teTierBenchList.append(f"{tier}")
+                            flag = True
+                    if flag == False:
+                        urBenchList.append(f"{fullName}")
 
                 tier = tier + 1
-                #benchList.append(f"{fName} {lName} [{pos}] [Tier {tier}]")
+                
 
     y = 0
     
@@ -508,6 +575,15 @@ while i < len(starters):
             print("<tr>")
             print("<td>" + dstBenchList[x] + "</td>")
             print("<td>" + dstTierBenchList[x] + "</td>")
+            print("</tr>")
+
+    if (len(urBenchList) > 0):
+        print("<tr>")
+        print("<th colspan=\"2\" style=\"text-align: center\">Not Ranked</th>")
+        print("</tr>")
+        for x in range(len(urBenchList)):
+            print("<tr>")
+            print("<td colspan=\"2\">" + urBenchList[x] + "</td>")
             print("</tr>")
     
 
