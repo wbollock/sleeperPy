@@ -275,39 +275,31 @@ while i < len(starters):
                             tier = q + 1
                             qbStarterList.append(f"{fullName}")
                             qbTierList.append(f"{tier}")
-
-                    tier = tier + 1
-
-
-                if pos == "RB":
+                elif pos == "RB":
                     for q in range(len(tierListRB)):
                         if fullName in tierListRB[q]:
                             tier = q + 1
                             rbStarterList.append(f"{fullName}")
                             rbTierList.append(f"{tier}")
-
-                if pos == "WR":
+                elif pos == "WR":
                     for q in range(len(tierListWR)):
                         if fullName in tierListWR[q]:
                             tier = q + 1
                             wrStarterList.append(f"{fullName}")
                             wrTierList.append(f"{tier}")
-
-                if pos == "K":
+                elif pos == "K":
                     for q in range(len(tierListK)):
                         if fullName in tierListK[q]:
                             tier = q + 1
                             kStarterList.append(f"{fullName}")
                             kTierList.append(f"{tier}")
-
-                if pos == "DEF":
+                elif pos == "DEF":
                     for q in range(len(tierListDST)):
                         if fullName in tierListDST[q]:
                             tier = q + 1
                             dstStarterList.append(f"{fullName}")
                             dstTierList.append(f"{tier}")
-
-                if pos == "TE":
+                elif pos == "TE":
                     for q in range(len(tierListTE)):
                         if fullName in tierListTE[q]:
                             tier = q + 1
@@ -412,36 +404,31 @@ while i < len(starters):
                             tier = q + 1
                             qbBenchList.append(f"{fullName}")
                             qbTierBenchList.append(f"{tier}")
-
-                if pos == "RB":
+                elif pos == "RB":
                     for q in range(len(tierListRB)):
                         if fullName in tierListRB[q]:
                             tier = q + 1
                             rbBenchList.append(f"{fullName}")
                             rbTierBenchList.append(f"{tier}")
-
-                if pos == "WR":
+                elif pos == "WR":
                     for q in range(len(tierListWR)):
                         if fullName in tierListWR[q]:
                             tier = q + 1
                             wrBenchList.append(f"{fullName}")
                             wrTierBenchList.append(f"{tier}")
-
-                if pos == "K":
+                elif pos == "K":
                     for q in range(len(tierListK)):
                         if fullName in tierListK[q]:
                             tier = q + 1
                             kBenchList.append(f"{fullName}")
                             kTierBenchList.append(f"{tier}")
-
-                if pos == "DEF":
+                elif pos == "DEF":
                     for q in range(len(tierListDST)):
                         if fullName in tierListDST[q]:
                             tier = q + 1
                             dstBenchList.append(f"{fullName}")
                             dstTierBenchList.append(f"{tier}")
-
-                if pos == "TE":
+                elif pos == "TE":
                     for q in range(len(tierListTE)):
                         if fullName in tierListTE[q]:
                             tier = q + 1
