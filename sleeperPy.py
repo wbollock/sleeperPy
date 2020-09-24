@@ -17,12 +17,28 @@ htmlFile  = "tiers.html"
 
 
 # Functions
+
+# used to determine age of players.txt, if > 1 day then download it again
 def file_age(filepath):
     return time.time() - os.path.getmtime(filepath)
 
+# used to find "bench" by finding the difference between total team and starters
 def Diff(li1, li2): 
     li_dif = [i for i in li1 + li2 if i not in li1 or i not in li2] 
     return li_dif
+
+# used to generate HTML with lists of players and their matching tiers
+def printTiers(playerList, tierList, pos):
+    outputList = []
+    if (len(playerList) > 0):
+        print("<tr>")
+        print("<th>" + pos + "</th>")
+        print("<th>Tier</th>")
+        print("</tr>")
+        for x in range(len(playerList)):
+            outputList.append("<tr>" + "<td>" + playerList[x] + "</td>" + "<td>" + tierList[x] + "</td>" + "</tr>")
+    return outputList
+
 
 
 # ISSUES/TODO
@@ -85,19 +101,17 @@ url = f"https://api.sleeper.app/v1/user/{username}"
 r = requests.get(url)
 data = r.json()
 
-
+# attempt to see if we can get any data from sleeper for inputted username
 try:
     userid = data['user_id']
 except TypeError:
     print("Sorry, invalid Sleeper username. Please try again.")
     sys.exit()
-# dict type
+
 
 # Get all leagues for user
 url = f"https://api.sleeper.app/v1/user/{userid}/leagues/{sport}/{year}"
-
 r = requests.get(url)
-
 data = r.json()
 # list type
 
@@ -348,72 +362,25 @@ while i < len(starters):
     y = 0
 
     
-
-    if (len(qbStarterList) > 0):
-        print("<tr>")
-        print("<th>QB</th>")
-        print("<th>Tier</th>")
-        print("</tr>")
-        for x in range(len(qbStarterList)):
-            print("<tr>")
-            print("<td>" + qbStarterList[x] + "</td>")
-            print("<td>" + qbTierList[x] + "</td>")
-            print("</tr>")
-        
-    if (len(rbStarterList) > 0):
-        print("<tr>")
-        print("<th>RB</th>")
-        print("<th>Tier</th>")
-        print("</tr>")
-        for x in range(len(rbStarterList)):
-            print("<tr>")
-            print("<td>" + rbStarterList[x] + "</td>")
-            print("<td>" + rbTierList[x] + "</td>")
-            print("</tr>")
-
-    if (len(wrStarterList) > 0):
-        print("<tr>")
-        print("<th>WR</th>")
-        print("<th>Tier</th>")
-        print("</tr>")
-        for x in range(len(wrStarterList)):
-            print("<tr>")
-            print("<td>" + wrStarterList[x] + "</td>")
-            print("<td>" + wrTierList[x] + "</td>")
-            print("</tr>")
-
-    if (len(teStarterList) > 0):
-        print("<tr>")
-        print("<th>TE</th>")
-        print("<th>Tier</th>")
-        print("</tr>")
-        for x in range(len(teStarterList)):
-            print("<tr>")
-            print("<td>" + teStarterList[x] + "</td>")
-            print("<td>" + teTierList[x] + "</td>")
-            print("</tr>")
-
-    if (len(kStarterList) > 0):
-        print("<tr>")
-        print("<th>K</th>")
-        print("<th>Tier</th>")
-        print("</tr>")
-        for x in range(len(teStarterList)):
-            print("<tr>")
-            print("<td>" + kStarterList[x] + "</td>")
-            print("<td>" + kTierList[x] + "</td>")
-            print("</tr>")
-
-    if (len(dstStarterList) > 0):
-        print("<tr>")
-        print("<th>DST</th>")
-        print("<th>Tier</th>")
-        print("</tr>")
-        for x in range(len(dstStarterList)):
-            print("<tr>")
-            print("<td>" + dstStarterList[x] + "</td>")
-            print("<td>" + dstTierList[x] + "</td>")
-            print("</tr>")
+    # returns list with HTML to print to page
+    outputList = printTiers(qbStarterList, qbTierList, "QB")
+    for x in range(len(outputList)):
+        print(outputList[x])
+    outputList = printTiers(rbStarterList, rbTierList, "RB")
+    for x in range(len(outputList)):
+        print(outputList[x])
+    outputList = printTiers(wrStarterList, wrTierList, "WR")
+    for x in range(len(outputList)):
+        print(outputList[x])
+    outputList = printTiers(teStarterList, teTierList, "TE")
+    for x in range(len(outputList)):
+        print(outputList[x])
+    outputList = printTiers(kStarterList, kTierList, "K")
+    for x in range(len(outputList)):
+        print(outputList[x])
+    outputList = printTiers(dstStarterList, dstTierList, "DST")
+    for x in range(len(outputList)):
+        print(outputList[x])
 
     if (len(urStarterList) > 0):
         print("<tr>")
@@ -511,71 +478,25 @@ while i < len(starters):
     print("<th colspan=\"2\" style=\"text-align:center;\">Bench</th>")
     print("</tr>")
 
-    if (len(qbBenchList) > 0):
-        print("<tr>")
-        print("<th>QB</th>")
-        print("<th>Tier</th>")
-        print("</tr>")
-        for x in range(len(qbBenchList)):
-            print("<tr>")
-            print("<td>" + qbBenchList[x] + "</td>")
-            print("<td>" + qbTierBenchList[x] + "</td>")
-            print("</tr>")
-        
-    if (len(rbBenchList) > 0):
-        print("<tr>")
-        print("<th>RB</th>")
-        print("<th>Tier</th>")
-        print("</tr>")
-        for x in range(len(rbBenchList)):
-            print("<tr>")
-            print("<td>" + rbBenchList[x] + "</td>")
-            print("<td>" + rbTierBenchList[x] + "</td>")
-            print("</tr>")
-
-    if (len(wrBenchList) > 0):
-        print("<tr>")
-        print("<th>WR</th>")
-        print("<th>Tier</th>")
-        print("</tr>")
-        for x in range(len(wrBenchList)):
-            print("<tr>")
-            print("<td>" + wrBenchList[x] + "</td>")
-            print("<td>" + wrTierBenchList[x] + "</td>")
-            print("</tr>")
-
-    if (len(teBenchList) > 0):
-        print("<tr>")
-        print("<th>TE</th>")
-        print("<th>Tier</th>")
-        print("</tr>")
-        for x in range(len(teBenchList)):
-            print("<tr>")
-            print("<td>" + teBenchList[x] + "</td>")
-            print("<td>" + teTierBenchList[x] + "</td>")
-            print("</tr>")
-
-    if (len(kBenchList) > 0):
-        print("<tr>")
-        print("<th>K</th>")
-        print("<th>Tier</th>")
-        print("</tr>")
-        for x in range(len(kBenchList)):
-            print("<tr>")
-            print("<td>" + kBenchList[x] + "</td>")
-            print("<td>" + kTierBenchList[x] + "</td>")
-            print("</tr>")
-
-    if (len(dstBenchList) > 0):
-        print("<tr>")
-        print("<th>DST</th>")
-        print("<th>Tier</th>")
-        print("</tr>")
-        for x in range(len(dstBenchList)):
-            print("<tr>")
-            print("<td>" + dstBenchList[x] + "</td>")
-            print("<td>" + dstTierBenchList[x] + "</td>")
-            print("</tr>")
+    
+    outputList = printTiers(qbBenchList, qbTierBenchList, "QB")
+    for x in range(len(outputList)):
+        print(outputList[x])
+    outputList = printTiers(rbBenchList, rbTierBenchList, "RB")
+    for x in range(len(outputList)):
+        print(outputList[x])
+    outputList = printTiers(wrBenchList, wrTierBenchList, "WR")
+    for x in range(len(outputList)):
+        print(outputList[x])
+    outputList = printTiers(teBenchList, teTierBenchList, "TE")
+    for x in range(len(outputList)):
+        print(outputList[x])
+    outputList = printTiers(kBenchList, kTierBenchList, "K")
+    for x in range(len(outputList)):
+        print(outputList[x])
+    outputList = printTiers(dstBenchList, dstTierBenchList, "DST")
+    for x in range(len(outputList)):
+        print(outputList[x])
 
     if (len(urBenchList) > 0):
         print("<tr>")
@@ -585,10 +506,6 @@ while i < len(starters):
             print("<tr>")
             print("<td colspan=\"2\">" + urBenchList[x] + "</td>")
             print("</tr>")
-    
-
-
-
 
     # end of all output for league
     print("</table>")
