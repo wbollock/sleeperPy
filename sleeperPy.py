@@ -39,11 +39,29 @@ def printTiers(playerList, tierList, pos):
             outputList.append("<tr>" + "<td>" + playerList[x] + "</td>" + "<td>" + tierList[x] + "</td>" + "</tr>")
     return outputList
 
+def createTiers(tierListPos, fullName, posPlayerList, posTierList, tier):
+    for q in range(len(tierListPos)):
+        # tierListPos[q] means: Tier 1: Lamar Jackson, Dak Prescott, Patrick Mahomes II
+        # iterates through each line of tier
+        if fullName in tierListPos[q]:
+            tier = q + 1
+            posPlayerList.append(f"{fullName}")
+            posTierList.append(f"{tier}")
+
+    return posPlayerList, posTierList, tier
+
+def createUnranked(tierListPos, fullName):
+    flag = False
+    if any(fullName in word for word in tierListPos):
+        flag = True
+    if flag == False:
+        return (f"{fullName}")
+    else:
+        return "ranked"
 
 
 # ISSUES/TODO
 # TODO: not taking account into flex, e.g noah fant tier 5 better than desean tier 7
-# TODO: needs functions
 # TODO: waiver wire suggestions would be great, especially for DST/K. If player on WW is higher tier, mention it.
 # TODO: sorting by tier would be cool
 # TODO: add average tier of opponent vs average tier of you
@@ -51,13 +69,7 @@ def printTiers(playerList, tierList, pos):
 
 # API
 # https://docs.sleeper.app/
-# grab userid from username
-# curl "https://api.sleeper.app/v1/user/<username>"
-# curl "https://api.sleeper.app/v1/user/<user_id>"
-#curl "https://api.sleeper.app/v1/user/puffplants"
-# https://api.sleeper.app/v1/user/<user_id>/leagues/<sport>/<season>
-# get all leagues for user
-# curl "https://api.sleeper.app/v1/user/470054939452764160/leagues/nfl/2020"
+
 
 # Tiers
 # https://github.com/abhinavk99/espn-borischentiers/blob/master/src/js/espn-borischentiers.js
@@ -174,41 +186,17 @@ print("<div class=\"flex-container container\">")
 while i < len(starters):
     # for each league, do:
 
-    starterList = []
-    benchList = []
+    starterList,benchList = [],[]
 
-    qbStarterList = []
-    rbStarterList = []
-    wrStarterList = []
-    teStarterList = []
-    dstStarterList = []
-    kStarterList = []
     # ur = unranked
-    urStarterList = []
+    qbStarterList,rbStarterList,wrStarterList,teStarterList,dstStarterList,kStarterList,urStarterList = [],[],[],[],[],[],[]
 
-    qbTierList = []
-    rbTierList = []
-    wrTierList = []
-    dstTierList = []
-    teTierList = []
-    kTierList = []
+    qbTierList,rbTierList,wrTierList,dstTierList,teTierList,kTierList = [],[],[],[],[],[]
+    
+    qbBenchList,rbBenchList,wrBenchList,teBenchList,dstBenchList,kBenchList,urBenchList = [],[],[],[],[],[],[]
 
-
-    qbBenchList = []
-    rbBenchList = []
-    wrBenchList = []
-    teBenchList = []
-    dstBenchList = []
-    kBenchList = []
-    # ur = unranked
-    urBenchList = []
-
-    qbTierBenchList = []
-    rbTierBenchList = []
-    wrTierBenchList = []
-    teTierBenchList = []
-    dstTierBenchList = []
-    kTierBenchList = []
+    qbTierBenchList,rbTierBenchList,wrTierBenchList,teTierBenchList,dstTierBenchList,kTierBenchList = [],[],[],[],[],[]
+     
     # mode = scoringMode(scoring)
 
     # figure out what lists to use
@@ -288,67 +276,34 @@ while i < len(starters):
                 # len is amount of tiers
                 # Kenny Murphy credit for flags
                 if pos == "QB":
-                    flag = False
-                    for q in range(len(tierListQB)):
-                        # tierListQB[q] means: Tier 1: Lamar Jackson, Dak Prescott, Patrick Mahomes II
-                        # iterates through each line of tier
-                        if fullName in tierListQB[q]:
-                            tier = q + 1
-                            qbStarterList.append(f"{fullName}")
-                            qbTierList.append(f"{tier}")
-                            flag = True
-                    if flag == False:
-                        urStarterList.append(f"{fullName}")
-                elif pos == "RB":
-                    flag = False
-                    for q in range(len(tierListRB)):
-                        if fullName in tierListRB[q]:
-                            tier = q + 1
-                            rbStarterList.append(f"{fullName}")
-                            rbTierList.append(f"{tier}")
-                            flag = True
-                    if flag == False:
-                        urStarterList.append(f"{fullName}")
-                elif pos == "WR":
-                    flag = False
-                    for q in range(len(tierListWR)):
-                        if fullName in tierListWR[q]:
-                            tier = q + 1
-                            wrStarterList.append(f"{fullName}")
-                            wrTierList.append(f"{tier}")
-                            flag = True
-                    if flag == False:
-                        urStarterList.append(f"{fullName}")
-                elif pos == "K":
-                    flag = False
-                    for q in range(len(tierListK)):
-                        if fullName in tierListK[q]:
-                            tier = q + 1
-                            kStarterList.append(f"{fullName}")
-                            kTierList.append(f"{tier}")
-                            flag = True
-                    if flag == False:
-                        urStarterList.append(f"{fullName}")
-                elif pos == "DEF":
-                    flag = False
-                    for q in range(len(tierListDST)):
-                        if fullName in tierListDST[q]:
-                            tier = q + 1
-                            dstStarterList.append(f"{fullName}")
-                            dstTierList.append(f"{tier}")
-                            flag = True
-                    if flag == False:
-                        urStarterList.append(f"{fullName}")
-                elif pos == "TE":
-                    flag = False
-                    for q in range(len(tierListTE)):
-                        if fullName in tierListTE[q]:
-                            tier = q + 1
-                            teStarterList.append(f"{fullName}")
-                            teTierList.append(f"{tier}")
-                            flag = True
-                    if flag == False:
-                        urStarterList.append(f"{fullName}")
+                    qbStarterList, qbTierList, tier = createTiers(tierListQB,fullName,qbStarterList,qbTierList,tier)
+                    if createUnranked(tierListQB,fullName) != "ranked":
+                        urStarterList.append(createUnranked(tierListQB,fullName))
+        
+                if pos == "RB":
+                    rbStarterList, rbTierList, tier = createTiers(tierListRB,fullName,rbStarterList,rbTierList,tier)
+                    if createUnranked(tierListRB,fullName) != "ranked":
+                        urStarterList.append(createUnranked(tierListRB,fullName))
+              
+                if pos == "WR":
+                    wrStarterList, wrTierList, tier = createTiers(tierListWR,fullName,wrStarterList,wrTierList,tier)
+                    if createUnranked(tierListWR,fullName) != "ranked":
+                        urStarterList.append(createUnranked(tierListWR,fullName))
+
+                if pos == "K":
+                    kStarterList, kTierList, tier = createTiers(tierListK,fullName,kStarterList,kTierList,tier)
+                    if createUnranked(tierListK,fullName) != "ranked":
+                        urStarterList.append(createUnranked(tierListK,fullName))
+
+                if pos == "DEF":
+                    dstStarterList, dstTierList, tier = createTiers(tierListDST,fullName,dstStarterList,dstTierList,tier)
+                    if createUnranked(tierListDST,fullName) != "ranked":
+                        urStarterList.append(createUnranked(tierListDST,fullName))
+
+                if pos == "TE":
+                    teStarterList, teTierList, tier = createTiers(tierListTE,fullName,teStarterList,teTierList,tier)
+                    if createUnranked(tierListTE,fullName) != "ranked":
+                        urStarterList.append(createUnranked(tierListTE,fullName))
                     
 
                 tierSum = tier + tierSum
@@ -401,73 +356,45 @@ while i < len(starters):
     for key in playerData:
         # key is definitely the ids
         # should iterate through 5
+        # total tier unused in bench but might as well have it
+        tier = 0
         for b in bench:
             if key == b:
                 fName = playerData[b]['first_name']
                 lName = playerData[b]['last_name']
                 pos = playerData[b]['position']
                 fullName = fName + " " + lName
-
+                
                 if pos == "QB":
-                    flag = False
-                    for q in range(len(tierListQB)):
-                        if fullName in tierListQB[q]:
-                            tier = q + 1
-                            qbBenchList.append(f"{fullName}")
-                            qbTierBenchList.append(f"{tier}")
-                            flag = True
-                    if flag == False:
-                        urBenchList.append(f"{fullName}")
-                elif pos == "RB":
-                    flag = False
-                    for q in range(len(tierListRB)):
-                        if fullName in tierListRB[q]:
-                            tier = q + 1
-                            rbBenchList.append(f"{fullName}")
-                            rbTierBenchList.append(f"{tier}")
-                            flag = True
-                    if flag == False:
-                        urBenchList.append(f"{fullName}")
-                elif pos == "WR":
-                    flag = False
-                    for q in range(len(tierListWR)):
-                        if fullName in tierListWR[q]:
-                            tier = q + 1
-                            wrBenchList.append(f"{fullName}")
-                            wrTierBenchList.append(f"{tier}")
-                            flag = True
-                    if flag == False:
-                        urBenchList.append(f"{fullName}")
-                elif pos == "K":
-                    flag = False
-                    for q in range(len(tierListK)):
-                        if fullName in tierListK[q]:
-                            tier = q + 1
-                            kBenchList.append(f"{fullName}")
-                            kTierBenchList.append(f"{tier}")
-                            flag = True
-                    if flag == False:
-                        urBenchList.append(f"{fullName}")
-                elif pos == "DEF":
-                    flag = False
-                    for q in range(len(tierListDST)):
-                        if fullName in tierListDST[q]:
-                            tier = q + 1
-                            dstBenchList.append(f"{fullName}")
-                            dstTierBenchList.append(f"{tier}")
-                            flag = True
-                    if flag == False:
-                        urBenchList.append(f"{fullName}")
-                elif pos == "TE":
-                    flag = False
-                    for q in range(len(tierListTE)):
-                        if fullName in tierListTE[q]:
-                            tier = q + 1
-                            teBenchList.append(f"{fullName}")
-                            teTierBenchList.append(f"{tier}")
-                            flag = True
-                    if flag == False:
-                        urBenchList.append(f"{fullName}")
+                    qbBenchList, qbTierBenchList, tier = createTiers(tierListQB,fullName,qbBenchList,qbTierBenchList,tier)
+                    if createUnranked(tierListQB,fullName) != "ranked":
+                        urBenchList.append(createUnranked(tierListQB,fullName))
+        
+                if pos == "RB":
+                    rbBenchList, rbTierBenchList, tier = createTiers(tierListRB,fullName,rbBenchList,rbTierBenchList,tier)
+                    if createUnranked(tierListRB,fullName) != "ranked":
+                        urBenchList.append(createUnranked(tierListRB,fullName))
+              
+                if pos == "WR":
+                    wrBenchList, wrTierBenchList, tier = createTiers(tierListWR,fullName,wrBenchList,wrTierBenchList,tier)
+                    if createUnranked(tierListWR,fullName) != "ranked":
+                        urBenchList.append(createUnranked(tierListWR,fullName))
+
+                if pos == "K":
+                    kBenchList, kTierBenchList, tier = createTiers(tierListK,fullName,kBenchList,kTierBenchList,tier)
+                    if createUnranked(tierListK,fullName) != "ranked":
+                        urBenchList.append(createUnranked(tierListK,fullName))
+
+                if pos == "DEF":
+                    dstBenchList, dstTierBenchList, tier = createTiers(tierListDST,fullName,dstBenchList,dstTierBenchList,tier)
+                    if createUnranked(tierListDST,fullName) != "ranked":
+                        urBenchList.append(createUnranked(tierListDST,fullName))
+
+                if pos == "TE":
+                    teBenchList, teTierBenchList, tier = createTiers(tierListTE,fullName,teBenchList,teTierBenchList,tier)
+                    if createUnranked(tierListTE,fullName) != "ranked":
+                        urBenchList.append(createUnranked(tierListTE,fullName))
+               
 
                 tier = tier + 1
                 
