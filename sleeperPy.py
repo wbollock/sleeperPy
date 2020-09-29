@@ -8,6 +8,11 @@ from pathlib import Path
 import sys 
 import fileinput
 from shutil import copyfile
+from urllib.request import urlopen
+import re
+# pip3 install bs4
+# if apache is root, sudo pip3 install bs4
+from bs4 import BeautifulSoup
 
 # Variables
 sport = "nfl"
@@ -61,12 +66,26 @@ def createUnranked(tierListPos, fullName):
     else:
         return "ranked"
 
+def currentWeek():
+    # somehow return current NFL week, e.g week 4
+    url = "https://www.espn.com/nfl/lines"
+    page = urlopen(url)
+    html = page.read().decode("utf-8")
+    soup = BeautifulSoup(html, "html.parser")
+    # god this regex sucks
+    page = soup.get_text()
+    # should work for weeks 10-17 too
+    pattern = "Week [1-9]|[1-9][0-9]"
+    week = re.search(pattern, page)
+    week = [int(i) for i in str(week.group()).split() if i.isdigit()]
+    return week[0]
+
 
 # ISSUES/TODO
 # TODO: not taking account into flex, e.g noah fant tier 5 better than desean tier 7
 # TODO: waiver wire suggestions would be great, especially for DST/K. If player on WW is higher tier, mention it.
 # TODO: sorting by tier would be cool
-# TODO: add average tier of opponent vs average tier of you
+
 
 
 # API
@@ -83,11 +102,6 @@ if n < 2:
     print("Error: please enter your Sleeper username.")
 elif n > 2:
     print("Error: Too many arguments. Please type your sleeper username.")
-
-
-#username = "KingDedede"
-#username = "puffplants"
-#username = "Jz904"
 
 username = str(sys.argv[1])
 
@@ -143,6 +157,7 @@ for d in data:
 # leagues, e.g 
 # ['603501445962080256', '597557922544807936']
 # Get current players of user for * leagues
+
 # GET https://api.sleeper.app/v1/league/<league_id>/rosters
 # first, fetch all players so I can cross reference IDs
 # read from players file
@@ -181,8 +196,9 @@ for league in leagues:
             players.append(d['players'])
             roster_id = d['roster_id']
 
-    # change 4 to current nfl week somehow
-    url = f"https://api.sleeper.app/v1/league/{league}/matchups/4"
+    
+    week = currentWeek()
+    url = f"https://api.sleeper.app/v1/league/{league}/matchups/{week}"
     r = requests.get(url)
     data = r.json()
 
