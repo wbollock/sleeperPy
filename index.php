@@ -1,6 +1,6 @@
 <html>
 <head>
-        <meta charset="utf-8">
+        <meta charset="UTF-8">
         <title>SleeperPy</title>
         <meta name="author" content="Will bollock">
         <link rel="stylesheet" href="tiers/style.css">

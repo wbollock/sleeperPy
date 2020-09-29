@@ -39,6 +39,7 @@ def printTiers(playerList, tierList, pos):
             outputList.append("<tr>" + "<td>" + playerList[x] + "</td>" + "<td>" + tierList[x] + "</td>" + "</tr>")
     return outputList
 
+# find the players name in a tier list, when found also note their tier
 def createTiers(tierListPos, fullName, posPlayerList, posTierList, tier):
     for q in range(len(tierListPos)):
         # tierListPos[q] means: Tier 1: Lamar Jackson, Dak Prescott, Patrick Mahomes II
@@ -50,6 +51,7 @@ def createTiers(tierListPos, fullName, posPlayerList, posTierList, tier):
 
     return posPlayerList, posTierList, tier
 
+# go through entire tier list for a position, if player name not in any of them, they are not ranked
 def createUnranked(tierListPos, fullName):
     flag = False
     if any(fullName in word for word in tierListPos):
@@ -156,6 +158,11 @@ with open(playersFile) as json_file:
 i = 0
 starters = []
 players = []
+# roster_id = []
+# matchup_id = []
+
+oppStarters = []
+oppPlayers = []
 # get players and starters for user team in each league
 for league in leagues:
 
@@ -172,7 +179,31 @@ for league in leagues:
             # then this is current user
             starters.append(d['starters'])
             players.append(d['players'])
-            # shit but multiple leagues
+            roster_id = d['roster_id']
+
+    # change 4 to current nfl week somehow
+    url = f"https://api.sleeper.app/v1/league/{league}/matchups/4"
+    r = requests.get(url)
+    data = r.json()
+
+    for d in data:
+        if roster_id == d['roster_id']:
+            # if player matchup is found via roster id
+            matchup_id = d['matchup_id'] 
+            # get matchup id
+           
+    
+    for d in data:
+        if matchup_id == d['matchup_id']:
+                if roster_id != d['roster_id']:
+                    # if you found a matching matchup ID but NOT matching roster_id, must be opponent
+                    oppStarters.append(d['starters'])
+                    oppPlayers.append(d['players'])
+
+    
+
+            
+
 
 
 i = 0
@@ -274,7 +305,6 @@ while i < len(starters):
                 # DEF, WR, TE, K, RB, QB
             
                 # len is amount of tiers
-                # Kenny Murphy credit for flags
                 if pos == "QB":
                     qbStarterList, qbTierList, tier = createTiers(tierListQB,fullName,qbStarterList,qbTierList,tier)
                     if createUnranked(tierListQB,fullName) != "ranked":
@@ -346,10 +376,67 @@ while i < len(starters):
             print("<td>" + urStarterList[x] + "</td>")
             print("</tr>")
 
-            
+    qbOppTierList,rbOppTierList,wrOppTierList,dstOppTierList,teOppTierList,kOppTierList = [],[],[],[],[],[]
+    qbOppList,rbOppList,wrOppList,teOppList,dstOppList,kOppList,urOppList = [],[],[],[],[],[],[]
+    tierOppSum = 0
+    # Calculate Opponent Tiers
+    for key in playerData:
 
+        j = 0
+        tier = 0
+        while j < len(oppStarters[i]):
+            if key == oppStarters[i][j]:
+                # one player from each loop... 
+                fName = playerData[oppStarters[i][j]]['first_name']  
+                lName = playerData[oppStarters[i][j]]['last_name']
+                pos = playerData[oppStarters[i][j]]['position']
+                fullName = fName + " " + lName
+
+                if pos == "QB":
+                    qbOppList, qbOppTierList, tier = createTiers(tierListQB,fullName,qbOppList,qbTierList,tier)
+        
+                if pos == "RB":
+                    rbOppList, rbOppTierList, tier = createTiers(tierListRB,fullName,rbOppList,rbTierBenchList,tier)
+              
+                if pos == "WR":
+                    wrOppList, wrOppTierList, tier = createTiers(tierListWR,fullName,wrOppList,wrTierBenchList,tier)
+
+                if pos == "K":
+                    kOppList, kOppTierList, tier = createTiers(tierListK,fullName,kOppList,kTierBenchList,tier)
+
+                if pos == "DEF":
+                    dstOppList, dstOppTierList, tier = createTiers(tierListDST,fullName,dstOppList,dstTierList,tier)
+
+                if pos == "TE":
+                    teOppList, teOppTierList, tier = createTiers(tierListTE,fullName,teOppList,teTierBenchList,tier)
+
+                tierOppSum = tier + tierOppSum
+                tier = tier + 1
+
+            j = j + 1
+
+    y = 0
+
+            
+    tierOppSum = tierOppSum - 1
     tierSum = tierSum - 1
-    print(f"<tr><td colspan=\"2\" style=\"text-align: center\">Average Tier {round(tierSum / (len(starters[i])),3)}</td></tr>")
+    avgTier = round(tierSum / (len(starters[i])),3)
+    avgOppTier = round(tierOppSum / (len(oppStarters[i])),3)
+    
+    # &#127942; = trophy
+    # &#128201; = down line
+    # &#128528; = neutral face
+    # higher tier is worse
+    if avgTier < avgOppTier:
+        print(f"<tr><td colspan=\"2\" style=\"text-align: center\">&#127942; Average Tier {avgTier}</td></tr>")
+        print(f"<tr><td colspan=\"2\" style=\"text-align: center\">&#128201; Opponent Average Tier {avgOppTier}</td></tr>")
+    elif avgOppTier > avgTier:
+        print(f"<tr><td colspan=\"2\" style=\"text-align: center\">&#128201; Average Tier {avgTier}</td></tr>")
+        print(f"<tr><td colspan=\"2\" style=\"text-align: center\">&#127942; Opponent Average Tier {avgOppTier}</td></tr>")
+    elif avgOppTier == avgTier:
+        print(f"<tr><td colspan=\"2\" style=\"text-align: center\">&#128528; Average Tier {avgTier}</td></tr>")
+        print(f"<tr><td colspan=\"2\" style=\"text-align: center\">&#128528; Opponent Average Tier {avgOppTier}</td></tr>")
+    
     # bench
     print("<br>")
     print("<br>")
@@ -436,8 +523,13 @@ while i < len(starters):
 
     # end of all output for league
     print("</table>")
+
+    
+
+
     # end of main while    
     i = i + 1
+
 
 print("</div>")
 print("<br>")
