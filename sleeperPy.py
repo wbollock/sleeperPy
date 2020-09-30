@@ -9,11 +9,7 @@
 # TODO: not taking account into flex, e.g noah fant tier 5 better than desean tier 7
 # TODO: waiver wire suggestions would be great, especially for DST/K. If player on WW is higher tier, mention it.
 # TODO: loading gif maybe cause it takes a few seconds to run the script
-# TODO: A translation dictionary for players Boris Chen misspells will fix your issue with not listing some players
-# Current List: 
-# Sleeper | Boris
-# DK Metcalf | D.K Metcalf
-# Jeffery Wilson | Jeff Wilson Jr.
+
 # API
 # https://docs.sleeper.app/
 
@@ -89,11 +85,20 @@ def printTiers(playerList, tierList, pos):
             outputList.append("<tr>" + "<td>" + playerList[x] + "</td>" + "<td>" + str(tierList[x]) + "</td>" + "</tr>")
     return outputList
 
+def validateBoris(tierListPos):
+    # fixing inconsistencies as i find them between boris chen and sleeper player anmes
+    # wish i knew a better way to do this
+    # ok this works at least but i think i have to edit the list
+    tierListPos = [w.replace('D.K. Metcalf', 'DK Metcalf') for w in tierListPos]
+    tierListPos = [w.replace('Jeff Wilson Jr.', 'Jeffery Wilson') for w in tierListPos]
+    return tierListPos
+
 def createTiers(tierListPos, fullName, posPlayerList, posTierList, tier):  
     # find the players name in a tier list, when found also note their tier
+    tierListPos = validateBoris(tierListPos)
     for q in range(len(tierListPos)):
-        # tierListPos[q] means: Tier 1: Lamar Jackson, Dak Prescott, Patrick Mahomes II
-        # iterates through each line of tier
+    # tierListPos[q] means: Tier 1: Lamar Jackson, Dak Prescott, Patrick Mahomes II
+    # iterates through each line of tier
         if fullName in tierListPos[q]:
             tier = q + 1
             posPlayerList.append(f"{fullName}")
@@ -105,6 +110,7 @@ def createTiers(tierListPos, fullName, posPlayerList, posTierList, tier):
 def createUnranked(tierListPos, fullName):
     # go through entire tier list for a position, if player name not in any of them, they are not ranked
     flag = False
+    tierListPos = validateBoris(tierListPos)
     if any(fullName in word for word in tierListPos):
         flag = True
     if flag == False:
