@@ -36,7 +36,6 @@ year = datetime.now().strftime('%Y')
 playersFile = "players.txt"
 htmlFile  = "tiers.html"
 
-
 # Functions
 
 # used to find "bench" by finding the difference between total team and starters
@@ -163,8 +162,6 @@ for d in data:
 with open(playersFile) as json_file:
     playerData = json.load(json_file)
 
-
-
 # data is a dict here
 # print roster for both leagues:
 
@@ -195,7 +192,6 @@ for league in leagues:
             players.append(d['players'])
             roster_id = d['roster_id']
 
-    
     week = currentWeek()
     url = f"https://api.sleeper.app/v1/league/{league}/matchups/{week}"
     r = requests.get(url)
@@ -251,8 +247,6 @@ while i < len(starters):
     wrBoris = f"https://s3-us-west-1.amazonaws.com/fftiers/out/text_WR{scoring_to_text_map[scoring[i]]}.txt"
     teBoris = f"https://s3-us-west-1.amazonaws.com/fftiers/out/text_TE{scoring_to_text_map[scoring[i]]}.txt"
     
-   
-    
     print("<table class=\"table-fill\">")
     if scoring[i] == 1.0:
         print(f"<th class=\"league-title\" colspan=\"2\">League: {leagueNames[i]} (PPR) | Starters</th>")
@@ -290,10 +284,9 @@ while i < len(starters):
     data = r.text
     tierListDST = data.splitlines()
     
-    
+    # get bench by subtracting all players by starters
     bench = Diff(players[i], starters[i])
     
-    # list starters
     tierSum = 0
     
     for key in playerData:
@@ -317,38 +310,30 @@ while i < len(starters):
                     qbStarterList, qbTierList, tier = createTiers(tierListQB,fullName,qbStarterList,qbTierList,tier)
                     if createUnranked(tierListQB,fullName) != "ranked":
                         urStarterList.append(createUnranked(tierListQB,fullName))
-        
                 if pos == "RB":
                     rbStarterList, rbTierList, tier = createTiers(tierListRB,fullName,rbStarterList,rbTierList,tier)
                     if createUnranked(tierListRB,fullName) != "ranked":
                         urStarterList.append(createUnranked(tierListRB,fullName))
-              
                 if pos == "WR":
                     wrStarterList, wrTierList, tier = createTiers(tierListWR,fullName,wrStarterList,wrTierList,tier)
                     if createUnranked(tierListWR,fullName) != "ranked":
                         urStarterList.append(createUnranked(tierListWR,fullName))
-
                 if pos == "K":
                     kStarterList, kTierList, tier = createTiers(tierListK,fullName,kStarterList,kTierList,tier)
                     if createUnranked(tierListK,fullName) != "ranked":
                         urStarterList.append(createUnranked(tierListK,fullName))
-
                 if pos == "DEF":
                     dstStarterList, dstTierList, tier = createTiers(tierListDST,fullName,dstStarterList,dstTierList,tier)
                     if createUnranked(tierListDST,fullName) != "ranked":
                         urStarterList.append(createUnranked(tierListDST,fullName))
-
                 if pos == "TE":
                     teStarterList, teTierList, tier = createTiers(tierListTE,fullName,teStarterList,teTierList,tier)
                     if createUnranked(tierListTE,fullName) != "ranked":
                         urStarterList.append(createUnranked(tierListTE,fullName))
                     
-
                 tierSum = tier + tierSum
                 tier = tier + 1
-                
             j = j + 1
-            
     
     # returns list with HTML to print to page
     outputList = printTiers(qbStarterList, qbTierList, "QB")
@@ -396,19 +381,14 @@ while i < len(starters):
 
                 if pos == "QB":
                     qbOppList, qbOppTierList, tier = createTiers(tierListQB,fullName,qbOppList,qbOppTierList,tier)
-        
                 if pos == "RB":
                     rbOppList, rbOppTierList, tier = createTiers(tierListRB,fullName,rbOppList,rbOppTierList,tier)
-              
                 if pos == "WR":
                     wrOppList, wrOppTierList, tier = createTiers(tierListWR,fullName,wrOppList,wrOppTierList,tier)
-
                 if pos == "K":
                     kOppList, kOppTierList, tier = createTiers(tierListK,fullName,kOppList,kOppTierList,tier)
-
                 if pos == "DEF":
                     dstOppList, dstOppTierList, tier = createTiers(tierListDST,fullName,dstOppList,dstOppTierList,tier)
-
                 if pos == "TE":
                     teOppList, teOppTierList, tier = createTiers(tierListTE,fullName,teOppList,teOppTierList,tier)
 
