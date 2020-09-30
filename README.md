@@ -38,6 +38,7 @@ Requirements:
 
 ```
 git clone https://github.com/wbollock/sleeperPy.git
+sudo chmod tiers 774
 ```
 
 Make sure your web server has permissions for the `tiers` folder, `sleeperPy.py`, and `index.php`.

@@ -42,7 +42,7 @@ if(isset($_POST['submit'])){ //check if form was submitted
     #$output = shell_exec($command);
     #readfile("tiers.txt");
     exec($command);
-    $filepath = "tiers/"."tiers_".$username.".html";
+    $filepath = "tiers/"."tiers_".$username.".php";
     #echo ("$filepath");
     $header = "Location: ".$filepath;
     header( "$header" );
@@ -62,7 +62,7 @@ if(isset($_POST['submit'])){ //check if form was submitted
 <ul>
     <li>Outputs your team's <a href="http://www.borischen.co/">Boris Chen</a> tiers across all Sleeper leagues.</li>
     <li><a href="https://github.com/wbollock/sleeperPy">GitHub Link</a></li>
-    <li>It is best to run this on Thursday, as tiers are mostly updated by then.</li>
+    <li>It is best to run this on Wednesday or Thursday, as tiers are mostly updated by then.</li>
 </ul>
 
 Enter your Sleeper username: <input type="text" name="name">

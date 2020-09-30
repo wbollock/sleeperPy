@@ -40,7 +40,8 @@ sport = "nfl"
 # current year, e.g 2020
 year = datetime.now().strftime('%Y')
 playersFile = "players.txt"
-htmlFile  = "tiers.html"
+# template file
+htmlFile  = "tiers.php"
 
 # Functions
 
@@ -136,7 +137,7 @@ elif n > 2:
 username = str(sys.argv[1])
 
 
-tiersFilename = "tiers_" + username + ".html"
+tiersFilename = "tiers_" + username + ".php"
 tiersFilepath = "tiers/" + tiersFilename
 
 # mkdir if not exists
