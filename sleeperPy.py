@@ -8,7 +8,7 @@
 # ISSUES/TODO
 # TODO: not taking account into flex, e.g noah fant tier 5 better than desean tier 7
 # TODO: waiver wire suggestions would be great, especially for DST/K. If player on WW is higher tier, mention it.
-# TODO: sorting by tier would be cool
+# TODO: loading gif maybe cause it takes a few seconds to run the script
 
 # API
 # https://docs.sleeper.app/
@@ -28,6 +28,7 @@ from urllib.request import urlopen
 import re
 from bs4 import BeautifulSoup
 from datetime import datetime
+from operator import itemgetter
 
 # Variables
 sport = "nfl"
@@ -38,25 +39,49 @@ htmlFile  = "tiers.html"
 
 # Functions
 
-# used to find "bench" by finding the difference between total team and starters
-def Diff(li1, li2): 
+
+def Diff(li1, li2):
+    # used to find "bench" by finding the difference between total team and starters
     li_dif = [i for i in li1 + li2 if i not in li1 or i not in li2] 
     return li_dif
 
-# used to generate HTML with lists of players and their matching tiers
+def sortLists(list1, list2):
+    # list1 should be tiers, list2 players
+    # sort player list and tier list together, keeping values
+    # sort by lowest value (highest tier) first
+    if type(list1) == "None" or type(list2) == "None":
+        return list1, list2
+
+    if len(list1) == 0 or len(list2) == 0:
+        return list1, list2
+
+    # force tiers to ints
+    list1 = [int(i) for i in list1]
+    # reverse=True
+    # damn this works!!!
+    # https://stackoverflow.com/questions/9764298/how-to-sort-two-lists-which-reference-each-other-in-the-exact-same-way
+    list1, list2 = (list(t) for t in zip(*sorted(zip(list1, list2),key=itemgetter(0))))
+    return list1, list2
+
+
 def printTiers(playerList, tierList, pos):
+    # used to generate HTML with lists of players and their matching tiers
     outputList = []
+    #playerList, tierList = sortLists(playerList, tierList)
+    tierList, playerList = sortLists(tierList, playerList)
+    # print(*tierList)
+    # print(*playerList)
     if (len(playerList) > 0):
         print("<tr>")
         print("<th>" + pos + "</th>")
         print("<th>Tier</th>")
         print("</tr>")
         for x in range(len(playerList)):
-            outputList.append("<tr>" + "<td>" + playerList[x] + "</td>" + "<td>" + tierList[x] + "</td>" + "</tr>")
+            outputList.append("<tr>" + "<td>" + playerList[x] + "</td>" + "<td>" + str(tierList[x]) + "</td>" + "</tr>")
     return outputList
 
-# find the players name in a tier list, when found also note their tier
-def createTiers(tierListPos, fullName, posPlayerList, posTierList, tier):
+def createTiers(tierListPos, fullName, posPlayerList, posTierList, tier):  
+    # find the players name in a tier list, when found also note their tier
     for q in range(len(tierListPos)):
         # tierListPos[q] means: Tier 1: Lamar Jackson, Dak Prescott, Patrick Mahomes II
         # iterates through each line of tier
@@ -67,8 +92,9 @@ def createTiers(tierListPos, fullName, posPlayerList, posTierList, tier):
 
     return posPlayerList, posTierList, tier
 
-# go through entire tier list for a position, if player name not in any of them, they are not ranked
+
 def createUnranked(tierListPos, fullName):
+    # go through entire tier list for a position, if player name not in any of them, they are not ranked
     flag = False
     if any(fullName in word for word in tierListPos):
         flag = True
@@ -91,6 +117,8 @@ def currentWeek():
     week = re.search(pattern, page)
     week = [int(i) for i in str(week.group()).split() if i.isdigit()]
     return week[0]
+
+
 
 
 # get username argument
@@ -339,18 +367,23 @@ while i < len(starters):
     outputList = printTiers(qbStarterList, qbTierList, "QB")
     for x in range(len(outputList)):
         print(outputList[x])
+
     outputList = printTiers(rbStarterList, rbTierList, "RB")
     for x in range(len(outputList)):
         print(outputList[x])
+
     outputList = printTiers(wrStarterList, wrTierList, "WR")
     for x in range(len(outputList)):
         print(outputList[x])
+    
     outputList = printTiers(teStarterList, teTierList, "TE")
     for x in range(len(outputList)):
         print(outputList[x])
+
     outputList = printTiers(kStarterList, kTierList, "K")
     for x in range(len(outputList)):
         print(outputList[x])
+
     outputList = printTiers(dstStarterList, dstTierList, "DST")
     for x in range(len(outputList)):
         print(outputList[x])
@@ -469,21 +502,27 @@ while i < len(starters):
     print("<th colspan=\"2\" style=\"text-align:center;\">Bench</th>")
     print("</tr>")
 
+    
     outputList = printTiers(qbBenchList, qbTierBenchList, "QB")
     for x in range(len(outputList)):
         print(outputList[x])
+    
     outputList = printTiers(rbBenchList, rbTierBenchList, "RB")
     for x in range(len(outputList)):
         print(outputList[x])
+
     outputList = printTiers(wrBenchList, wrTierBenchList, "WR")
     for x in range(len(outputList)):
         print(outputList[x])
+
     outputList = printTiers(teBenchList, teTierBenchList, "TE")
     for x in range(len(outputList)):
         print(outputList[x])
+
     outputList = printTiers(kBenchList, kTierBenchList, "K")
     for x in range(len(outputList)):
         print(outputList[x])
+
     outputList = printTiers(dstBenchList, dstTierBenchList, "DST")
     for x in range(len(outputList)):
         print(outputList[x])
