@@ -10,9 +10,20 @@
          <link rel="stylesheet" href="css/skeleton.css">
          <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
          <meta name="viewport" content="width=device-width, initial-scale=1">
+         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+         <script>
+             // https://stackoverflow.com/questions/38217274/loading-gif-on-normal-form-submit
+                $(document).ready(function(){
+        $("#userform").on("submit", function(){
+            $("#pageloader").fadeIn();
+        });//submit
+        });//document ready
+        </script>
         
 </head>
 <body>
+
+
 
 <?php
 $username = "";
@@ -46,6 +57,7 @@ if(isset($_POST['submit'])){ //check if form was submitted
     #echo ("$filepath");
     $header = "Location: ".$filepath;
     header( "$header" );
+    
     #echo file_get_contents("tiers.txt");
 
     # NOTE: tiers folder needs permissions for apache2
@@ -54,7 +66,7 @@ if(isset($_POST['submit'])){ //check if form was submitted
 
 
 
-<form action="" method="post">
+<form action="" method="post" id="userform">
 <div class="container">
 <div class="row">
 <h1>SleeperPy</h1>
@@ -75,11 +87,15 @@ Enter your Sleeper username: <input type="text" name="name">
 
 </form>
 
+
     </div>
+    <div id="pageloader">
+   <img src="loading2.gif" alt="processing..." />
+</div>
   </div>
 
 
 
-
+  
 </body>
 </html>

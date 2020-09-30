@@ -1,5 +1,28 @@
 /*! normalize.css v3.0.2 | MIT License | git.io/normalize */
 
+/* shit i did */
+/* god i hate css */
+#pageloader
+{
+  /*background:#62616185;*/
+  display: none;
+  height: 50%;
+  width: 50%;
+  /*position: fixed;
+  width: 100%;
+  z-index: 9999;*/
+}
+
+#pageloader img
+{
+  /*left: 50%;*/
+  /*margin-left: -32px;
+  margin-top: -32px;*/
+  /*position: absolute;
+  top: 50%;*/
+}
+
+
 /**
  * 1. Set default font family to sans-serif.
  * 2. Prevent iOS text size adjust after orientation change, without disabling
