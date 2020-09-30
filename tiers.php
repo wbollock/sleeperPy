@@ -14,7 +14,7 @@
         $uri = $_SERVER['REQUEST_URI'];
         # sleeperPy/tiers/tiers_kiajon.html
         $m = array();
-        preg_match('/tiers_([A-z]*).php/', $uri, $m );
+        preg_match('/tiers_(.*).php/', $uri, $m );
         # get username from current URI
         # returns string of username, so far so good
         $username = $m[1];

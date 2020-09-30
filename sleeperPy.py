@@ -17,6 +17,10 @@
 # API
 # https://docs.sleeper.app/
 
+# Bugs:
+# http://boris.boll/sleeperPy/tiers/tiers_carlwb89.php
+# wtf.. full craig stevens
+
 
 # Tiers
 # https://github.com/abhinavk99/espn-borischentiers/blob/master/src/js/espn-borischentiers.js
