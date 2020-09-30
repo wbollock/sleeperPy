@@ -394,7 +394,7 @@ while i < len(starters):
         print("</tr>")
         for x in range(len(urStarterList)):
             print("<tr>")
-            print("<td>" + urStarterList[x] + "</td>")
+            print("<td colspan=\"2\">" + urStarterList[x] + "</td>")
             print("</tr>")
 
     qbOppTierList,rbOppTierList,wrOppTierList,dstOppTierList,teOppTierList,kOppTierList = [],[],[],[],[],[]
