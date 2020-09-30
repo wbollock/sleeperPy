@@ -1,6 +1,22 @@
 #!/usr/bin/env python3
 # sleeperPy
 
+# REQUIREMENTS:
+# pip3 install bs4
+# if apache is root, sudo pip3 install bs4
+
+# ISSUES/TODO
+# TODO: not taking account into flex, e.g noah fant tier 5 better than desean tier 7
+# TODO: waiver wire suggestions would be great, especially for DST/K. If player on WW is higher tier, mention it.
+# TODO: sorting by tier would be cool
+
+# API
+# https://docs.sleeper.app/
+
+
+# Tiers
+# https://github.com/abhinavk99/espn-borischentiers/blob/master/src/js/espn-borischentiers.js
+
 import requests
 import json
 import os, time
@@ -10,22 +26,18 @@ import fileinput
 from shutil import copyfile
 from urllib.request import urlopen
 import re
-# pip3 install bs4
-# if apache is root, sudo pip3 install bs4
 from bs4 import BeautifulSoup
+from datetime import datetime
 
 # Variables
 sport = "nfl"
-year = "2020"
+# current year, e.g 2020
+year = datetime.now().strftime('%Y')
 playersFile = "players.txt"
 htmlFile  = "tiers.html"
 
 
 # Functions
-
-# used to determine age of players.txt, if > 1 day then download it again
-def file_age(filepath):
-    return time.time() - os.path.getmtime(filepath)
 
 # used to find "bench" by finding the difference between total team and starters
 def Diff(li1, li2): 
@@ -68,6 +80,7 @@ def createUnranked(tierListPos, fullName):
 
 def currentWeek():
     # somehow return current NFL week, e.g week 4
+    # im screwed if this changes
     url = "https://www.espn.com/nfl/lines"
     page = urlopen(url)
     html = page.read().decode("utf-8")
@@ -81,22 +94,7 @@ def currentWeek():
     return week[0]
 
 
-# ISSUES/TODO
-# TODO: not taking account into flex, e.g noah fant tier 5 better than desean tier 7
-# TODO: waiver wire suggestions would be great, especially for DST/K. If player on WW is higher tier, mention it.
-# TODO: sorting by tier would be cool
-
-
-
-# API
-# https://docs.sleeper.app/
-
-
-# Tiers
-# https://github.com/abhinavk99/espn-borischentiers/blob/master/src/js/espn-borischentiers.js
-
-# Web Arguments
-# total arguments 
+# get username argument
 n = len(sys.argv) 
 if n < 2:
     print("Error: please enter your Sleeper username.")
@@ -178,6 +176,7 @@ players = []
 
 oppStarters = []
 oppPlayers = []
+
 # get players and starters for user team in each league
 for league in leagues:
 
@@ -216,11 +215,6 @@ for league in leagues:
                     oppStarters.append(d['starters'])
                     oppPlayers.append(d['players'])
 
-    
-
-            
-
-
 
 i = 0
 bench = []
@@ -247,7 +241,7 @@ while i < len(starters):
     # mode = scoringMode(scoring)
 
     # figure out what lists to use
-    # god i dont think this should be here
+    # below 3 are guranteed regardless of scoring
     qbBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_QB.txt"
     dstBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_DST.txt"
     kBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_K.txt"
@@ -275,7 +269,7 @@ while i < len(starters):
     tierListRB = data.splitlines()
 
     # tierListRB[0] = Tier 1: Christian McCaffrey, Ezekiel Elliott
-
+    # tfw when python has no switch/case
     r = requests.get(wrBoris)
     data = r.text
     tierListWR = data.splitlines()
@@ -295,9 +289,7 @@ while i < len(starters):
     r = requests.get(dstBoris)
     data = r.text
     tierListDST = data.splitlines()
-
-    # hey this works nicely
-    # tfw when python has no switch/case
+    
     
     bench = Diff(players[i], starters[i])
     
@@ -354,14 +346,9 @@ while i < len(starters):
 
                 tierSum = tier + tierSum
                 tier = tier + 1
-                #starterList.append(f"{fName} {lName} [{pos}] [Tier {tier}]")
                 
             j = j + 1
             
-                
-
-    y = 0
-
     
     # returns list with HTML to print to page
     outputList = printTiers(qbStarterList, qbTierList, "QB")
@@ -397,7 +384,6 @@ while i < len(starters):
     tierOppSum = 0
     # Calculate Opponent Tiers
     for key in playerData:
-
         j = 0
         tier = 0
         while j < len(oppStarters[i]):
@@ -409,29 +395,28 @@ while i < len(starters):
                 fullName = fName + " " + lName
 
                 if pos == "QB":
-                    qbOppList, qbOppTierList, tier = createTiers(tierListQB,fullName,qbOppList,qbTierList,tier)
+                    qbOppList, qbOppTierList, tier = createTiers(tierListQB,fullName,qbOppList,qbOppTierList,tier)
         
                 if pos == "RB":
-                    rbOppList, rbOppTierList, tier = createTiers(tierListRB,fullName,rbOppList,rbTierBenchList,tier)
+                    rbOppList, rbOppTierList, tier = createTiers(tierListRB,fullName,rbOppList,rbOppTierList,tier)
               
                 if pos == "WR":
-                    wrOppList, wrOppTierList, tier = createTiers(tierListWR,fullName,wrOppList,wrTierBenchList,tier)
+                    wrOppList, wrOppTierList, tier = createTiers(tierListWR,fullName,wrOppList,wrOppTierList,tier)
 
                 if pos == "K":
-                    kOppList, kOppTierList, tier = createTiers(tierListK,fullName,kOppList,kTierBenchList,tier)
+                    kOppList, kOppTierList, tier = createTiers(tierListK,fullName,kOppList,kOppTierList,tier)
 
                 if pos == "DEF":
-                    dstOppList, dstOppTierList, tier = createTiers(tierListDST,fullName,dstOppList,dstTierList,tier)
+                    dstOppList, dstOppTierList, tier = createTiers(tierListDST,fullName,dstOppList,dstOppTierList,tier)
 
                 if pos == "TE":
-                    teOppList, teOppTierList, tier = createTiers(tierListTE,fullName,teOppList,teTierBenchList,tier)
+                    teOppList, teOppTierList, tier = createTiers(tierListTE,fullName,teOppList,teOppTierList,tier)
 
                 tierOppSum = tier + tierOppSum
                 tier = tier + 1
-
             j = j + 1
 
-    y = 0
+    
 
             
     tierOppSum = tierOppSum - 1
@@ -457,9 +442,7 @@ while i < len(starters):
     print("<br>")
     print("<br>")
     for key in playerData:
-        # key is definitely the ids
         # should iterate through 5
-        # total tier unused in bench but might as well have it
         tier = 0
         for b in bench:
             if key == b:
@@ -474,6 +457,7 @@ while i < len(starters):
                         urBenchList.append(createUnranked(tierListQB,fullName))
         
                 if pos == "RB":
+                    #rbStarterList, rbTierList, tier = createTiers(tierListRB,fullName,rbStarterList,rbTierList,tier)
                     rbBenchList, rbTierBenchList, tier = createTiers(tierListRB,fullName,rbBenchList,rbTierBenchList,tier)
                     if createUnranked(tierListRB,fullName) != "ranked":
                         urBenchList.append(createUnranked(tierListRB,fullName))
@@ -500,15 +484,11 @@ while i < len(starters):
                
 
                 tier = tier + 1
-                
-
-    y = 0
-    
+               
     print("<tr>")
     print("<th colspan=\"2\" style=\"text-align:center;\">Bench</th>")
     print("</tr>")
 
-    
     outputList = printTiers(qbBenchList, qbTierBenchList, "QB")
     for x in range(len(outputList)):
         print(outputList[x])
@@ -539,9 +519,6 @@ while i < len(starters):
 
     # end of all output for league
     print("</table>")
-
-    
-
 
     # end of main while    
     i = i + 1
