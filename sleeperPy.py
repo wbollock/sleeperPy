@@ -9,7 +9,12 @@
 # TODO: not taking account into flex, e.g noah fant tier 5 better than desean tier 7
 # TODO: waiver wire suggestions would be great, especially for DST/K. If player on WW is higher tier, mention it.
 # TODO: loading gif maybe cause it takes a few seconds to run the script
-
+# TODO: "refresh" button on tiers page
+# TODO: A translation dictionary for players Boris Chen misspells will fix your issue with not listing some players
+# Current List: 
+# Sleeper | Boris
+# DK Metcalf | D.K Metcalf
+# Jeffery Wilson | Jeff Wilson Jr.
 # API
 # https://docs.sleeper.app/
 
