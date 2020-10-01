@@ -16,6 +16,7 @@
 # Bugs:
 # http://boris.boll/sleeperPy/tiers/tiers_carlwb89.php
 # wtf.. full craig stevens
+# has to be an invalid player ID but not sure what. i see it a lot
 # https://wboll.dev/sleeperPy/tiers/tiers_BorneChamp.php
 # for some reason, the length of his oppStarters is 1, not 2.. i think because he doesn't have an opponent in one league, but does in the other?
 # redo opponent logic so one league doesn't ruin the other. grab opponent by league not total
@@ -219,6 +220,12 @@ players = []
 oppStarters = []
 oppPlayers = []
 
+print("<h5>Username: " + username + "</h5>")
+print("</div>")
+print("</div>")
+print("<div class=\"flex-container container\">")
+
+
 # get players and starters for user team in each league
 for league in leagues:
 
@@ -257,16 +264,8 @@ for league in leagues:
                     oppPlayers.append(d['players'])
 
 
-i = 0
-bench = []
-
-print("<h5>Username: " + username + "</h5>")
-print("</div>")
-print("</div>")
-print("<div class=\"flex-container container\">")
-
-while i < len(starters):
-    # for each league, do:
+    
+    bench = []
 
     starterList,benchList = [],[]
 
@@ -419,59 +418,68 @@ while i < len(starters):
     tierOppSum = 0
     # Calculate Opponent Tiers
     # not the best test, but if oppStarters has no length, don't do any of this
-    if len(oppStarters) > 0:
+    if oppStarters:
         for key in playerData:
             j = 0
             tier = 0
-            while j < len(oppStarters[i]):
-                if key == oppStarters[i][j]:
-                    # one player from each loop... 
-                    fName = playerData[oppStarters[i][j]]['first_name']  
-                    lName = playerData[oppStarters[i][j]]['last_name']
-                    pos = playerData[oppStarters[i][j]]['position']
-                    fullName = fName + " " + lName
+            # for j in range(len(oppStarters)):
+            try:
+                while j < len(oppStarters[i]):
+                        if key == oppStarters[i][j]:
+                            # one player from each loop... 
+                            fName = playerData[oppStarters[i][j]]['first_name']  
+                            lName = playerData[oppStarters[i][j]]['last_name']
+                            pos = playerData[oppStarters[i][j]]['position']
+                            fullName = fName + " " + lName
 
-                    if pos == "QB":
-                        qbOppList, qbOppTierList, tier = createTiers(tierListQB,fullName,qbOppList,qbOppTierList,tier)
-                    if pos == "RB":
-                        rbOppList, rbOppTierList, tier = createTiers(tierListRB,fullName,rbOppList,rbOppTierList,tier)
-                    if pos == "WR":
-                        wrOppList, wrOppTierList, tier = createTiers(tierListWR,fullName,wrOppList,wrOppTierList,tier)
-                    if pos == "K":
-                        kOppList, kOppTierList, tier = createTiers(tierListK,fullName,kOppList,kOppTierList,tier)
-                    if pos == "DEF":
-                        dstOppList, dstOppTierList, tier = createTiers(tierListDST,fullName,dstOppList,dstOppTierList,tier)
-                    if pos == "TE":
-                        teOppList, teOppTierList, tier = createTiers(tierListTE,fullName,teOppList,teOppTierList,tier)
+                            if pos == "QB":
+                                qbOppList, qbOppTierList, tier = createTiers(tierListQB,fullName,qbOppList,qbOppTierList,tier)
+                            if pos == "RB":
+                                rbOppList, rbOppTierList, tier = createTiers(tierListRB,fullName,rbOppList,rbOppTierList,tier)
+                            if pos == "WR":
+                                wrOppList, wrOppTierList, tier = createTiers(tierListWR,fullName,wrOppList,wrOppTierList,tier)
+                            if pos == "K":
+                                kOppList, kOppTierList, tier = createTiers(tierListK,fullName,kOppList,kOppTierList,tier)
+                            if pos == "DEF":
+                                dstOppList, dstOppTierList, tier = createTiers(tierListDST,fullName,dstOppList,dstOppTierList,tier)
+                            if pos == "TE":
+                                teOppList, teOppTierList, tier = createTiers(tierListTE,fullName,teOppList,teOppTierList,tier)
 
-                    tierOppSum = tier + tierOppSum
-                    tier = tier + 1
-                j = j + 1
-
-    
-
-            
-        tierOppSum = tierOppSum - 1
-        tierSum = tierSum - 1
-        avgTier = round(tierSum / (len(starters[i])),3)
-        avgOppTier = round(tierOppSum / (len(oppStarters[i])),3)
-        
-        # &#127942; = trophy
-        # &#128201; = down line
-        # &#128528; = neutral face
-        # higher tier is worse
-        if avgTier < avgOppTier:
-            print(f"<tr><td colspan=\"2\" style=\"text-align: center\">&#127942; Average Tier {avgTier}</td></tr>")
-            print(f"<tr><td colspan=\"2\" style=\"text-align: center\">&#128201; Opponent Average Tier {avgOppTier}</td></tr>")
-        elif avgOppTier > avgTier:
-            print(f"<tr><td colspan=\"2\" style=\"text-align: center\">&#128201; Average Tier {avgTier}</td></tr>")
-            print(f"<tr><td colspan=\"2\" style=\"text-align: center\">&#127942; Opponent Average Tier {avgOppTier}</td></tr>")
-        elif avgOppTier == avgTier:
-            print(f"<tr><td colspan=\"2\" style=\"text-align: center\">&#128528; Average Tier {avgTier}</td></tr>")
-            print(f"<tr><td colspan=\"2\" style=\"text-align: center\">&#128528; Opponent Average Tier {avgOppTier}</td></tr>")
+                            tierOppSum = tier + tierOppSum
+                            tier = tier + 1
+                        j = j + 1
+            except IndexError:
+                avgTier = round(tierSum / (len(starters[i])),2)
+                print(f"<tr><td colspan=\"2\" style=\"text-align: center\">Average Tier {avgTier}</td></tr>")
+                break
+        try:
+            tierOppSum = tierOppSum - 1
+            tierSum = tierSum - 1
+            avgTier = round(tierSum / (len(starters[i])),2)
+            avgOppTier = round(tierOppSum / (len(oppStarters[i])),2)
+                
+            # &#127942; = trophy
+            # &#128201; = down line
+            # &#128528; = neutral face
+            # higher tier is worse
+            if avgTier < avgOppTier:
+                print(f"<tr><td colspan=\"2\" style=\"text-align: center\">&#127942; Average Tier {avgTier}</td></tr>")
+                print(f"<tr><td colspan=\"2\" style=\"text-align: center\">&#128201; Opponent Average Tier {avgOppTier}</td></tr>")
+            elif avgOppTier < avgTier:
+                print(f"<tr><td colspan=\"2\" style=\"text-align: center\">&#128201; Average Tier {avgTier}</td></tr>")
+                print(f"<tr><td colspan=\"2\" style=\"text-align: center\">&#127942; Opponent Average Tier {avgOppTier}</td></tr>")
+            elif avgOppTier == avgTier:
+                print(f"<tr><td colspan=\"2\" style=\"text-align: center\">&#128528; Average Tier {avgTier}</td></tr>")
+                print(f"<tr><td colspan=\"2\" style=\"text-align: center\">&#128528; Opponent Average Tier {avgOppTier}</td></tr>")
+            else:
+                print(f"<tr><td colspan=\"2\" style=\"text-align: center\">Average Tier {avgTier}</td></tr>")
+                print(f"<tr><td colspan=\"2\" style=\"text-align: center\">Opponent Average Tier {avgOppTier}</td></tr>")
+        except IndexError:
+            # issues with leagues without opponents
+            print("")
     else:
-        # basically if i cant get opponent, do plain old tier avereages
-        avgTier = round(tierSum / (len(starters[i])),3)
+        # basically if i cant get opponent, do plain old tier averages
+        avgTier = round(tierSum / (len(starters[i])),2)
         print(f"<tr><td colspan=\"2\" style=\"text-align: center\">Average Tier {avgTier}</td></tr>")
 
     # bench
