@@ -15,11 +15,8 @@
 
 # Bugs:
 # http://boris.boll/sleeperPy/tiers/tiers_carlwb89.php
-# wtf.. full craig stevens
 # has to be an invalid player ID but not sure what. i see it a lot
-# https://wboll.dev/sleeperPy/tiers/tiers_BorneChamp.php
-# for some reason, the length of his oppStarters is 1, not 2.. i think because he doesn't have an opponent in one league, but does in the other?
-# redo opponent logic so one league doesn't ruin the other. grab opponent by league not total
+
 
 # Tiers
 # https://github.com/abhinavk99/espn-borischentiers/blob/master/src/js/espn-borischentiers.js

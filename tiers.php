@@ -42,7 +42,7 @@
 
     <h1>SleeperPy: Boris Chen Tiers for Sleeper Leagues</h1>
     <p>In the "Tiers" column, lower is better.</p>
-    <p>Notice: if you see "Craig Stevens", help me fight this bug by screenshoting your Sleeper FF roster and <a href="mailto:wbollock@gmail.com">emailing it to me</a>, along with your team name</p>
+    <p>Notice: if you see "Craig Stevens", help me fight this bug by screenshoting your Sleeper FF roster and <a href="mailto:wbollock@gmail.com">emailing it to me</a>, along with your username.</p>
     <ul>
         <li><a href="https://wboll.dev/sleeperPy">sleeperPy Home</a></li>
         <li><a href="https://github.com/wbollock/sleeperPy">GitHub Link</a></li>
