@@ -8,13 +8,18 @@
 # ISSUES/TODO
 # TODO: not taking account into flex, e.g noah fant tier 5 better than desean tier 7
 # TODO: waiver wire suggestions would be great, especially for DST/K. If player on WW is higher tier, mention it.
+# looks like i would have to curl "https://api.sleeper.app/v1/players/nfl/trending/add" and keep ~top 5
+# then determine if that player is rostered in any team, seperately
+# ugh
 
 
 # API
 # https://docs.sleeper.app/
 
 # Bugs:
+# Craig Stevens
 # http://boris.boll/sleeperPy/tiers/tiers_carlwb89.php
+# https://wboll.dev/sleeperPy/tiers/tiers_voodoomoose.php
 # has to be an invalid player ID but not sure what. i see it a lot
 
 
