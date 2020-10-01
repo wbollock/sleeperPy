@@ -47,7 +47,7 @@ if(isset($_POST['submit'])){ //check if form was submitted
     }
 
 
-    $username = $_POST['name'];
+    $username = htmlspecialchars($_POST['name']);
     $command = 'python3 sleeperPy.py '.$username;
     #$script = escapeshellcmd('python3 sleeperPy.py ').$username;
     #$output = shell_exec($command);
@@ -77,7 +77,9 @@ if(isset($_POST['submit'])){ //check if form was submitted
     <li>It is best to run this on Wednesday or Thursday, as tiers are mostly updated by then.</li>
 </ul>
 
-Enter your Sleeper username: <input type="text" name="name">
+Enter your Sleeper username: <input type="text" name="name" required placeholder="Sleeper Username" pattern="^\S+$"
+oninvalid="this.setCustomValidity('Username without spaces')"
+    oninput="this.setCustomValidity('')" >
 <br>
 <input type="submit" name="submit" value="Generate Tiers">
 

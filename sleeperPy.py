@@ -8,8 +8,7 @@
 # ISSUES/TODO
 # TODO: not taking account into flex, e.g noah fant tier 5 better than desean tier 7
 # TODO: waiver wire suggestions would be great, especially for DST/K. If player on WW is higher tier, mention it.
-# TODO: loading gif maybe cause it takes a few seconds to run the script
-# TODO: input validation for single field.. basically no spaces or code
+
 
 # API
 # https://docs.sleeper.app/
