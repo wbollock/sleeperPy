@@ -22,6 +22,10 @@
 # https://wboll.dev/sleeperPy/tiers/tiers_voodoomoose.php
 # has to be an invalid player ID but not sure what. i see it a lot
 
+# players.txt perm issue
+# check apache log in next few days, might've fixed it
+# PHP Warning:  file_put_contents(players.txt): failed to open stream: Permission denied in /var/www/html/sleeperPy/index.php on line 40, referer: https://wboll.dev/sleeperPy/
+
 
 # Tiers
 # https://github.com/abhinavk99/espn-borischentiers/blob/master/src/js/espn-borischentiers.js
@@ -222,7 +226,7 @@ players = []
 oppStarters = []
 oppPlayers = []
 
-print("<h5>Username: " + username + "</h5>")
+print("<h5>Username: " + username + " | Week " + str(currentWeek()) + "</h5>")
 print("</div>")
 print("</div>")
 print("<div class=\"flex-container container\">")
