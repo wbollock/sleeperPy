@@ -10,7 +10,7 @@
 # TODO: waiver wire suggestions would be great, especially for DST/K. If player on WW is higher tier, mention it.
 # looks like i would have to curl "https://api.sleeper.app/v1/players/nfl/trending/add" and keep ~top 5
 # then determine if that player is rostered in any team, seperately
-# ugh
+# TODO: optimization, for key in playerdata is killing speed of program
 
 
 # API
@@ -338,7 +338,15 @@ for league in leagues:
     bench = Diff(players[i], starters[i])
     
     tierSum = 0
-    
+
+    # Time Start
+    # from here to end of for loop by far slowest part of program, ~2.7 seconds
+    # start_time = datetime.now() 
+    # CODE HERE
+    # time_elapsed = datetime.now() - start_time 
+
+    # print("Time1")
+    # print('Time elapsed (hh:mm:ss.ms) {}'.format(time_elapsed))
     for key in playerData:
         # key is definitely the ids
         j = 0
@@ -418,6 +426,8 @@ for league in leagues:
             print("<tr>")
             print("<td colspan=\"2\">" + urStarterList[x] + "</td>")
             print("</tr>")
+
+    # Time End, 2.7 seconds
 
     qbOppTierList,rbOppTierList,wrOppTierList,dstOppTierList,teOppTierList,kOppTierList = [],[],[],[],[],[]
     qbOppList,rbOppList,wrOppList,teOppList,dstOppList,kOppList,urOppList = [],[],[],[],[],[],[]
