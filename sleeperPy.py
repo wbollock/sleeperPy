@@ -95,11 +95,12 @@ def printTiers(playerList, tierList, pos):
     return outputList
 
 def validateBoris(tierListPos):
-    # fixing inconsistencies as i find them between boris chen and sleeper player anmes
-    # wish i knew a better way to do this
+    # fixing inconsistencies as i find them between boris chen and sleeper player names
     # ok this works at least but i think i have to edit the list
+    # BorisName, Sleeper Name
     tierListPos = [w.replace('D.K. Metcalf', 'DK Metcalf') for w in tierListPos]
     tierListPos = [w.replace('Jeff Wilson Jr.', 'Jeffery Wilson') for w in tierListPos]
+    tierListPos = [w.replace('JaMycal Hasty', 'Jamycal Hasty') for w in tierListPos]
     return tierListPos
 
 def createTiers(tierListPos, fullName, posPlayerList, posTierList, tier):  
