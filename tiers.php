@@ -42,6 +42,7 @@
 
     <h1><a href="https://wboll.dev/sleeperPy">SleeperPy</a></h1>
     <h3>Boris Chen Tiers for Sleeper Leagues</h3>
+    
     <!-- <p>Notice: if you see "Craig Stevens", help me fight this bug by screenshoting your Sleeper FF roster and <a href="mailto:wbollock@gmail.com">emailing it to me</a>, along with your username.</p> -->
     <!-- <ul>
         <li><a href="https://wboll.dev/sleeperPy">sleeperPy Home</a></li>
