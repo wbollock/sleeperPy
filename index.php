@@ -70,7 +70,7 @@ if(isset($_POST['submit'])){ //check if form was submitted
 <div class="container">
 <div class="row centerinput">
 <!-- <div class="eight columns"> -->
-<h1>SleeperPy</h1>
+<h1><a href="https://wboll.dev/sleeperPy">SleeperPy</a></h1>
 
 <!-- <ul>
     <li>Outputs your team's <a href="http://www.borischen.co/">Boris Chen</a> tiers across all Sleeper leagues.</li>

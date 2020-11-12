@@ -18,9 +18,8 @@
 
 # Bugs:
 # Craig Stevens
-# http://boris.boll/sleeperPy/tiers/tiers_carlwb89.php
-# https://wboll.dev/sleeperPy/tiers/tiers_voodoomoose.php
-# has to be an invalid player ID but not sure what. i see it a lot
+# https://www.reddit.com/r/fantasyfootball/comments/jszktk/like_boris_chen_tiers_and_use_sleeper_simple_tool/gc2mqa7/
+# has to be *not* having a player in a position, like no kicker
 
 # players.txt perm issue
 # check apache log in next few days, might've fixed it
@@ -422,10 +421,14 @@ for league in leagues:
     for x in range(len(outputList)):
         print(outputList[x])
 
+    # Sometimes goes out of bounds and grabs "Craig Stevens"
+    badList = ['Craig Stevens']
+    urStarterList = [element for element in urStarterList if element not in badList]
     if (len(urStarterList) > 0):
         print("<tr>")
         print("<th colspan=\"2\" style=\"text-align: center\">Not Ranked</th>")
         print("</tr>")
+        #urStarterList.remove("Craig Stevens")
         for x in range(len(urStarterList)):
             print("<tr>")
             print("<td colspan=\"2\">" + urStarterList[x] + "</td>")
@@ -578,14 +581,19 @@ for league in leagues:
     for x in range(len(outputList)):
         print(outputList[x])
 
+    # Sometimes goes out of bounds and grabs "Craig Stevens"
+    badList = ['Craig Stevens']
+    urBenchList = [element for element in urBenchList if element not in badList]
     if (len(urBenchList) > 0):
         print("<tr>")
         print("<th colspan=\"2\" style=\"text-align: center\">Not Ranked</th>")
         print("</tr>")
+        # urBenchList.remove("Craig Stevens")
         for x in range(len(urBenchList)):
             print("<tr>")
             print("<td colspan=\"2\">" + urBenchList[x] + "</td>")
             print("</tr>")
+       
 
     # end of all output for league
     print("</table>")
