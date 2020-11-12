@@ -70,7 +70,6 @@ if(isset($_POST['submit'])){ //check if form was submitted
 <div class="container">
 <div class="row centerinput">
 <!-- <div class="eight columns"> -->
-<br>
 <h1>SleeperPy</h1>
 
 <!-- <ul>

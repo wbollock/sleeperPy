@@ -131,7 +131,7 @@ body {
 /* Typography
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 h1, h2, h3, h4, h5, h6 {
-  margin-top: 0;
+  margin-top: 1.0em;
   margin-bottom: 2rem;
   font-weight: bold; }
 h1 { font-size: 4.0rem; line-height: 1.2;  letter-spacing: -.1rem;}
@@ -160,7 +160,7 @@ p {
 a {
   color: #000270; }
 a:hover {
-  color: #0FA0CE; }
+  color:#4E5066; }
 
 
 /* Buttons
