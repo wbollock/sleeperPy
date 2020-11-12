@@ -40,16 +40,11 @@
     <div class="container">
         <div class="row">
 
-    <h1>SleeperPy: Boris Chen Tiers for Sleeper Leagues</h1>
-    <p>In the "Tiers" column, lower is better.</p>
-    <p>Notice: if you see "Craig Stevens", help me fight this bug by screenshoting your Sleeper FF roster and <a href="mailto:wbollock@gmail.com">emailing it to me</a>, along with your username.</p>
-    <ul>
+    <h1><a href="https://wboll.dev/sleeperPy">SleeperPy</a>: Boris Chen Tiers for Sleeper Leagues</h1>
+    <!-- <p>Notice: if you see "Craig Stevens", help me fight this bug by screenshoting your Sleeper FF roster and <a href="mailto:wbollock@gmail.com">emailing it to me</a>, along with your username.</p> -->
+    <!-- <ul>
         <li><a href="https://wboll.dev/sleeperPy">sleeperPy Home</a></li>
-        <li><a href="https://github.com/wbollock/sleeperPy">GitHub Link</a></li>
-        <li><a href="http://www.borischen.co/">Source of Tiers </a></li>
-        <li><a href="https://codepen.io/alassetter/pen/cyrfB">CSS Table Styling</a></li>
-        <li><a href="http://getskeleton.com/">General Styling</a></li>
-    </ul>
+    </ul> -->
     <form action="" method="post">
             <input type="submit" name="submit" value="Refresh Tiers" />
         </form>

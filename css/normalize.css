@@ -2,15 +2,23 @@
 
 /* shit i did */
 /* god i hate css */
+.centerinput
+{
+  margin: auto;
+  width: 80%;
+  /* padding: 10px; */
+}
+
 #pageloader
 {
   /*background:#62616185;*/
   display: none;
-  height: 50%;
-  width: 50%;
+  /* height: 50%;
+  width: 50%; */
   /*position: fixed;
   width: 100%;
   z-index: 9999;*/
+  margin-left: 100px;
 }
 
 #pageloader img

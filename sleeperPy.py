@@ -228,7 +228,7 @@ players = []
 oppStarters = []
 oppPlayers = []
 
-print("<h5>Username: " + username + " | Week " + str(currentWeek()) + "</h5>")
+print("<h5>Username: " + username + " - Week " + str(currentWeek()) + "</h5>")
 print("</div>")
 print("</div>")
 print("<div class=\"flex-container container\">")

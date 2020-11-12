@@ -68,14 +68,18 @@ if(isset($_POST['submit'])){ //check if form was submitted
 
 <form action="" method="post" id="userform">
 <div class="container">
-<div class="row">
+<div class="row centerinput">
+<!-- <div class="eight columns"> -->
+<br>
 <h1>SleeperPy</h1>
 
-<ul>
+<!-- <ul>
     <li>Outputs your team's <a href="http://www.borischen.co/">Boris Chen</a> tiers across all Sleeper leagues.</li>
     <li><a href="https://github.com/wbollock/sleeperPy">GitHub Link</a></li>
     <li>It is best to run this on Wednesday or Thursday, as tiers are mostly updated by then.</li>
-</ul>
+</ul> -->
+
+<h5>Displays your team's <a href="http://www.borischen.co/">Boris Chen</a> tiers across all Sleeper leagues.</h5>
 
 Enter your Sleeper username: <input type="text" name="name" required placeholder="Sleeper Username" pattern="^\S+$"
 oninvalid="this.setCustomValidity('Username without spaces')"
@@ -87,6 +91,7 @@ oninvalid="this.setCustomValidity('Username without spaces')"
 <br>
 
 
+
 </form>
 
 
@@ -94,9 +99,30 @@ oninvalid="this.setCustomValidity('Username without spaces')"
     <div id="pageloader">
    <img src="loading2.gif" alt="processing..." />
 </div>
-  </div>
+</div>
+</div>
 
+<div class="container">
+<div class="row centerinput">
 
+<footer>
+<ul>
+    <li>In the "Tiers" column, lower is better.</li>
+    <!-- <li>It is best to run this on Wednesday or Thursday, as tiers are mostly updated by then.</li> -->
+    <li>MIT License - Copyright 2020 - Will Bollock</li>
+    <li><a href="https://github.com/wbollock/sleeperPy">GitHub Repo</a> | 
+    <a href="http://www.borischen.co/">Source of Tiers</a> | 
+    <a href="https://codepen.io/alassetter/pen/cyrfB">CSS Table Styling</a> | 
+    <a href="http://getskeleton.com/">General Styling</a>
+     </li>
+    <!-- <li><a href="http://www.borischen.co/">Source of Tiers </a></li>
+    <li><a href="https://codepen.io/alassetter/pen/cyrfB">CSS Table Styling</a></li>
+    <li><a href="http://getskeleton.com/">General Styling</a></li> -->
+</ul>
+</footer>
+
+</div>
+</div>
 
   
 </body>
