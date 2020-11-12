@@ -138,7 +138,8 @@ def currentWeek():
     # god this regex sucks
     page = soup.get_text()
     # should work for weeks 10-17 too
-    pattern = "Week [1-9]|[1-9][0-9]"
+    #pattern = "Week [1-9]|[1-9][0-9]"
+    pattern = "(Week [0-9][1-9])|(Week [1-9][0-9])|(Week [1-9])"
     week = re.search(pattern, page)
     week = [int(i) for i in str(week.group()).split() if i.isdigit()]
     return week[0]
