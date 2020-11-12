@@ -229,6 +229,7 @@ oppStarters = []
 oppPlayers = []
 
 print("<h5>Username: " + username + " - Week " + str(currentWeek()) + "</h5>")
+print("<center><form action=\"\" method=\"post\"> <input type=\"submit\" name=\"submit\" value=\"Refresh Tiers\" /></form></center>")
 print("</div>")
 print("</div>")
 print("<div class=\"flex-container container\">")

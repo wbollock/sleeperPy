@@ -40,14 +40,16 @@
     <div class="container">
         <div class="row">
 
-    <h1><a href="https://wboll.dev/sleeperPy">SleeperPy</a>: Boris Chen Tiers for Sleeper Leagues</h1>
+    <h1><a href="https://wboll.dev/sleeperPy">SleeperPy</a></h1>
+    <h3>Boris Chen Tiers for Sleeper Leagues</h3>
     <!-- <p>Notice: if you see "Craig Stevens", help me fight this bug by screenshoting your Sleeper FF roster and <a href="mailto:wbollock@gmail.com">emailing it to me</a>, along with your username.</p> -->
     <!-- <ul>
         <li><a href="https://wboll.dev/sleeperPy">sleeperPy Home</a></li>
     </ul> -->
-    <form action="" method="post">
+    <!-- <center><form action="" method="post">
             <input type="submit" name="submit" value="Refresh Tiers" />
-        </form>
+        </form></center> -->
+        
             
 
         
