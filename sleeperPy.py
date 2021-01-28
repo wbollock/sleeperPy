@@ -11,6 +11,7 @@
 # looks like i would have to curl "https://api.sleeper.app/v1/players/nfl/trending/add" and keep ~top 5
 # then determine if that player is rostered in any team, seperately
 # TODO: optimization, for key in playerdata is killing speed of program
+# TODO: easy one, unranked player doesn't count towards the tier. maybe make them tier 12?
 
 
 # API

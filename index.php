@@ -78,6 +78,7 @@ if(isset($_POST['submit'])){ //check if form was submitted
     <li>It is best to run this on Wednesday or Thursday, as tiers are mostly updated by then.</li>
 </ul> -->
 
+<h4><b>NOTICE: The 2020 Fantasy Football season is over. Please check back in 2021!</b></h4>
 <h5 style="text-align:left;">Displays your team's <a href="http://www.borischen.co/">Boris Chen</a> tiers across all Sleeper leagues.</h5>
 
 Enter your Sleeper username: <input type="text" name="name" required placeholder="Sleeper Username" pattern="^\S+$"
