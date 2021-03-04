@@ -1,8 +1,12 @@
 # sleeperPy
 
+**Under construction for the 2021 season. Thank you to all my users and I hope to bring back sleeperPy even better this season.**
+
 A program to allow users to easily parse their [Sleeper](https://sleeper.app/) Fantasy Football team using [Boris Chen's](http://www.borischen.co/) tiers (accumulated from all FantasyPros.com experts).
 
-Try it on my [personal website](https://wboll.dev/sleeperPy/). Try the username "puffplants" if you don't have a Sleeper FF team.
+Try it on my [personal website](https://wboll.dev/sleeperPy/).
+
+
 
 ![one team](img/web_view.png)
 
