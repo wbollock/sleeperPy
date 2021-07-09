@@ -1,20 +1,21 @@
 # sleeperPy
 
-![license](https://img.shields.io/github/license/wbollock/sleeperPy?style=for-the-badge)
+![license](https://img.shields.io/github/license/wbollock/sleeperPy) ![users](https://img.shields.io/badge/users-1000%2B-blue)
+
+
 
 A web application to allow users to easily parse multiple [Sleeper](https://sleeper.app/) Fantasy Football leagues using [Boris Chen's](http://www.borischen.co/) tiers (accumulated from all FantasyPros.com experts).
 
 This includes comparisons of the current weeks opponent's tiers, vaguely predicting whether you will win or lose.
 
-If you use Sleeper for fantasy football, try it on my [personal website](https://wboll.dev/sleeperPy/).
-
-In 2020, this
+If you use Sleeper for fantasy football, try it on my [personal website](https://wboll.dev/sleeperPy/). Only Sleeper Fantasy Football is supported. No ESPN or Yahoo for now.
 
 
 
-![one team](img/web_view.png)
+![one team](img/web_view.png) 
 
-Only Sleeper Fantasy Football is supported. No ESPN or Yahoo for now.
+
+
 
 ## Features
 
