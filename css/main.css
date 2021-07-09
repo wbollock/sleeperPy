@@ -52,16 +52,25 @@ body {
 
 #inputbutton {
   color:#000000;
-  margin-left:11em;
+  /* margin-left:11em;
   margin-right: 7.25em;
   text-align: center;
-  height: 3%;
-  width: 50%;
+  height: 6%;
+  width: 50%; */
+  text-align: center;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 70%;
 }
 
 #generateTiers {
   margin-left:25.5em;
   height: 5%;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 70%;
 }
 
 .homepageHeader {

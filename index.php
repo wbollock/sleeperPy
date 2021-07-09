@@ -82,7 +82,7 @@ if(isset($_POST['submit'])){ //check if form was submitted
 <!-- <h4 class="homepageHeader"><b>NOTICE: The 2020 Fantasy Football season is over. Please check back in 2021!</b></h4> -->
 <h5 id="infoText" style="text-align:left;">Displays your team's <a href="http://www.borischen.co/">Boris Chen</a> tiers across all Sleeper leagues.</h5>
 
-<input id="inputButton" type="text" name="name" required placeholder="Type Sleeper Username" pattern="^\S+$"
+<input id="inputButton" type="text" name="name" required placeholder="Sleeper Username" pattern="^\S+$"
 oninvalid="this.setCustomValidity('Username without spaces')"
     oninput="this.setCustomValidity('')" >
 <br>
