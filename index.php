@@ -8,6 +8,7 @@
         <!-- credit for skeleton http://getskeleton.com/ -->
         <link rel="stylesheet" href="css/normalize.css">
          <link rel="stylesheet" href="css/skeleton.css">
+         <link rel="stylesheet" href="css/main.css">
          <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
          <meta name="viewport" content="width=device-width, initial-scale=1">
          <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
@@ -70,7 +71,7 @@ if(isset($_POST['submit'])){ //check if form was submitted
 <div class="container">
 <div class="row centerinput">
 <!-- <div class="eight columns"> -->
-<h1><a href="https://wboll.dev/sleeperPy">SleeperPy</a></h1>
+<h1 class="homepageHeader"><a href="https://wboll.dev/sleeperPy">SleeperPy</a></h1>
 
 <!-- <ul>
     <li>Outputs your team's <a href="http://www.borischen.co/">Boris Chen</a> tiers across all Sleeper leagues.</li>
@@ -78,14 +79,14 @@ if(isset($_POST['submit'])){ //check if form was submitted
     <li>It is best to run this on Wednesday or Thursday, as tiers are mostly updated by then.</li>
 </ul> -->
 
-<h4><b>NOTICE: The 2020 Fantasy Football season is over. Please check back in 2021!</b></h4>
-<h5 style="text-align:left;">Displays your team's <a href="http://www.borischen.co/">Boris Chen</a> tiers across all Sleeper leagues.</h5>
+<!-- <h4 class="homepageHeader"><b>NOTICE: The 2020 Fantasy Football season is over. Please check back in 2021!</b></h4> -->
+<h5 id="infoText" style="text-align:left;">Displays your team's <a href="http://www.borischen.co/">Boris Chen</a> tiers across all Sleeper leagues.</h5>
 
-Enter your Sleeper username: <input type="text" name="name" required placeholder="Sleeper Username" pattern="^\S+$"
+<input id="inputButton" type="text" name="name" required placeholder="Type Sleeper Username" pattern="^\S+$"
 oninvalid="this.setCustomValidity('Username without spaces')"
     oninput="this.setCustomValidity('')" >
 <br>
-<input type="submit" name="submit" value="Generate Tiers">
+<input id="generateTiers" type="submit" name="submit" value="Generate Tiers">
 
 <br>
 <br>
@@ -96,9 +97,9 @@ oninvalid="this.setCustomValidity('Username without spaces')"
 
 
     </div>
-    <div id="pageloader">
+    <!-- <div id="pageloader">
    <img src="loading2.gif" alt="processing..." />
-</div>
+</div> -->
 </div>
 </div>
 
@@ -109,7 +110,6 @@ oninvalid="this.setCustomValidity('Username without spaces')"
 <ul>
     <li>In the "Tiers" column, lower is better.</li>
     <!-- <li>It is best to run this on Wednesday or Thursday, as tiers are mostly updated by then.</li> -->
-    <li>MIT License - Copyright 2020 - Will Bollock</li>
     <li><a href="https://github.com/wbollock/sleeperPy">GitHub Repo</a> | 
     <a href="http://www.borischen.co/">Source of Tiers</a> | 
     <a href="https://codepen.io/alassetter/pen/cyrfB">CSS Table Styling</a> | 
