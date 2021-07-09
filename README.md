@@ -1,23 +1,28 @@
 # sleeperPy
 
-**Under construction for the 2021 season. Thank you to all my users and I hope to bring back sleeperPy even better this season.**
+![license](https://img.shields.io/github/license/wbollock/sleeperPy?style=for-the-badge)
 
-A program to allow users to easily parse their [Sleeper](https://sleeper.app/) Fantasy Football team using [Boris Chen's](http://www.borischen.co/) tiers (accumulated from all FantasyPros.com experts).
+A web application to allow users to easily parse multiple [Sleeper](https://sleeper.app/) Fantasy Football leagues using [Boris Chen's](http://www.borischen.co/) tiers (accumulated from all FantasyPros.com experts).
 
-Try it on my [personal website](https://wboll.dev/sleeperPy/).
+This includes comparisons of the current weeks opponent's tiers, vaguely predicting whether you will win or lose.
+
+If you use Sleeper for fantasy football, try it on my [personal website](https://wboll.dev/sleeperPy/).
+
+In 2020, this
 
 
 
 ![one team](img/web_view.png)
 
-Only Sleeper Fantasy Football is supported.
+Only Sleeper Fantasy Football is supported. No ESPN or Yahoo for now.
 
 ## Features
 
-* Utilizes the Sleeper API for multiple leagues. Simply enter your Sleeper username, and get player's associated Boris Chen tiers.
-* Multiple scoring types accounted for, standard, 0.5 PPR and PPR. 
+* Utilizes the Sleeper API for multiple leagues. Simply enter your Sleeper username, and retrieve all player's associated Boris Chen tiers.
+* Multiple scoring types accounted for, e.g standard, 0.5 PPR and PPR. 
 * Shows the current tier of each player, dividing starters and bench.
 * Represents each league in simple HTML tables.
+* Shows the tiers for your current week's opponents, vaguely predicting whether you will win or lose.
 
 ## Usage
 
@@ -40,10 +45,3 @@ Requirements:
 
  * php 7+
  * pip3 install bs4
-
-```
-git clone https://github.com/wbollock/sleeperPy.git
-sudo chmod tiers 774
-```
-
-Make sure your web server has permissions for the `tiers` folder, `sleeperPy.py`, and `index.php`.
