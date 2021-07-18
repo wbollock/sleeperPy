@@ -30,6 +30,9 @@
 # Tiers
 # https://github.com/abhinavk99/espn-borischentiers/blob/master/src/js/espn-borischentiers.js
 
+
+
+
 import requests
 import json
 import os, time
@@ -42,6 +45,8 @@ import re
 from bs4 import BeautifulSoup
 from datetime import datetime
 from operator import itemgetter
+import logging, time
+from logging.handlers import RotatingFileHandler
 
 # Variables
 sport = "nfl"
@@ -50,9 +55,10 @@ year = datetime.now().strftime('%Y')
 playersFile = "players.txt"
 # template file
 htmlFile  = "tiers.php"
+# logging
+loggingFile = "sleeperPy.log"
 
 # Functions
-
 
 def Diff(li1, li2):
     # used to find "bench" by finding the difference between total team and starters
@@ -128,22 +134,76 @@ def createUnranked(tierListPos, fullName):
     else:
         return "ranked"
 
-def currentWeek():
-    # somehow return current NFL week, e.g week 4
-    # im screwed if this changes
-    url = "https://www.espn.com/nfl/lines"
-    page = urlopen(url)
-    html = page.read().decode("utf-8")
-    soup = BeautifulSoup(html, "html.parser")
-    # god this regex sucks
-    page = soup.get_text()
-    # should work for weeks 10-17 too
-    #pattern = "Week [1-9]|[1-9][0-9]"
-    pattern = "(Week [0-9][1-9])|(Week [1-9][0-9])|(Week [1-9])"
-    week = re.search(pattern, page)
-    week = [int(i) for i in str(week.group()).split() if i.isdigit()]
-    return week[0]
+# temporarily retired in favor of shitty calendar math
+# def currentWeek():
+#     # somehow return current NFL week, e.g week 4
+#     # im screwed if this changes
+#     url = "https://www.espn.com/nfl/lines"
+#     page = urlopen(url)
+#     html = page.read().decode("utf-8")
+#     soup = BeautifulSoup(html, "html.parser")
+#     # god this regex sucks
+#     page = soup.get_text()
+#     # should work for weeks 10-17 too
+#     #pattern = "Week [1-9]|[1-9][0-9]"
+#     pattern = "(Week [0-9][1-9])|(Week [1-9][0-9])|(Week [1-9])"
+#     week = re.search(pattern, page)
+#     week = [int(i) for i in str(week.group()).split() if i.isdigit()]
+#     return week[0]
 
+def currentWeek():
+    # if the start of the NFL season isn't ~week 36 of the year, change that value
+
+    # between like August -> September 9th (Thursday) (2021), it's week 1. 
+    # Final games in week 1 would be 13th.. so september 14th - 21st is week 2.. 22nd - 29th is week 3
+    # ending on Jan 9th, 2020, a Sunday
+    currentWeek = datetime.today().isocalendar()[1]
+    # if july 17 is week 28.. then september 9th would be week 37... and january 9th 2022 is week.. 2 of 2022
+
+    # lmao, $currentWeek - 36 is technically right. but man that's nasty to change in the future
+    currentNFLWeek = currentWeek - 36
+    # if it's postseason, cap at 16. wait this'll screwup for 2020
+    if currentNFLWeek > 16:
+        currentNFLWeek == 16
+    # a beautiful elif for week 1/2 of 2022, the last week.. ugh
+    elif currentWeek == 1 | 2:
+        currentNFLWeek == 16
+    # basically offseason, if negative weeks then 
+    else:
+        currentNFLWeek = max(1,currentNFLWeek)
+
+        
+
+    return currentNFLWeek
+
+# Rotating application logging I stole from the Internet
+def create_rotating_log(path):
+
+    logger = logging.getLogger("Rotating Log")
+    logger.setLevel(logging.DEBUG)
+    
+    # add a rotating handler
+    handler = RotatingFileHandler(path, maxBytes=2000000,
+                                  backupCount=5)
+    logger.addHandler(handler)
+    
+    # logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+        
+    log_file = path
+    
+    root = logging.getLogger()
+    root.setLevel(logging.DEBUG)
+
+    # handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    root.addHandler(handler)
+    
+
+create_rotating_log(loggingFile)
+
+# logger = logging.getLogger()
 
 
 
@@ -228,6 +288,8 @@ players = []
 oppStarters = []
 oppPlayers = []
 
+
+
 print("<h5>Username: " + username + " - Week " + str(currentWeek()) + "</h5>")
 print("<div class=\"buttonholder\"><form action=\"\" method=\"post\"> <input type=\"submit\" name=\"submit\" value=\"Refresh Tiers\" /></form>")
 print("</div>")
@@ -253,7 +315,7 @@ for league in leagues:
             starters.append(d['starters'])
             players.append(d['players'])
             roster_id = d['roster_id']
-
+    
     week = currentWeek()
     url = f"https://api.sleeper.app/v1/league/{league}/matchups/{week}"
     r = requests.get(url)
