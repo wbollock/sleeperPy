@@ -29,24 +29,6 @@
 <?php
 $username = "";
 if(isset($_POST['submit'])){ //check if form was submitted
-    // from sleeper:
-    // You should save this information on your own servers as this is not intended to be called every time you need to look up players due to the filesize being close to 5MB in size.
-    // You do not need to call this endpoint more than once per day.
-    $playersFile = 'players.txt';
-    $url = 'https://api.sleeper.app/v1/players/nfl';
-    if (file_exists($playersFile)) {
-        if (time()-filemtime($playersFile) > 86400) {
-            // file older than 24 hours
-            $json = file_get_contents($url);
-            file_put_contents($playersFile, $json);
-        }
-    } else {
-        // file older than 24 hours
-        $json = file_get_contents($url);
-        file_put_contents($playersFile, $json);
-
-    }
-
 
     $username = htmlspecialchars($_POST['name']);
     $command = 'python3 sleeperPy.py '.$username;
