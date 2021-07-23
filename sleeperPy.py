@@ -91,7 +91,7 @@ def mongoImport():
         t = os.stat(playersPath)[8] 
         filetime = today - datetime.fromtimestamp(t) 
 
-        if int(filetime.seconds) > 1:
+        if int(filetime.seconds) > 86400:
             # if it's last been modified longer than a day ago, download new players.txt
             with urllib.request.urlopen(url) as url:
                 data = json.loads(url.read().decode())
