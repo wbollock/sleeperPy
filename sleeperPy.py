@@ -56,7 +56,7 @@ playersFile = "players.txt"
 # template file
 htmlFile  = "tiers.php"
 # logging
-loggingFile = "sleeperPy.log"
+loggingFile = "/var/log/sleeperPy.log"
 
 # Functions
 
