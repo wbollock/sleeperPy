@@ -10,7 +10,6 @@
 # TODO: waiver wire suggestions would be great, especially for DST/K. If player on WW is higher tier, mention it.
 # looks like i would have to curl "https://api.sleeper.app/v1/players/nfl/trending/add" and keep ~top 5
 # then determine if that player is rostered in any team, seperately
-# TODO: optimization, for key in playerdata is killing speed of program
 # TODO: easy one, unranked player doesn't count towards the tier. maybe make them tier 12?
 
 
@@ -47,6 +46,7 @@ from datetime import datetime
 from operator import itemgetter
 import logging, time
 from logging.handlers import RotatingFileHandler
+from pymongo import MongoClient
 
 # Variables
 sport = "nfl"
@@ -56,9 +56,17 @@ playersFile = "players.txt"
 # template file
 htmlFile  = "tiers.php"
 # logging
-loggingFile = "/var/log/sleeperPy.log"
+loggingFile = "sleeperPy.log"
 
 # Functions
+def mongoConnect():
+    # connect to mongodb
+    client = MongoClient()
+    # default host/port
+    db = client["sleeperPy"]
+    collection = db["players"]
+    return db,collection
+
 
 def Diff(li1, li2):
     # used to find "bench" by finding the difference between total team and starters
@@ -202,6 +210,7 @@ def create_rotating_log(path):
     
 
 create_rotating_log(loggingFile)
+db, collection = mongoConnect()
 
 # logger = logging.getLogger()
 
@@ -272,9 +281,6 @@ for d in data:
 # GET https://api.sleeper.app/v1/league/<league_id>/rosters
 # first, fetch all players so I can cross reference IDs
 # read from players file
-
-with open(playersFile) as json_file:
-    playerData = json.load(json_file)
 
 # data is a dict here
 # print roster for both leagues:
@@ -413,51 +419,58 @@ for league in leagues:
 
     # print("Time1")
     # print('Time elapsed (hh:mm:ss.ms) {}'.format(time_elapsed))
-    for key in playerData:
-        # key is definitely the ids
-        j = 0
-        tier = 0
-        
-        while j < len(starters[i]):
-            if key == starters[i][j]:
-                # one player from each loop... 
-                fName = playerData[starters[i][j]]['first_name']  
-                lName = playerData[starters[i][j]]['last_name']
-                pos = playerData[starters[i][j]]['position']
-                fullName = fName + " " + lName
 
-                # iterate through tierlists based on pos
-                # DEF, WR, TE, K, RB, QB
-            
-                # len is amount of tiers
-                if pos == "QB":
-                    qbStarterList, qbTierList, tier = createTiers(tierListQB,fullName,qbStarterList,qbTierList,tier)
-                    if createUnranked(tierListQB,fullName) != "ranked":
-                        urStarterList.append(createUnranked(tierListQB,fullName))
-                if pos == "RB":
-                    rbStarterList, rbTierList, tier = createTiers(tierListRB,fullName,rbStarterList,rbTierList,tier)
-                    if createUnranked(tierListRB,fullName) != "ranked":
-                        urStarterList.append(createUnranked(tierListRB,fullName))
-                if pos == "WR":
-                    wrStarterList, wrTierList, tier = createTiers(tierListWR,fullName,wrStarterList,wrTierList,tier)
-                    if createUnranked(tierListWR,fullName) != "ranked":
-                        urStarterList.append(createUnranked(tierListWR,fullName))
-                if pos == "K":
-                    kStarterList, kTierList, tier = createTiers(tierListK,fullName,kStarterList,kTierList,tier)
-                    if createUnranked(tierListK,fullName) != "ranked":
-                        urStarterList.append(createUnranked(tierListK,fullName))
-                if pos == "DEF":
-                    dstStarterList, dstTierList, tier = createTiers(tierListDST,fullName,dstStarterList,dstTierList,tier)
-                    if createUnranked(tierListDST,fullName) != "ranked":
-                        urStarterList.append(createUnranked(tierListDST,fullName))
-                if pos == "TE":
-                    teStarterList, teTierList, tier = createTiers(tierListTE,fullName,teStarterList,teTierList,tier)
-                    if createUnranked(tierListTE,fullName) != "ranked":
-                        urStarterList.append(createUnranked(tierListTE,fullName))
-                    
-                tierSum = tier + tierSum
-                tier = tier + 1
-            j = j + 1
+    # before: iterated through *every* key in players.txt
+    # if that key HAPPENED to match their key, starters[i][j], then do shit
+    # that sucks horribly
+
+    # instead, just loop through their teams' players
+        # instead, just loop through their teams' players
+
+    j = 0
+    tier = 0
+    # key = {}
+    
+    # looping through starters[i] to get all IDs of starters, e.g 4881
+    while j < len(starters[i]):
+        for key in collection.distinct(str(starters[i][j])):
+            fName = key['first_name']  
+            lName = key['last_name']
+            pos = key['position']
+            fullName = fName + " " + lName
+
+            # iterate through tierlists based on pos
+            # DEF, WR, TE, K, RB, QB
+        
+            # len is amount of tiers
+            if pos == "QB":
+                qbStarterList, qbTierList, tier = createTiers(tierListQB,fullName,qbStarterList,qbTierList,tier)
+                if createUnranked(tierListQB,fullName) != "ranked":
+                    urStarterList.append(createUnranked(tierListQB,fullName))
+            if pos == "RB":
+                rbStarterList, rbTierList, tier = createTiers(tierListRB,fullName,rbStarterList,rbTierList,tier)
+                if createUnranked(tierListRB,fullName) != "ranked":
+                    urStarterList.append(createUnranked(tierListRB,fullName))
+            if pos == "WR":
+                wrStarterList, wrTierList, tier = createTiers(tierListWR,fullName,wrStarterList,wrTierList,tier)
+                if createUnranked(tierListWR,fullName) != "ranked":
+                    urStarterList.append(createUnranked(tierListWR,fullName))
+            if pos == "K":
+                kStarterList, kTierList, tier = createTiers(tierListK,fullName,kStarterList,kTierList,tier)
+                if createUnranked(tierListK,fullName) != "ranked":
+                    urStarterList.append(createUnranked(tierListK,fullName))
+            if pos == "DEF":
+                dstStarterList, dstTierList, tier = createTiers(tierListDST,fullName,dstStarterList,dstTierList,tier)
+                if createUnranked(tierListDST,fullName) != "ranked":
+                    urStarterList.append(createUnranked(tierListDST,fullName))
+            if pos == "TE":
+                teStarterList, teTierList, tier = createTiers(tierListTE,fullName,teStarterList,teTierList,tier)
+                if createUnranked(tierListTE,fullName) != "ranked":
+                    urStarterList.append(createUnranked(tierListTE,fullName))
+                
+            tierSum = tier + tierSum
+            tier = tier + 1
+        j = j + 1
     
     # returns list with HTML to print to page
     outputList = printTiers(qbStarterList, qbTierList, "QB")
@@ -505,39 +518,38 @@ for league in leagues:
     # Calculate Opponent Tiers
     # not the best test, but if oppStarters has no length, don't do any of this
     if oppStarters:
-        for key in playerData:
-            j = 0
-            tier = 0
-            # for j in range(len(oppStarters)):
-            try:
-                while j < len(oppStarters[i]):
-                        if key == oppStarters[i][j]:
-                            # one player from each loop... 
-                            fName = playerData[oppStarters[i][j]]['first_name']  
-                            lName = playerData[oppStarters[i][j]]['last_name']
-                            pos = playerData[oppStarters[i][j]]['position']
-                            fullName = fName + " " + lName
+        j = 0
+        tier = 0
+        # key = {}
+        try:
+            # looping through starters[i] to get all IDs of starters, e.g 4881
+            while j < len(oppStarters[i]):
+                for key in collection.distinct(str(oppStarters[i][j])):
+                    fName = key['first_name']  
+                    lName = key['last_name']
+                    pos = key['position']
+                    fullName = fName + " " + lName
 
-                            if pos == "QB":
-                                qbOppList, qbOppTierList, tier = createTiers(tierListQB,fullName,qbOppList,qbOppTierList,tier)
-                            if pos == "RB":
-                                rbOppList, rbOppTierList, tier = createTiers(tierListRB,fullName,rbOppList,rbOppTierList,tier)
-                            if pos == "WR":
-                                wrOppList, wrOppTierList, tier = createTiers(tierListWR,fullName,wrOppList,wrOppTierList,tier)
-                            if pos == "K":
-                                kOppList, kOppTierList, tier = createTiers(tierListK,fullName,kOppList,kOppTierList,tier)
-                            if pos == "DEF":
-                                dstOppList, dstOppTierList, tier = createTiers(tierListDST,fullName,dstOppList,dstOppTierList,tier)
-                            if pos == "TE":
-                                teOppList, teOppTierList, tier = createTiers(tierListTE,fullName,teOppList,teOppTierList,tier)
+                    if pos == "QB":
+                        qbOppList, qbOppTierList, tier = createTiers(tierListQB,fullName,qbOppList,qbOppTierList,tier)
+                    if pos == "RB":
+                        rbOppList, rbOppTierList, tier = createTiers(tierListRB,fullName,rbOppList,rbOppTierList,tier)
+                    if pos == "WR":
+                        wrOppList, wrOppTierList, tier = createTiers(tierListWR,fullName,wrOppList,wrOppTierList,tier)
+                    if pos == "K":
+                        kOppList, kOppTierList, tier = createTiers(tierListK,fullName,kOppList,kOppTierList,tier)
+                    if pos == "DEF":
+                        dstOppList, dstOppTierList, tier = createTiers(tierListDST,fullName,dstOppList,dstOppTierList,tier)
+                    if pos == "TE":
+                        teOppList, teOppTierList, tier = createTiers(tierListTE,fullName,teOppList,teOppTierList,tier)
 
-                            tierOppSum = tier + tierOppSum
-                            tier = tier + 1
-                        j = j + 1
-            except IndexError:
-                avgTier = round(tierSum / (len(starters[i])),2)
-                print(f"<tr><td colspan=\"2\" style=\"text-align: center\">Average Tier {avgTier}</td></tr>")
-                break
+                    tierOppSum = tier + tierOppSum
+                    tier = tier + 1
+                j = j + 1
+        except IndexError:
+            avgTier = round(tierSum / (len(starters[i])),2)
+            print(f"<tr><td colspan=\"2\" style=\"text-align: center\">Average Tier {avgTier}</td></tr>")
+            break
         try:
             tierOppSum = tierOppSum - 1
             tierSum = tierSum - 1
@@ -571,49 +583,48 @@ for league in leagues:
     # bench
     print("<br>")
     print("<br>")
-    for key in playerData:
-        # should iterate through 5
-        tier = 0
-        for b in bench:
-            if key == b:
-                fName = playerData[b]['first_name']
-                lName = playerData[b]['last_name']
-                pos = playerData[b]['position']
-                fullName = fName + " " + lName
-                
-                if pos == "QB":
-                    qbBenchList, qbTierBenchList, tier = createTiers(tierListQB,fullName,qbBenchList,qbTierBenchList,tier)
-                    if createUnranked(tierListQB,fullName) != "ranked":
-                        urBenchList.append(createUnranked(tierListQB,fullName))
-        
-                if pos == "RB":
-                    #rbStarterList, rbTierList, tier = createTiers(tierListRB,fullName,rbStarterList,rbTierList,tier)
-                    rbBenchList, rbTierBenchList, tier = createTiers(tierListRB,fullName,rbBenchList,rbTierBenchList,tier)
-                    if createUnranked(tierListRB,fullName) != "ranked":
-                        urBenchList.append(createUnranked(tierListRB,fullName))
-              
-                if pos == "WR":
-                    wrBenchList, wrTierBenchList, tier = createTiers(tierListWR,fullName,wrBenchList,wrTierBenchList,tier)
-                    if createUnranked(tierListWR,fullName) != "ranked":
-                        urBenchList.append(createUnranked(tierListWR,fullName))
+    
+    tier = 0
+    for b in bench:
+        for key in collection.distinct(str(b)):
+            fName = key['first_name']  
+            lName = key['last_name']
+            pos = key['position']
+            fullName = fName + " " + lName
+            
+            if pos == "QB":
+                qbBenchList, qbTierBenchList, tier = createTiers(tierListQB,fullName,qbBenchList,qbTierBenchList,tier)
+                if createUnranked(tierListQB,fullName) != "ranked":
+                    urBenchList.append(createUnranked(tierListQB,fullName))
+    
+            if pos == "RB":
+                #rbStarterList, rbTierList, tier = createTiers(tierListRB,fullName,rbStarterList,rbTierList,tier)
+                rbBenchList, rbTierBenchList, tier = createTiers(tierListRB,fullName,rbBenchList,rbTierBenchList,tier)
+                if createUnranked(tierListRB,fullName) != "ranked":
+                    urBenchList.append(createUnranked(tierListRB,fullName))
+            
+            if pos == "WR":
+                wrBenchList, wrTierBenchList, tier = createTiers(tierListWR,fullName,wrBenchList,wrTierBenchList,tier)
+                if createUnranked(tierListWR,fullName) != "ranked":
+                    urBenchList.append(createUnranked(tierListWR,fullName))
 
-                if pos == "K":
-                    kBenchList, kTierBenchList, tier = createTiers(tierListK,fullName,kBenchList,kTierBenchList,tier)
-                    if createUnranked(tierListK,fullName) != "ranked":
-                        urBenchList.append(createUnranked(tierListK,fullName))
+            if pos == "K":
+                kBenchList, kTierBenchList, tier = createTiers(tierListK,fullName,kBenchList,kTierBenchList,tier)
+                if createUnranked(tierListK,fullName) != "ranked":
+                    urBenchList.append(createUnranked(tierListK,fullName))
 
-                if pos == "DEF":
-                    dstBenchList, dstTierBenchList, tier = createTiers(tierListDST,fullName,dstBenchList,dstTierBenchList,tier)
-                    if createUnranked(tierListDST,fullName) != "ranked":
-                        urBenchList.append(createUnranked(tierListDST,fullName))
+            if pos == "DEF":
+                dstBenchList, dstTierBenchList, tier = createTiers(tierListDST,fullName,dstBenchList,dstTierBenchList,tier)
+                if createUnranked(tierListDST,fullName) != "ranked":
+                    urBenchList.append(createUnranked(tierListDST,fullName))
 
-                if pos == "TE":
-                    teBenchList, teTierBenchList, tier = createTiers(tierListTE,fullName,teBenchList,teTierBenchList,tier)
-                    if createUnranked(tierListTE,fullName) != "ranked":
-                        urBenchList.append(createUnranked(tierListTE,fullName))
-               
+            if pos == "TE":
+                teBenchList, teTierBenchList, tier = createTiers(tierListTE,fullName,teBenchList,teTierBenchList,tier)
+                if createUnranked(tierListTE,fullName) != "ranked":
+                    urBenchList.append(createUnranked(tierListTE,fullName))
+            
 
-                tier = tier + 1
+            tier = tier + 1
                
     print("<tr>")
     print("<th colspan=\"2\" style=\"text-align:center;\">Bench</th>")

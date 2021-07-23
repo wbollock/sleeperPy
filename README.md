@@ -45,4 +45,7 @@ cat tiers/tiers_$username.html
 Requirements:
 
  * php 7+
- * pip3 install bs4
+ * python3
+ * pip3 - bs4, pymongo (TODO: requirements.txt for easy pip3 installs)
+ * mongodb
+ * mongodb-tools (recommended)
