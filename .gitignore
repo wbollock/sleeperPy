@@ -1,4 +1,4 @@
-players.txt
+players.json
 deploy.sh
 sleeperPy.log*
 mongo

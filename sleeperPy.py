@@ -31,7 +31,7 @@
 
 
 
-
+# TODO: lmao clean up these imports
 import requests
 import json
 import os, time
@@ -47,26 +47,77 @@ from operator import itemgetter
 import logging, time
 from logging.handlers import RotatingFileHandler
 from pymongo import MongoClient
+import os.path
+from os import path
+from pathlib import Path
+import calendar
+import urllib.request, json 
 
 # Variables
 sport = "nfl"
 # current year, e.g 2020
 year = datetime.now().strftime('%Y')
-playersFile = "players.txt"
 # template file
 htmlFile  = "tiers.php"
 # logging
 loggingFile = "sleeperPy.log"
+playersFile = "players.json"
+
+dbName="sleeperPy"
+collectionName="players"
+
+
 
 # Functions
 def mongoConnect():
     # connect to mongodb
     client = MongoClient()
     # default host/port
-    db = client["sleeperPy"]
-    collection = db["players"]
+    db = client[dbName]
+    collection = db[collectionName]
     return db,collection
 
+def mongoImport():
+    playersPath = Path(playersFile)
+
+    url = "https://api.sleeper.app/v1/players/nfl"
+    today = datetime.today()
+
+    print("mongoimport --db " + dbName + " --collection " + collectionName +" --file " + playersFile)
+    exit
+    # see if we need a new players.json
+    if playersPath.is_file():
+        # 8 is last modified
+        t = os.stat(playersPath)[8] 
+        filetime = today - datetime.fromtimestamp(t) 
+
+        if int(filetime.seconds) > 1:
+            # if it's last been modified longer than a day ago, download new players.txt
+            with urllib.request.urlopen(url) as url:
+                data = json.loads(url.read().decode())
+                with open(playersFile, 'w') as f:
+                    json.dump(data,f)
+                    f.close()
+
+            # clean up existing data
+            collection.delete_many({})
+            # import new stuff
+            os.system("mongoimport --db " + dbName + " --collection " + collectionName +" --file " + playersFile)
+
+    # if file doesn't exist at all"
+    else:
+        with urllib.request.urlopen(url) as url:
+                data = json.loads(url.read().decode())
+                with open(playersFile, 'w') as f:
+                    json.dump(data,f)
+                    f.close()
+
+                # clean up existing data
+                collection.delete_many({})
+                # import new stuff
+                os.system("mongoimport --db " + dbName + " --collection " + collectionName +" --file " + playersFile)
+
+    print("nothing")
 
 def Diff(li1, li2):
     # used to find "bench" by finding the difference between total team and starters
@@ -211,6 +262,7 @@ def create_rotating_log(path):
 
 create_rotating_log(loggingFile)
 db, collection = mongoConnect()
+mongoImport()
 
 # logger = logging.getLogger()
 

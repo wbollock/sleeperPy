@@ -47,5 +47,5 @@ Requirements:
  * php 7+
  * python3
  * pip3 - bs4, pymongo (TODO: requirements.txt for easy pip3 installs)
- * mongodb
+ * mongodb (default database is "sleeperPy", collection "players")
  * mongodb-tools (recommended)
