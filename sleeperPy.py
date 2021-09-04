@@ -66,6 +66,11 @@ playersFile = "players.json"
 dbName="sleeperPy"
 collectionName="players"
 
+tiersCanaryPPR = "tiercanaryPPR"
+tiersCanarySTD = "tiercanarySTD"
+tiersCanaryHPPR = "tiercanaryHPPR"
+borisDir = "borisTiers"
+
 
 
 # Functions
@@ -117,12 +122,155 @@ def mongoImport():
                 # import new stuff
                 os.system("mongoimport --db " + dbName + " --collection " + collectionName +" --file " + playersFile)
 
-    print("nothing")
+    return
+
+
 
 def Diff(li1, li2):
     # used to find "bench" by finding the difference between total team and starters
     li_dif = [i for i in li1 + li2 if i not in li1 or i not in li2] 
     return li_dif
+
+def writeTiers(borisPath, scoring):
+    
+    # figure out what lists to use
+    # below 3 are guranteed regardless of scoring
+    qbBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_QB.txt"
+    dstBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_DST.txt"
+    kBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_K.txt"
+
+    scoring_to_text_map = {1.0: '-PPR', 0.5: '-HALF', 0.0: ''}
+    rbBoris = f"https://s3-us-west-1.amazonaws.com/fftiers/out/text_RB{scoring_to_text_map[scoring]}.txt"
+    wrBoris = f"https://s3-us-west-1.amazonaws.com/fftiers/out/text_WR{scoring_to_text_map[scoring]}.txt"
+    teBoris = f"https://s3-us-west-1.amazonaws.com/fftiers/out/text_TE{scoring_to_text_map[scoring]}.txt"
+    # TODO: see if this is even faster than just doing the requests to the webpage
+
+     # tierListRB[0] = Tier 1: Christian McCaffrey, Ezekiel Elliott
+    # tfw when python has no switch/case
+    borisPath = os.path.join(borisDir, "rbtiers")
+    r = requests.get(rbBoris)
+    data = r.text
+    tierListRB = data.splitlines()
+    f = open(borisPath,'w'); f.write(tierListRB); f.close()
+
+    borisPath = os.path.join(borisDir, "wrtiers")
+    r = requests.get(wrBoris)
+    data = r.text
+    tierListWR = data.splitlines()
+    f = open(borisPath,'w'); f.write(tierListWR); f.close()
+
+    borisPath = os.path.join(borisDir, "tetiers")
+    r = requests.get(teBoris)
+    data = r.text
+    tierListTE = data.splitlines()
+    f = open(borisPath,'w'); f.write(tierListTE); f.close()
+
+    borisPath = os.path.join(borisDir, "qbtiers")
+    r = requests.get(qbBoris)
+    data = r.text
+    tierListQB = data.splitlines()
+    f = open(borisPath,'w'); f.write(tierListQB); f.close()
+
+    borisPath = os.path.join(borisDir, "ktiers")
+    r = requests.get(kBoris)
+    data = r.text
+    tierListK = data.splitlines()
+    f = open(borisPath,'w'); f.write(tierListK); f.close()
+    
+    borisPath = os.path.join(borisDir, "dsttiers")
+    r = requests.get(kBoris)
+    data = r.text
+    tierListDST = data.splitlines()
+    f = open(borisPath,'w'); f.write(tierListDST); f.close()
+
+def readTiers(borisPath):
+
+    with open(borisPath + "/rbtiers") as f:
+        tierListRB = f.read()
+        f.close()
+    with open(borisPath + "/wrtiers") as f:
+        tierListWR = f.read()
+        f.close()
+    with open(borisPath + "/tetiers") as f:
+        tierListTE = f.read()
+        f.close()
+    with open(borisPath + "/qbtiers") as f:
+        tierListQB = f.read()
+        f.close()
+    with open(borisPath + "/ktiers") as f:
+        tierListK = f.read()
+        f.close()
+    with open(borisPath + "/dsttiers") as f:
+        tierListDST = f.read()
+        f.close()
+
+    return tierListRB, tierListWR, tierListTE, tierListQB, tierListK, tierListDST
+
+def getTiers(scoring):
+    # pull current tiers from Boris' lists
+    # input is the user's league's scoring settings
+
+    # write to file path is ${pwd}/boristiers/{PPR,HALF,STD}/{RB,QB,WR,etc...}
+
+    # ~5.501s total runtime without cached tier lists (on pi3)
+
+
+    if scoring == 1.0:
+        canaryPath = Path(tiersCanaryPPR)
+        if canaryPath.is_file():
+            # 8 is last modified
+            t = os.stat(canaryPath)[8] 
+            today = datetime.today()
+            filetime = today - datetime.fromtimestamp(t) 
+
+            if int(filetime.seconds) > 3600:
+                # if it's last been modified longer than an hour ago, grab new tiers
+                # write to the PPR sub dir
+                borisDir = borisDir + "/PPR"
+                writeTiers(borisDir, scoring)
+                tierRB, tierListWR, tierListTE, tierListQB, tierListK, tierListDST = readTiers(borisDir)
+                # if our file was too old, signify we grabbed new tiers by rming and touching the canary
+                os.remove(canaryPath)
+                f = open(canaryPath,'w'); f.close()
+            else:
+                # tiers are fresh, proceed
+                tierRB, tierListWR, tierListTE, tierListQB, tierListK, tierListDST = readTiers(borisDir)
+        return tierListRB, tierListWR, tierListTE, tierListQB, tierListK, tierListDST
+
+            
+    elif scoring == 0.5:
+        canaryPath = Path(tiersCanaryHPPR)
+        if canaryPath.is_file():
+            t = os.stat(canaryPath)[8] 
+            filetime = today - datetime.fromtimestamp(t) 
+
+            if int(filetime.seconds) > 3600:
+                borisDir = borisDir + "/HALF"
+                writeTiers(borisDir, scoring)
+                tierListRB, tierListWR, tierListTE, tierListQB, tierListK, tierListDST = readTiers(borisDir)
+                os.remove(canaryPath)
+                f = open(canaryPath,'w'); f.close()
+            else:
+                tierListRB, tierListWR, tierListTE, tierListQB, tierListK, tierListDST = readTiers(borisDir)
+        return tierListRB, tierListWR, tierListTE, tierListQB, tierListK, tierListDST
+
+    elif scoring == 0.0:
+        canaryPath = Path(tiersCanarySTD)
+        if canaryPath.is_file():
+            t = os.stat(canaryPath)[8] 
+            filetime = today - datetime.fromtimestamp(t) 
+
+            if int(filetime.seconds) > 3600:
+                borisDir = borisDir + "/STD"
+                writeTiers(borisDir, scoring)
+                tierListRB, tierListWR, tierListTE, tierListQB, tierListK, tierListDST = readTiers(borisDir)
+                os.remove(canaryPath)
+                f = open(canaryPath,'w'); f.close()
+            else:
+                tierListRB, tierListWR, tierListTE, tierListQB, tierListK, tierListDST = readTiers(borisDir)
+        return tierListRB, tierListWR, tierListTE, tierListQB, tierListK, tierListDST
+
+    
 
 def sortLists(list1, list2):
     # list1 should be tiers, list2 players
@@ -410,16 +558,7 @@ for league in leagues:
      
     # mode = scoringMode(scoring)
 
-    # figure out what lists to use
-    # below 3 are guranteed regardless of scoring
-    qbBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_QB.txt"
-    dstBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_DST.txt"
-    kBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_K.txt"
-
-    scoring_to_text_map = {1.0: '-PPR', 0.5: '-HALF', 0.0: ''}
-    rbBoris = f"https://s3-us-west-1.amazonaws.com/fftiers/out/text_RB{scoring_to_text_map[scoring[i]]}.txt"
-    wrBoris = f"https://s3-us-west-1.amazonaws.com/fftiers/out/text_WR{scoring_to_text_map[scoring[i]]}.txt"
-    teBoris = f"https://s3-us-west-1.amazonaws.com/fftiers/out/text_TE{scoring_to_text_map[scoring[i]]}.txt"
+   
     
     print("<table class=\"table-fill\">")
     if scoring[i] == 1.0:
@@ -431,32 +570,7 @@ for league in leagues:
 
     print("</tr>")
 
-
-    r = requests.get(rbBoris)
-    data = r.text
-    tierListRB = data.splitlines()
-
-    # tierListRB[0] = Tier 1: Christian McCaffrey, Ezekiel Elliott
-    # tfw when python has no switch/case
-    r = requests.get(wrBoris)
-    data = r.text
-    tierListWR = data.splitlines()
-
-    r = requests.get(teBoris)
-    data = r.text
-    tierListTE = data.splitlines()
-
-    r = requests.get(qbBoris)
-    data = r.text
-    tierListQB = data.splitlines()
-
-    r = requests.get(kBoris)
-    data = r.text
-    tierListK = data.splitlines()
-
-    r = requests.get(dstBoris)
-    data = r.text
-    tierListDST = data.splitlines()
+    tierListRB, tierListWR, tierListTE, tierListQB, tierListK, tierListDST = getTiers(scoring[i])
     
     # get bench by subtracting all players by starters
     bench = Diff(players[i], starters[i])
@@ -562,7 +676,7 @@ for league in leagues:
             print("<td colspan=\"2\">" + urStarterList[x] + "</td>")
             print("</tr>")
 
-    # Time End, 2.7 seconds
+    
 
     qbOppTierList,rbOppTierList,wrOppTierList,dstOppTierList,teOppTierList,kOppTierList = [],[],[],[],[],[]
     qbOppList,rbOppList,wrOppList,teOppList,dstOppList,kOppList,urOppList = [],[],[],[],[],[],[]
