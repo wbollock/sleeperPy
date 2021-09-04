@@ -2,3 +2,4 @@ players.json
 deploy.sh
 sleeperPy.log*
 mongo
+matomo.js
