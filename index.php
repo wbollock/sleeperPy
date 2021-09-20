@@ -2,7 +2,7 @@
 <head>
         <meta charset="UTF-8">
         <title>SleeperPy</title>
-        <meta name="author" content="Will bollock">
+        <meta name="author" content="Will Bollock">
         <link rel="stylesheet" href="tiers/style.css">
         <!-- https://codepen.io/alassetter/pen/cyrfB -->
         <!-- credit for skeleton http://getskeleton.com/ -->
@@ -31,10 +31,24 @@
 
 
 <?php
-$username = "";
+// validate username server-side
+function validate_username($str) 
+{
+    $allowed = array(".", "-", "_"); // you can add here more value, you want to allow.
+    if(ctype_alnum(str_replace($allowed, '', $str ))) {
+        return $str;
+    } else {
+        echo "Please enter a valid username.";
+        exit;
+    }
+}
+
+
+
 if(isset($_POST['submit'])){ //check if form was submitted
 
     $username = htmlspecialchars($_POST['name']);
+    validate_username($username);
     $command = 'python3 sleeperPy.py '.$username;
     #$script = escapeshellcmd('python3 sleeperPy.py ').$username;
     #$output = shell_exec($command);
@@ -65,14 +79,40 @@ if(isset($_POST['submit'])){ //check if form was submitted
     <li>It is best to run this on Wednesday or Thursday, as tiers are mostly updated by then.</li>
 </ul> -->
 
+<!-- uncomment when FF season is over -->
+
 <!-- <h4 class="homepageHeader"><b>NOTICE: The 2020 Fantasy Football season is over. Please check back in 2021!</b></h4> -->
+
+
 <h5 id="infoText" style="text-align:left;">Displays your team's <a href="http://www.borischen.co/">Boris Chen</a> tiers across all Sleeper leagues.</h5>
 
-<input id="inputButton" type="text" name="name" required placeholder="Sleeper Username" pattern="^\S+$"
-oninvalid="this.setCustomValidity('Username without spaces')"
-    oninput="this.setCustomValidity('')" >
-<br>
-<input id="generateTiers" type="submit" name="submit" value="Generate Tiers">
+
+<?php
+    # if new user or cookies disabled, give "normal" form
+    if(!isset($_COOKIE["sleeperPyUsername"])) {
+        echo <<< iloveheredocs
+        <input id="inputButton" type="text" name="name" required placeholder="Sleeper Username">
+        iloveheredocs;
+        echo "<br>";
+        echo "<input id=\"generateTiers\" type=\"submit\" name=\"submit\" value=\"Generate Tiers\">";
+    } else {
+        # autofill former username if previously set
+        echo <<< heredocpart2
+        <input id="inputButton" type="text" name="name" required placeholder="Sleeper Username" value="
+        heredocpart2;
+        echo $_COOKIE["sleeperPyUsername"];
+        echo "\">";
+        echo "<br>";
+        echo "<input id=\"generateTiers\" type=\"submit\" name=\"submit\" value=\"Generate Tiers\">";
+        echo "<br>";
+        echo "<h5 style=\"text-align:left\;\">Welcome back, ";
+        echo $_COOKIE["sleeperPyUsername"];
+        echo "!</h5>";
+
+    }
+    
+?>
+
 
 <br>
 <br>
