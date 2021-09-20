@@ -20,6 +20,10 @@
         # returns string of username, so far so good
         $username = $m[1];
 
+        # set cookie to save username on form submission
+        # expire is 180 days cause nfl season is long
+        setcookie("sleeperPyUsername", $username, time()+86400*180, '/');
+
         if(isset($_POST['submit'])){
         
         //check if form was submitted

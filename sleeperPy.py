@@ -220,6 +220,7 @@ def currentWeek():
     # if july 17 is week 28.. then september 9th would be week 37... and january 9th 2022 is week.. 2 of 2022
 
     # lmao, $currentWeek - 36 is technically right. but man that's nasty to change in the future
+    # sorry to future me
     currentNFLWeek = currentWeek - 36
     # if it's postseason, cap at 16. wait this'll screwup for 2020
     if currentNFLWeek > 16:
