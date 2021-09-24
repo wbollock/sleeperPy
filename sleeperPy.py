@@ -221,7 +221,7 @@ def currentWeek():
 
     # lmao, $currentWeek - 36 is technically right. but man that's nasty to change in the future
     # sorry to future me
-    currentNFLWeek = currentWeek - 36
+    currentNFLWeek = currentWeek - 35
     # if it's postseason, cap at 16. wait this'll screwup for 2020
     if currentNFLWeek > 16:
         currentNFLWeek == 16
