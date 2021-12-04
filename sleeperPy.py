@@ -11,6 +11,7 @@
 # looks like i would have to curl "https://api.sleeper.app/v1/players/nfl/trending/add" and keep ~top 5
 # then determine if that player is rostered in any team, seperately
 # TODO: easy one, unranked player doesn't count towards the tier. maybe make them tier 12?
+# TODO: better comments
 
 
 # API
@@ -30,9 +31,7 @@
 # https://github.com/abhinavk99/espn-borischentiers/blob/master/src/js/espn-borischentiers.js
 
 
-
-# TODO: lmao clean up these imports
-import requests, json, os, time, re, sys, fileinput, logging, time, calendar, urllib.request, json 
+import requests, json, os, time, re, sys, fileinput, logging, time, calendar, urllib.request, json
 from pathlib import Path
 from shutil import copyfile
 from urllib.request import urlopen
@@ -47,16 +46,15 @@ from pathlib import Path
 # Variables
 sport = "nfl"
 # current year, e.g 2020
-year = datetime.now().strftime('%Y')
+year = datetime.now().strftime("%Y")
 # template file
-htmlFile  = "tiers.php"
+htmlFile = "tiers.php"
 # logging
 loggingFile = "sleeperPy.log"
 playersFile = "players.json"
 
-dbName="sleeperPy"
-collectionName="players"
-
+dbName = "sleeperPy"
+collectionName = "players"
 
 
 # Functions
@@ -66,7 +64,8 @@ def mongoConnect():
     # default host/port
     db = client[dbName]
     collection = db[collectionName]
-    return db,collection
+    return db, collection
+
 
 def mongoImport():
     playersPath = Path(playersFile)
@@ -77,41 +76,55 @@ def mongoImport():
     # see if we need a new players.json
     if playersPath.is_file():
         # 8 is last modified
-        t = os.stat(playersPath)[8] 
-        filetime = today - datetime.fromtimestamp(t) 
+        t = os.stat(playersPath)[8]
+        filetime = today - datetime.fromtimestamp(t)
 
         if int(filetime.seconds) > 86400:
             # if it's last been modified longer than a day ago, download new players.txt
             with urllib.request.urlopen(url) as url:
                 data = json.loads(url.read().decode())
-                with open(playersFile, 'w') as f:
-                    json.dump(data,f)
+                with open(playersFile, "w") as f:
+                    json.dump(data, f)
                     f.close()
 
             # clean up existing data
             collection.delete_many({})
             # import new stuff
-            os.system("mongoimport --db " + dbName + " --collection " + collectionName +" --file " + playersFile)
+            os.system(
+                "mongoimport --db "
+                + dbName
+                + " --collection "
+                + collectionName
+                + " --file "
+                + playersFile
+            )
 
     # if file doesn't exist at all"
     else:
         with urllib.request.urlopen(url) as url:
-                data = json.loads(url.read().decode())
-                with open(playersFile, 'w') as f:
-                    json.dump(data,f)
-                    f.close()
+            data = json.loads(url.read().decode())
+            with open(playersFile, "w") as f:
+                json.dump(data, f)
+                f.close()
 
-                # clean up existing data
-                collection.delete_many({})
-                # import new stuff
-                os.system("mongoimport --db " + dbName + " --collection " + collectionName +" --file " + playersFile)
+            # clean up existing data
+            collection.delete_many({})
+            # import new stuff
+            os.system(
+                "mongoimport --db "
+                + dbName
+                + " --collection "
+                + collectionName
+                + " --file "
+                + playersFile
+            )
 
-    
 
 def Diff(li1, li2):
     # used to find "bench" by finding the difference between total team and starters
-    li_dif = [i for i in li1 + li2 if i not in li1 or i not in li2] 
+    li_dif = [i for i in li1 + li2 if i not in li1 or i not in li2]
     return li_dif
+
 
 def sortLists(list1, list2):
     # list1 should be tiers, list2 players
@@ -128,41 +141,52 @@ def sortLists(list1, list2):
     # reverse=True
     # damn this works!!!
     # https://stackoverflow.com/questions/9764298/how-to-sort-two-lists-which-reference-each-other-in-the-exact-same-way
-    list1, list2 = (list(t) for t in zip(*sorted(zip(list1, list2),key=itemgetter(0))))
+    list1, list2 = (list(t) for t in zip(*sorted(zip(list1, list2), key=itemgetter(0))))
     return list1, list2
 
 
 def printTiers(playerList, tierList, pos):
     # used to generate HTML with lists of players and their matching tiers
     outputList = []
-    #playerList, tierList = sortLists(playerList, tierList)
+    # playerList, tierList = sortLists(playerList, tierList)
     tierList, playerList = sortLists(tierList, playerList)
     # print(*tierList)
     # print(*playerList)
-    if (len(playerList) > 0):
+    if len(playerList) > 0:
         print("<tr>")
         print("<th>" + pos + "</th>")
         print("<th>Tier</th>")
         print("</tr>")
         for x in range(len(playerList)):
-            outputList.append("<tr>" + "<td>" + playerList[x] + "</td>" + "<td>" + str(tierList[x]) + "</td>" + "</tr>")
+            outputList.append(
+                "<tr>"
+                + "<td>"
+                + playerList[x]
+                + "</td>"
+                + "<td>"
+                + str(tierList[x])
+                + "</td>"
+                + "</tr>"
+            )
     return outputList
+
 
 def validateBoris(tierListPos):
     # fixing inconsistencies as i find them between boris chen and sleeper player names
     # ok this works at least but i think i have to edit the list
     # BorisName, Sleeper Name
-    tierListPos = [w.replace('D.K. Metcalf', 'DK Metcalf') for w in tierListPos]
-    tierListPos = [w.replace('Jeff Wilson Jr.', 'Jeffery Wilson') for w in tierListPos]
-    tierListPos = [w.replace('JaMycal Hasty', 'Jamycal Hasty') for w in tierListPos]
+    tierListPos = [w.replace("D.K. Metcalf", "DK Metcalf") for w in tierListPos]
+    tierListPos = [w.replace("Jeff Wilson Jr.", "Jeffery Wilson") for w in tierListPos]
+    tierListPos = [w.replace("JaMycal Hasty", "Jamycal Hasty") for w in tierListPos]
     return tierListPos
 
-def createTiers(tierListPos, fullName, posPlayerList, posTierList, tier):  
+
+def createTiers(tierListPos, fullName, posPlayerList, posTierList, tier):
     # find the players name in a tier list, when found also note their tier
     tierListPos = validateBoris(tierListPos)
     for q in range(len(tierListPos)):
-    # tierListPos[q] means: Tier 1: Lamar Jackson, Dak Prescott, Patrick Mahomes II
-    # iterates through each line of tier
+        # tierListPos[q] means: Tier 1: Lamar Jackson, Dak Prescott, Patrick Mahomes II
+        # iterates through each line of tier
         if fullName in tierListPos[q]:
             tier = q + 1
             posPlayerList.append(f"{fullName}")
@@ -178,14 +202,15 @@ def createUnranked(tierListPos, fullName):
     if any(fullName in word for word in tierListPos):
         flag = True
     if flag == False:
-        return (f"{fullName}")
+        return f"{fullName}"
     else:
         return "ranked"
+
 
 def currentWeek():
     # if the start of the NFL season isn't ~week 36 of the year, change that value
 
-    # between like August -> September 9th (Thursday) (2021), it's week 1. 
+    # between like August -> September 9th (Thursday) (2021), it's week 1.
     # Final games in week 1 would be 13th.. so september 14th - 21st is week 2.. 22nd - 29th is week 3
     # ending on Jan 9th, 2020, a Sunday
     currentWeek = datetime.today().isocalendar()[1]
@@ -200,38 +225,38 @@ def currentWeek():
     # a beautiful elif for week 1/2 of 2022, the last week.. ugh
     elif currentWeek == 1 | 2:
         currentNFLWeek == 16
-    # basically offseason, if negative weeks then 
+    # basically offseason, if negative weeks then
     else:
-        currentNFLWeek = max(1,currentNFLWeek)
-
-        
+        currentNFLWeek = max(1, currentNFLWeek)
 
     return currentNFLWeek
+
 
 # Rotating application logging
 def create_rotating_log(path):
 
     logger = logging.getLogger("Rotating Log")
     logger.setLevel(logging.DEBUG)
-    
+
     # add a rotating handler
-    handler = RotatingFileHandler(path, maxBytes=2000000,
-                                  backupCount=5)
+    handler = RotatingFileHandler(path, maxBytes=2000000, backupCount=5)
     logger.addHandler(handler)
-    
+
     # logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
-        
+
     log_file = path
-    
+
     root = logging.getLogger()
     root.setLevel(logging.DEBUG)
 
     # handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(logging.DEBUG)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
     handler.setFormatter(formatter)
     root.addHandler(handler)
-    
+
 
 create_rotating_log(loggingFile)
 db, collection = mongoConnect()
@@ -240,9 +265,8 @@ mongoImport()
 # logger = logging.getLogger()
 
 
-
 # get username argument
-n = len(sys.argv) 
+n = len(sys.argv)
 if n < 2:
     print("Error: please enter your Sleeper username.")
 elif n > 2:
@@ -255,16 +279,16 @@ tiersFilename = "tiers_" + username + ".php"
 tiersFilepath = "tiers/" + tiersFilename
 
 # mkdir if not exists
-if not os.path.isdir('tiers/'):
-    os.mkdir('tiers/')
+if not os.path.isdir("tiers/"):
+    os.mkdir("tiers/")
 
 # delete file if exists already
 if os.path.exists(tiersFilepath):
-  os.remove(tiersFilepath)
+    os.remove(tiersFilepath)
 
 
 # copy template html file to user specific file
-copyfile(htmlFile, tiersFilepath )
+copyfile(htmlFile, tiersFilepath)
 os.chmod(tiersFilepath, 0o666)
 sys.stdout = open(tiersFilepath, "a")
 
@@ -276,7 +300,7 @@ data = r.json()
 
 # attempt to see if we can get any data from sleeper for inputted username
 try:
-    userid = data['user_id']
+    userid = data["user_id"]
 except TypeError:
     print("Sorry, invalid Sleeper username. Please try again.")
     sys.exit()
@@ -294,12 +318,12 @@ scoring = []
 i = 0
 
 for d in data:
-    leagues.append(d['league_id'])
-    leagueNames.append(d['name'])
-    scoring.append(d['scoring_settings']['rec'])
+    leagues.append(d["league_id"])
+    leagueNames.append(d["name"])
+    scoring.append(d["scoring_settings"]["rec"])
 
 
-# leagues, e.g 
+# leagues, e.g
 # ['603501445962080256', '597557922544807936']
 # Get current players of user for * leagues
 
@@ -319,13 +343,14 @@ oppStarters = []
 oppPlayers = []
 
 
-
 print("<h5>Username: " + username + " - Week " + str(currentWeek()) + "</h5>")
-print("<div class=\"buttonholder\"><form action=\"\" method=\"post\"> <input type=\"submit\" name=\"submit\" value=\"Refresh Tiers\" /></form>")
+print(
+    '<div class="buttonholder"><form action="" method="post"> <input type="submit" name="submit" value="Refresh Tiers" /></form>'
+)
 print("</div>")
 print("</div>")
 print("</div>")
-print("<div class=\"flex-container container\">")
+print('<div class="flex-container container">')
 
 
 # get players and starters for user team in each league
@@ -336,45 +361,43 @@ for league in leagues:
     r = requests.get(url)
     data = r.json()
     # data is a list here
-    
+
     # length is number of teams
     for d in data:
         # for every team in league, do
-        if d['owner_id'] == userid:
+        if d["owner_id"] == userid:
             # then this is current user
-            starters.append(d['starters'])
-            players.append(d['players'])
-            roster_id = d['roster_id']
-    
+            starters.append(d["starters"])
+            players.append(d["players"])
+            roster_id = d["roster_id"]
+
     week = currentWeek()
     url = f"https://api.sleeper.app/v1/league/{league}/matchups/{week}"
     r = requests.get(url)
     data = r.json()
 
     for d in data:
-        if roster_id == d['roster_id']:
+        if roster_id == d["roster_id"]:
             # if player matchup is found via roster id
-            matchup_id = d['matchup_id'] 
+            matchup_id = d["matchup_id"]
             # get matchup id
-           
-    
-    for d in data:
-        if matchup_id == d['matchup_id']:
-                if roster_id != d['roster_id']:
-                    # if you found a matching matchup ID but NOT matching roster_id, must be opponent
-                    oppStarters.append(d['starters'])
-                    oppPlayers.append(d['players'])
 
+    for d in data:
+        if matchup_id == d["matchup_id"]:
+            if roster_id != d["roster_id"]:
+                # if you found a matching matchup ID but NOT matching roster_id, must be opponent
+                oppStarters.append(d["starters"])
+                oppPlayers.append(d["players"])
 
     bench = []
-    starterList,benchList = [],[]
+    starterList, benchList = [], []
 
     # ur = unranked
     qbStarterList,rbStarterList,wrStarterList,teStarterList,dstStarterList,kStarterList,urStarterList = [],[],[],[],[],[],[]
     qbTierList,rbTierList,wrTierList,dstTierList,teTierList,kTierList = [],[],[],[],[],[]
     qbBenchList,rbBenchList,wrBenchList,teBenchList,dstBenchList,kBenchList,urBenchList = [],[],[],[],[],[],[]
     qbTierBenchList,rbTierBenchList,wrTierBenchList,teTierBenchList,dstTierBenchList,kTierBenchList = [],[],[],[],[],[]
-     
+
     # mode = scoringMode(scoring)
 
     # figure out what lists to use
@@ -383,21 +406,26 @@ for league in leagues:
     dstBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_DST.txt"
     kBoris = "https://s3-us-west-1.amazonaws.com/fftiers/out/text_K.txt"
 
-    scoring_to_text_map = {1.0: '-PPR', 0.5: '-HALF', 0.0: ''}
+    scoring_to_text_map = {1.0: "-PPR", 0.5: "-HALF", 0.0: ""}
     rbBoris = f"https://s3-us-west-1.amazonaws.com/fftiers/out/text_RB{scoring_to_text_map[scoring[i]]}.txt"
     wrBoris = f"https://s3-us-west-1.amazonaws.com/fftiers/out/text_WR{scoring_to_text_map[scoring[i]]}.txt"
     teBoris = f"https://s3-us-west-1.amazonaws.com/fftiers/out/text_TE{scoring_to_text_map[scoring[i]]}.txt"
-    
-    print("<table class=\"table-fill\">")
+
+    print('<table class="table-fill">')
     if scoring[i] == 1.0:
-        print(f"<th class=\"league-title\" colspan=\"2\">League: {leagueNames[i]} (PPR) | Starters</th>")
+        print(
+            f'<th class="league-title" colspan="2">League: {leagueNames[i]} (PPR) | Starters</th>'
+        )
     elif scoring[i] == 0.5:
-        print(f"<th class=\"league-title\" colspan=\"2\">League: {leagueNames[i]} (Half PPR) | Starters</th>")
+        print(
+            f'<th class="league-title" colspan="2">League: {leagueNames[i]} (Half PPR) | Starters</th>'
+        )
     elif scoring[i] == 0.0:
-        print(f"<th class=\"league-title\" colspan=\"2\">League: {leagueNames[i]} (Standard) | Starters</th>")
+        print(
+            f'<th class="league-title" colspan="2">League: {leagueNames[i]} (Standard) | Starters</th>'
+        )
 
     print("</tr>")
-
 
     r = requests.get(rbBoris)
     data = r.text
@@ -424,10 +452,10 @@ for league in leagues:
     r = requests.get(dstBoris)
     data = r.text
     tierListDST = data.splitlines()
-    
+
     # get bench by subtracting all players by starters
     bench = Diff(players[i], starters[i])
-    
+
     tierSum = 0
 
     # before: iterated through *every* key in players.txt
@@ -440,48 +468,60 @@ for league in leagues:
     j = 0
     tier = 0
     # key = {}
-    
+
     # looping through starters[i] to get all IDs of starters, e.g 4881
     while j < len(starters[i]):
         for key in collection.distinct(str(starters[i][j])):
-            fName = key['first_name']  
-            lName = key['last_name']
-            pos = key['position']
+            fName = key["first_name"]
+            lName = key["last_name"]
+            pos = key["position"]
             fullName = fName + " " + lName
 
             # iterate through tierlists based on pos
             # DEF, WR, TE, K, RB, QB
-        
+
             # len is amount of tiers
             if pos == "QB":
-                qbStarterList, qbTierList, tier = createTiers(tierListQB,fullName,qbStarterList,qbTierList,tier)
-                if createUnranked(tierListQB,fullName) != "ranked":
-                    urStarterList.append(createUnranked(tierListQB,fullName))
+                qbStarterList, qbTierList, tier = createTiers(
+                    tierListQB, fullName, qbStarterList, qbTierList, tier
+                )
+                if createUnranked(tierListQB, fullName) != "ranked":
+                    urStarterList.append(createUnranked(tierListQB, fullName))
             if pos == "RB":
-                rbStarterList, rbTierList, tier = createTiers(tierListRB,fullName,rbStarterList,rbTierList,tier)
-                if createUnranked(tierListRB,fullName) != "ranked":
-                    urStarterList.append(createUnranked(tierListRB,fullName))
+                rbStarterList, rbTierList, tier = createTiers(
+                    tierListRB, fullName, rbStarterList, rbTierList, tier
+                )
+                if createUnranked(tierListRB, fullName) != "ranked":
+                    urStarterList.append(createUnranked(tierListRB, fullName))
             if pos == "WR":
-                wrStarterList, wrTierList, tier = createTiers(tierListWR,fullName,wrStarterList,wrTierList,tier)
-                if createUnranked(tierListWR,fullName) != "ranked":
-                    urStarterList.append(createUnranked(tierListWR,fullName))
+                wrStarterList, wrTierList, tier = createTiers(
+                    tierListWR, fullName, wrStarterList, wrTierList, tier
+                )
+                if createUnranked(tierListWR, fullName) != "ranked":
+                    urStarterList.append(createUnranked(tierListWR, fullName))
             if pos == "K":
-                kStarterList, kTierList, tier = createTiers(tierListK,fullName,kStarterList,kTierList,tier)
-                if createUnranked(tierListK,fullName) != "ranked":
-                    urStarterList.append(createUnranked(tierListK,fullName))
+                kStarterList, kTierList, tier = createTiers(
+                    tierListK, fullName, kStarterList, kTierList, tier
+                )
+                if createUnranked(tierListK, fullName) != "ranked":
+                    urStarterList.append(createUnranked(tierListK, fullName))
             if pos == "DEF":
-                dstStarterList, dstTierList, tier = createTiers(tierListDST,fullName,dstStarterList,dstTierList,tier)
-                if createUnranked(tierListDST,fullName) != "ranked":
-                    urStarterList.append(createUnranked(tierListDST,fullName))
+                dstStarterList, dstTierList, tier = createTiers(
+                    tierListDST, fullName, dstStarterList, dstTierList, tier
+                )
+                if createUnranked(tierListDST, fullName) != "ranked":
+                    urStarterList.append(createUnranked(tierListDST, fullName))
             if pos == "TE":
-                teStarterList, teTierList, tier = createTiers(tierListTE,fullName,teStarterList,teTierList,tier)
-                if createUnranked(tierListTE,fullName) != "ranked":
-                    urStarterList.append(createUnranked(tierListTE,fullName))
-                
+                teStarterList, teTierList, tier = createTiers(
+                    tierListTE, fullName, teStarterList, teTierList, tier
+                )
+                if createUnranked(tierListTE, fullName) != "ranked":
+                    urStarterList.append(createUnranked(tierListTE, fullName))
+
             tierSum = tier + tierSum
             tier = tier + 1
         j = j + 1
-    
+
     # returns list with HTML to print to page
     outputList = printTiers(qbStarterList, qbTierList, "QB")
     for x in range(len(outputList)):
@@ -494,7 +534,7 @@ for league in leagues:
     outputList = printTiers(wrStarterList, wrTierList, "WR")
     for x in range(len(outputList)):
         print(outputList[x])
-    
+
     outputList = printTiers(teStarterList, teTierList, "TE")
     for x in range(len(outputList)):
         print(outputList[x])
@@ -508,16 +548,16 @@ for league in leagues:
         print(outputList[x])
 
     # Sometimes goes out of bounds and grabs "Craig Stevens"
-    badList = ['Craig Stevens']
+    badList = ["Craig Stevens"]
     urStarterList = [element for element in urStarterList if element not in badList]
-    if (len(urStarterList) > 0):
+    if len(urStarterList) > 0:
         print("<tr>")
-        print("<th colspan=\"2\" style=\"text-align: center\">Not Ranked</th>")
+        print('<th colspan="2" style="text-align: center">Not Ranked</th>')
         print("</tr>")
-        #urStarterList.remove("Craig Stevens")
+        # urStarterList.remove("Craig Stevens")
         for x in range(len(urStarterList)):
             print("<tr>")
-            print("<td colspan=\"2\">" + urStarterList[x] + "</td>")
+            print('<td colspan="2">' + urStarterList[x] + "</td>")
             print("</tr>")
 
     qbOppTierList,rbOppTierList,wrOppTierList,dstOppTierList,teOppTierList,kOppTierList = [],[],[],[],[],[]
@@ -533,116 +573,158 @@ for league in leagues:
             # looping through starters[i] to get all IDs of starters, e.g 4881
             while j < len(oppStarters[i]):
                 for key in collection.distinct(str(oppStarters[i][j])):
-                    fName = key['first_name']  
-                    lName = key['last_name']
-                    pos = key['position']
+                    fName = key["first_name"]
+                    lName = key["last_name"]
+                    pos = key["position"]
                     fullName = fName + " " + lName
 
                     if pos == "QB":
-                        qbOppList, qbOppTierList, tier = createTiers(tierListQB,fullName,qbOppList,qbOppTierList,tier)
+                        qbOppList, qbOppTierList, tier = createTiers(
+                            tierListQB, fullName, qbOppList, qbOppTierList, tier
+                        )
                     if pos == "RB":
-                        rbOppList, rbOppTierList, tier = createTiers(tierListRB,fullName,rbOppList,rbOppTierList,tier)
+                        rbOppList, rbOppTierList, tier = createTiers(
+                            tierListRB, fullName, rbOppList, rbOppTierList, tier
+                        )
                     if pos == "WR":
-                        wrOppList, wrOppTierList, tier = createTiers(tierListWR,fullName,wrOppList,wrOppTierList,tier)
+                        wrOppList, wrOppTierList, tier = createTiers(
+                            tierListWR, fullName, wrOppList, wrOppTierList, tier
+                        )
                     if pos == "K":
-                        kOppList, kOppTierList, tier = createTiers(tierListK,fullName,kOppList,kOppTierList,tier)
+                        kOppList, kOppTierList, tier = createTiers(
+                            tierListK, fullName, kOppList, kOppTierList, tier
+                        )
                     if pos == "DEF":
-                        dstOppList, dstOppTierList, tier = createTiers(tierListDST,fullName,dstOppList,dstOppTierList,tier)
+                        dstOppList, dstOppTierList, tier = createTiers(
+                            tierListDST, fullName, dstOppList, dstOppTierList, tier
+                        )
                     if pos == "TE":
-                        teOppList, teOppTierList, tier = createTiers(tierListTE,fullName,teOppList,teOppTierList,tier)
+                        teOppList, teOppTierList, tier = createTiers(
+                            tierListTE, fullName, teOppList, teOppTierList, tier
+                        )
 
                     tierOppSum = tier + tierOppSum
                     tier = tier + 1
                 j = j + 1
         except IndexError:
-            avgTier = round(tierSum / (len(starters[i])),2)
-            print(f"<tr><td colspan=\"2\" style=\"text-align: center\">Average Tier {avgTier}</td></tr>")
+            avgTier = round(tierSum / (len(starters[i])), 2)
+            print(
+                f'<tr><td colspan="2" style="text-align: center">Average Tier {avgTier}</td></tr>'
+            )
             break
         try:
             tierOppSum = tierOppSum - 1
             tierSum = tierSum - 1
-            avgTier = round(tierSum / (len(starters[i])),2)
-            avgOppTier = round(tierOppSum / (len(oppStarters[i])),2)
-                
+            avgTier = round(tierSum / (len(starters[i])), 2)
+            avgOppTier = round(tierOppSum / (len(oppStarters[i])), 2)
+
             # &#127942; = trophy
             # &#128201; = down line
             # &#128528; = neutral face
             # higher tier is worse
             if avgTier < avgOppTier:
-                print(f"<tr><td colspan=\"2\" style=\"text-align: center\">&#127942; Average Tier {avgTier}</td></tr>")
-                print(f"<tr><td colspan=\"2\" style=\"text-align: center\">&#128201; Opponent Average Tier {avgOppTier}</td></tr>")
+                print(
+                    f'<tr><td colspan="2" style="text-align: center">&#127942; Average Tier {avgTier}</td></tr>'
+                )
+                print(
+                    f'<tr><td colspan="2" style="text-align: center">&#128201; Opponent Average Tier {avgOppTier}</td></tr>'
+                )
             elif avgOppTier < avgTier:
-                print(f"<tr><td colspan=\"2\" style=\"text-align: center\">&#128201; Average Tier {avgTier}</td></tr>")
-                print(f"<tr><td colspan=\"2\" style=\"text-align: center\">&#127942; Opponent Average Tier {avgOppTier}</td></tr>")
+                print(
+                    f'<tr><td colspan="2" style="text-align: center">&#128201; Average Tier {avgTier}</td></tr>'
+                )
+                print(
+                    f'<tr><td colspan="2" style="text-align: center">&#127942; Opponent Average Tier {avgOppTier}</td></tr>'
+                )
             elif avgOppTier == avgTier:
-                print(f"<tr><td colspan=\"2\" style=\"text-align: center\">&#128528; Average Tier {avgTier}</td></tr>")
-                print(f"<tr><td colspan=\"2\" style=\"text-align: center\">&#128528; Opponent Average Tier {avgOppTier}</td></tr>")
+                print(
+                    f'<tr><td colspan="2" style="text-align: center">&#128528; Average Tier {avgTier}</td></tr>'
+                )
+                print(
+                    f'<tr><td colspan="2" style="text-align: center">&#128528; Opponent Average Tier {avgOppTier}</td></tr>'
+                )
             else:
-                print(f"<tr><td colspan=\"2\" style=\"text-align: center\">Average Tier {avgTier}</td></tr>")
-                print(f"<tr><td colspan=\"2\" style=\"text-align: center\">Opponent Average Tier {avgOppTier}</td></tr>")
+                print(
+                    f'<tr><td colspan="2" style="text-align: center">Average Tier {avgTier}</td></tr>'
+                )
+                print(
+                    f'<tr><td colspan="2" style="text-align: center">Opponent Average Tier {avgOppTier}</td></tr>'
+                )
         except IndexError:
             # issues with leagues without opponents
             print("")
     else:
         # basically if i cant get opponent, do plain old tier averages
-        avgTier = round(tierSum / (len(starters[i])),2)
-        print(f"<tr><td colspan=\"2\" style=\"text-align: center\">Average Tier {avgTier}</td></tr>")
+        avgTier = round(tierSum / (len(starters[i])), 2)
+        print(
+            f'<tr><td colspan="2" style="text-align: center">Average Tier {avgTier}</td></tr>'
+        )
 
     # bench
     print("<br>")
     print("<br>")
-    
+
     tier = 0
     for b in bench:
         for key in collection.distinct(str(b)):
-            fName = key['first_name']  
-            lName = key['last_name']
-            pos = key['position']
+            fName = key["first_name"]
+            lName = key["last_name"]
+            pos = key["position"]
             fullName = fName + " " + lName
-            
+
             if pos == "QB":
-                qbBenchList, qbTierBenchList, tier = createTiers(tierListQB,fullName,qbBenchList,qbTierBenchList,tier)
-                if createUnranked(tierListQB,fullName) != "ranked":
-                    urBenchList.append(createUnranked(tierListQB,fullName))
-    
+                qbBenchList, qbTierBenchList, tier = createTiers(
+                    tierListQB, fullName, qbBenchList, qbTierBenchList, tier
+                )
+                if createUnranked(tierListQB, fullName) != "ranked":
+                    urBenchList.append(createUnranked(tierListQB, fullName))
+
             if pos == "RB":
-                #rbStarterList, rbTierList, tier = createTiers(tierListRB,fullName,rbStarterList,rbTierList,tier)
-                rbBenchList, rbTierBenchList, tier = createTiers(tierListRB,fullName,rbBenchList,rbTierBenchList,tier)
-                if createUnranked(tierListRB,fullName) != "ranked":
-                    urBenchList.append(createUnranked(tierListRB,fullName))
-            
+                # rbStarterList, rbTierList, tier = createTiers(tierListRB,fullName,rbStarterList,rbTierList,tier)
+                rbBenchList, rbTierBenchList, tier = createTiers(
+                    tierListRB, fullName, rbBenchList, rbTierBenchList, tier
+                )
+                if createUnranked(tierListRB, fullName) != "ranked":
+                    urBenchList.append(createUnranked(tierListRB, fullName))
+
             if pos == "WR":
-                wrBenchList, wrTierBenchList, tier = createTiers(tierListWR,fullName,wrBenchList,wrTierBenchList,tier)
-                if createUnranked(tierListWR,fullName) != "ranked":
-                    urBenchList.append(createUnranked(tierListWR,fullName))
+                wrBenchList, wrTierBenchList, tier = createTiers(
+                    tierListWR, fullName, wrBenchList, wrTierBenchList, tier
+                )
+                if createUnranked(tierListWR, fullName) != "ranked":
+                    urBenchList.append(createUnranked(tierListWR, fullName))
 
             if pos == "K":
-                kBenchList, kTierBenchList, tier = createTiers(tierListK,fullName,kBenchList,kTierBenchList,tier)
-                if createUnranked(tierListK,fullName) != "ranked":
-                    urBenchList.append(createUnranked(tierListK,fullName))
+                kBenchList, kTierBenchList, tier = createTiers(
+                    tierListK, fullName, kBenchList, kTierBenchList, tier
+                )
+                if createUnranked(tierListK, fullName) != "ranked":
+                    urBenchList.append(createUnranked(tierListK, fullName))
 
             if pos == "DEF":
-                dstBenchList, dstTierBenchList, tier = createTiers(tierListDST,fullName,dstBenchList,dstTierBenchList,tier)
-                if createUnranked(tierListDST,fullName) != "ranked":
-                    urBenchList.append(createUnranked(tierListDST,fullName))
+                dstBenchList, dstTierBenchList, tier = createTiers(
+                    tierListDST, fullName, dstBenchList, dstTierBenchList, tier
+                )
+                if createUnranked(tierListDST, fullName) != "ranked":
+                    urBenchList.append(createUnranked(tierListDST, fullName))
 
             if pos == "TE":
-                teBenchList, teTierBenchList, tier = createTiers(tierListTE,fullName,teBenchList,teTierBenchList,tier)
-                if createUnranked(tierListTE,fullName) != "ranked":
-                    urBenchList.append(createUnranked(tierListTE,fullName))
-            
+                teBenchList, teTierBenchList, tier = createTiers(
+                    tierListTE, fullName, teBenchList, teTierBenchList, tier
+                )
+                if createUnranked(tierListTE, fullName) != "ranked":
+                    urBenchList.append(createUnranked(tierListTE, fullName))
 
             tier = tier + 1
-               
+
     print("<tr>")
-    print("<th colspan=\"2\" style=\"text-align:center;\">Bench</th>")
+    print('<th colspan="2" style="text-align:center;">Bench</th>')
     print("</tr>")
 
-    
     outputList = printTiers(qbBenchList, qbTierBenchList, "QB")
     for x in range(len(outputList)):
         print(outputList[x])
-    
+
     outputList = printTiers(rbBenchList, rbTierBenchList, "RB")
     for x in range(len(outputList)):
         print(outputList[x])
@@ -664,23 +746,22 @@ for league in leagues:
         print(outputList[x])
 
     # Sometimes goes out of bounds and grabs "Craig Stevens"
-    badList = ['Craig Stevens']
+    badList = ["Craig Stevens"]
     urBenchList = [element for element in urBenchList if element not in badList]
-    if (len(urBenchList) > 0):
+    if len(urBenchList) > 0:
         print("<tr>")
-        print("<th colspan=\"2\" style=\"text-align: center\">Not Ranked</th>")
+        print('<th colspan="2" style="text-align: center">Not Ranked</th>')
         print("</tr>")
         # urBenchList.remove("Craig Stevens")
         for x in range(len(urBenchList)):
             print("<tr>")
-            print("<td colspan=\"2\">" + urBenchList[x] + "</td>")
+            print('<td colspan="2">' + urBenchList[x] + "</td>")
             print("</tr>")
-       
 
     # end of all output for league
     print("</table>")
 
-    # end of main while    
+    # end of main while
     i = i + 1
 
 
