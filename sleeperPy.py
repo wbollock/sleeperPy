@@ -41,7 +41,7 @@ from operator import itemgetter
 from logging.handlers import RotatingFileHandler
 from pymongo import MongoClient
 from os import path
-from pathlib import Path
+
 
 # Variables
 sport = "nfl"
