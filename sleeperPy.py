@@ -32,26 +32,17 @@
 
 
 # TODO: lmao clean up these imports
-import requests
-import json
-import os, time
+import requests, json, os, time, re, sys, fileinput, logging, time, calendar, urllib.request, json 
 from pathlib import Path
-import sys 
-import fileinput
 from shutil import copyfile
 from urllib.request import urlopen
-import re
 from bs4 import BeautifulSoup
 from datetime import datetime
 from operator import itemgetter
-import logging, time
 from logging.handlers import RotatingFileHandler
 from pymongo import MongoClient
-import os.path
 from os import path
 from pathlib import Path
-import calendar
-import urllib.request, json 
 
 # Variables
 sport = "nfl"
@@ -83,8 +74,6 @@ def mongoImport():
     url = "https://api.sleeper.app/v1/players/nfl"
     today = datetime.today()
 
-    print("mongoimport --db " + dbName + " --collection " + collectionName +" --file " + playersFile)
-    exit
     # see if we need a new players.json
     if playersPath.is_file():
         # 8 is last modified
@@ -117,7 +106,7 @@ def mongoImport():
                 # import new stuff
                 os.system("mongoimport --db " + dbName + " --collection " + collectionName +" --file " + playersFile)
 
-    print("nothing")
+    
 
 def Diff(li1, li2):
     # used to find "bench" by finding the difference between total team and starters
@@ -193,23 +182,6 @@ def createUnranked(tierListPos, fullName):
     else:
         return "ranked"
 
-# temporarily retired in favor of shitty calendar math
-# def currentWeek():
-#     # somehow return current NFL week, e.g week 4
-#     # im screwed if this changes
-#     url = "https://www.espn.com/nfl/lines"
-#     page = urlopen(url)
-#     html = page.read().decode("utf-8")
-#     soup = BeautifulSoup(html, "html.parser")
-#     # god this regex sucks
-#     page = soup.get_text()
-#     # should work for weeks 10-17 too
-#     #pattern = "Week [1-9]|[1-9][0-9]"
-#     pattern = "(Week [0-9][1-9])|(Week [1-9][0-9])|(Week [1-9])"
-#     week = re.search(pattern, page)
-#     week = [int(i) for i in str(week.group()).split() if i.isdigit()]
-#     return week[0]
-
 def currentWeek():
     # if the start of the NFL season isn't ~week 36 of the year, change that value
 
@@ -236,7 +208,7 @@ def currentWeek():
 
     return currentNFLWeek
 
-# Rotating application logging I stole from the Internet
+# Rotating application logging
 def create_rotating_log(path):
 
     logger = logging.getLogger("Rotating Log")
@@ -335,7 +307,6 @@ for d in data:
 # first, fetch all players so I can cross reference IDs
 # read from players file
 
-# data is a dict here
 # print roster for both leagues:
 
 i = 0
@@ -395,18 +366,13 @@ for league in leagues:
                     oppPlayers.append(d['players'])
 
 
-    
     bench = []
-
     starterList,benchList = [],[]
 
     # ur = unranked
     qbStarterList,rbStarterList,wrStarterList,teStarterList,dstStarterList,kStarterList,urStarterList = [],[],[],[],[],[],[]
-
     qbTierList,rbTierList,wrTierList,dstTierList,teTierList,kTierList = [],[],[],[],[],[]
-    
     qbBenchList,rbBenchList,wrBenchList,teBenchList,dstBenchList,kBenchList,urBenchList = [],[],[],[],[],[],[]
-
     qbTierBenchList,rbTierBenchList,wrTierBenchList,teTierBenchList,dstTierBenchList,kTierBenchList = [],[],[],[],[],[]
      
     # mode = scoringMode(scoring)
@@ -464,21 +430,12 @@ for league in leagues:
     
     tierSum = 0
 
-    # Time Start
-    # from here to end of for loop by far slowest part of program, ~2.7 seconds
-    # start_time = datetime.now() 
-    # CODE HERE
-    # time_elapsed = datetime.now() - start_time 
-
-    # print("Time1")
-    # print('Time elapsed (hh:mm:ss.ms) {}'.format(time_elapsed))
-
     # before: iterated through *every* key in players.txt
     # if that key HAPPENED to match their key, starters[i][j], then do shit
     # that sucks horribly
 
     # instead, just loop through their teams' players
-        # instead, just loop through their teams' players
+    # instead, just loop through their teams' players
 
     j = 0
     tier = 0
@@ -562,8 +519,6 @@ for league in leagues:
             print("<tr>")
             print("<td colspan=\"2\">" + urStarterList[x] + "</td>")
             print("</tr>")
-
-    # Time End, 2.7 seconds
 
     qbOppTierList,rbOppTierList,wrOppTierList,dstOppTierList,teOppTierList,kOppTierList = [],[],[],[],[],[]
     qbOppList,rbOppList,wrOppList,teOppList,dstOppList,kOppList,urOppList = [],[],[],[],[],[],[]
@@ -733,5 +688,3 @@ print("</div>")
 print("<br>")
 print("</body>")
 print("</html>")
-
-
