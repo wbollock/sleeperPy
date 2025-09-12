@@ -575,10 +575,12 @@ func buildRows(ids []string, players map[string]interface{}, tiers map[string][]
 
 		tier := findTier(tiers[lookupPos], name)
 
-		// Add FLEX/IR indicator to name if applicable
+		// Add FLEX/SUPERFLEX/IR indicator to name if applicable
 		displayName := name
 		if pos == "FLEX" {
 			displayName += ` <span style="color:#7bb0ff;font-size:0.95em;">(FLEX)</span>`
+		} else if pos == "SUPERFLEX" {
+			displayName += ` <span style="color:#7bb0ff;font-size:0.95em;">(SUPERFLEX)</span>`
 		}
 		// IR indicator: if player is in irList
 		for _, irid := range irList {
@@ -633,8 +635,13 @@ func getPlayerName(p map[string]interface{}) string {
 func getPos(p map[string]interface{}, idx int, isStarter bool, userRoster map[string]interface{}) string {
 	if isStarter && userRoster != nil {
 		if slots, ok := userRoster["starter_positions"].([]interface{}); ok && idx < len(slots) {
-			if s, ok := slots[idx].(string); ok && strings.Contains(strings.ToUpper(s), "FLEX") {
-				return "FLEX"
+			if s, ok := slots[idx].(string); ok {
+				slot := strings.ToUpper(s)
+				if strings.Contains(slot, "SUPER") && strings.Contains(slot, "FLEX") {
+					return "SUPERFLEX"
+				} else if strings.Contains(slot, "FLEX") {
+					return "FLEX"
+				}
 			}
 		}
 	}

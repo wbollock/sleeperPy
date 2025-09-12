@@ -6,7 +6,7 @@
 </head>
 <body>
 <header class="app-header">
-    <h1>SleeperPy Fantasy Tiers</h1>
+    <h1><a href="/" style="color:inherit; text-decoration:none;">SleeperPy Fantasy Tiers</a></h1>
 </header>
 <div class="main-content">
         <div class="legend" style="margin-bottom:18px; font-size:1.08em; color:#b6c6e0;">
@@ -15,6 +15,7 @@
             <span style="margin-left:10px;"><span class="swap-icon">⇄</span> = Swap candidate</span>
             <span style="margin-left:10px;"><span style="color:#2e7d32;">⬆️</span> = Free agent upgrade</span>
             <span style="margin-left:10px;"><span style="background:#3a1e1e; color:#ffb6b6; padding:2px 6px; border-radius:4px;">red row</span> = Suboptimal starter</span>
+            <span style="margin-left:10px; color:#b6c6e0; font-size:0.97em;">FLEX = RB/WR/TE slot; Superflex = FLEX + QB</span>
         </div>
 {{if .Error}}
 <span style="color:red">{{.Error}}</span>
@@ -36,10 +37,22 @@
                 </thead>
                 <tbody>
                 {{range $l.Starters}}
-                    <tr{{if eq .Tier 1}} class="tier1"{{else if .IsTierWorseThanBench}} class="tier-worse"{{end}}><td>{{.Pos}}</td><td>{{if eq .Tier 1}}<span class="tier1-star">★</span> {{end}}{{.Name | safe}}</td><td>{{.Tier}}</td></tr>
+                    <tr{{if eq .Tier 1}} class="tier1"{{else if .IsTierWorseThanBench}} class="tier-worse"{{end}}>
+                        <td>
+                            {{if eq .Pos "FLEX"}}<span style="color:#7bb0ff;font-weight:bold;">FLEX</span>{{else if eq .Pos "SUPERFLEX"}}<span style="color:#7bb0ff;font-weight:bold;">SUPERFLEX</span>{{else}}{{.Pos}}{{end}}
+                        </td>
+                        <td>{{if eq .Tier 1}}<span class="tier1-star">★</span> {{end}}{{.Name | safe}}</td>
+                        <td>{{.Tier}}</td>
+                    </tr>
                 {{end}}
                 {{range $l.Unranked}}
-                    <tr><td>{{.Pos}}</td><td>{{.Name | safe}}</td><td>{{.Tier}}</td></tr>
+                    <tr>
+                        <td>
+                            {{if eq .Pos "FLEX"}}<span style="color:#7bb0ff;font-weight:bold;">FLEX</span>{{else if eq .Pos "SUPERFLEX"}}<span style="color:#7bb0ff;font-weight:bold;">SUPERFLEX</span>{{else}}{{.Pos}}{{end}}
+                        </td>
+                        <td>{{.Name | safe}}</td>
+                        <td>{{.Tier}}</td>
+                    </tr>
                 {{end}}
                 </tbody>
                 <tfoot>
