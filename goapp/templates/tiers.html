@@ -9,6 +9,13 @@
     <h1>SleeperPy Fantasy Tiers</h1>
 </header>
 <div class="main-content">
+        <div class="legend" style="margin-bottom:18px; font-size:1.08em; color:#b6c6e0;">
+            <b>Legend:</b>
+            <span style="margin-left:10px;"><span class="tier1-star">★</span> = Tier 1</span>
+            <span style="margin-left:10px;"><span class="swap-icon">⇄</span> = Swap candidate</span>
+            <span style="margin-left:10px;"><span style="color:#2e7d32;">⬆️</span> = Free agent upgrade</span>
+            <span style="margin-left:10px;"><span style="background:#3a1e1e; color:#ffb6b6; padding:2px 6px; border-radius:4px;">red row</span> = Suboptimal starter</span>
+        </div>
 {{if .Error}}
 <span style="color:red">{{.Error}}</span>
 {{else}}
@@ -65,7 +72,7 @@
             </table>
             <br>
             <div class="fa-section">
-                <div class="fa-header">Top Free Agents (Top 3 per Position)</div>
+                <div class="fa-header">Top 3 ranked Free Agents</div>
                 <div class="fa-tabs">
                     <button class="fa-tab" onclick="showFATab(event, 'fa-{{$i}}-QB')" id="defaultFATab{{$i}}">QB</button>
                     <button class="fa-tab" onclick="showFATab(event, 'fa-{{$i}}-RB')">RB</button>
