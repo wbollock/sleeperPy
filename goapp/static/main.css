@@ -1,3 +1,31 @@
+.swap-candidate {
+	background: #1e3a2e !important;
+	color: #b6ffe0 !important;
+	font-weight: bold;
+	border-left: 4px solid #3ae87a;
+}
+.swap-icon {
+	color: #3ae87a;
+	font-size: 1.1em;
+	margin-right: 2px;
+	vertical-align: middle;
+}
+.tier-worse {
+	background: #3a1e1e !important;
+	color: #ffb6b6 !important;
+	font-weight: bold;
+	border-left: 4px solid #e83a3a;
+}
+.tier1 {
+	background: #1e3a1e !important;
+	color: #b6ffb6 !important;
+}
+.tier1-star {
+	color: #ffe066;
+	font-size: 1.1em;
+	margin-right: 2px;
+	vertical-align: middle;
+}
 # Win Probability Bar
 .winprob-row {
 	display: flex;
