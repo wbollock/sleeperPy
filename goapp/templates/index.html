@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SleeperPy Go+HTMX</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <link rel="stylesheet" href="/static/main.css">
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+</head>
+<body>
+    <div class="container">
+        <h1>SleeperPy (Go + HTMX)</h1>
+        <form id="userform" hx-post="/lookup" hx-target="#output" hx-swap="innerHTML">
+            <input id="inputButton" type="text" name="username" required placeholder="Sleeper Username">
+            <button id="generateTiers" type="submit">Show My Tiers</button>
+        </form>
+        <div id="loading" style="display:none;text-align:center;margin-top:1em;">Loading...</div>
+        <div id="output"></div>
+        <script>
+        document.body.addEventListener('htmx:configRequest', function(evt) {
+            document.getElementById('loading').style.display = 'block';
+        });
+        document.body.addEventListener('htmx:afterSwap', function(evt) {
+            document.getElementById('loading').style.display = 'none';
+        });
+        document.body.addEventListener('htmx:responseError', function(evt) {
+            document.getElementById('loading').style.display = 'none';
+        });
+        </script>
+    </div>
+</body>
+</html>

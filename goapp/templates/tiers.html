@@ -1,0 +1,67 @@
+{{if .Error}}
+<span style="color:red">{{.Error}}</span>
+{{else}}
+<div class="league-tabs">
+    {{range $i, $l := .Leagues}}
+        <button class="league-tab" onclick="showLeagueTab(event, 'league{{$i}}')" {{if eq $i 0}}id="defaultTab"{{end}}>{{$l.LeagueName}} ({{$l.Scoring}})</button>
+    {{end}}
+</div>
+<div class="league-contents">
+    {{range $i, $l := .Leagues}}
+        {{$display := "none"}}
+        {{if eq $i 0}}{{$display = "block"}}{{end}}
+        <div class="league-content" id="league{{$i}}" style="display:{{$display}};">
+            <table class="sortable-table pretty-table">
+                <thead>
+                    <tr><th>Position</th><th>Player</th><th>Tier</th></tr>
+                </thead>
+                <tbody>
+                {{range $l.Starters}}
+                    <tr><td>{{.Pos}}</td><td>{{.Name | html}}</td><td>{{.Tier}}</td></tr>
+                {{end}}
+                {{range $l.Unranked}}
+                    <tr><td>{{.Pos}}</td><td>{{.Name | html}}</td><td>{{.Tier}}</td></tr>
+                {{end}}
+                </tbody>
+                <tfoot>
+                    <tr><td colspan="3" class="summary"><b>Average Tier: {{$l.AvgTier}}</b></td></tr>
+                    <tr><td colspan="3" class="summary"><b>Opponent Average Tier: {{$l.AvgOppTier}}</b></td></tr>
+                                        <tr>
+                                            <td colspan="3" class="summary">
+                                                <div class="winprob-row">
+                                                    <span class="winprob-label">Win Probability:</span>
+                                                    <span class="winprob-bar-wrap">
+                                                        <span class="winprob-bar-bg">
+                                                            <span class="winprob-bar" style="width: {{parseWinProb $l.WinProb}}%; background: {{winProbColor $l.WinProb}};"></span>
+                                                        </span>
+                                                    </span>
+                                                    <span class="winprob-badge" style="background: {{winProbColor $l.WinProb}};">
+                                                        {{parseWinProb $l.WinProb}}%
+                                                    </span>
+                                                    <span class="winprob-emoji">{{parseWinEmoji $l.WinProb}}</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                    <tr><th colspan="3" class="bench-header">Bench</th></tr>
+                    {{range $l.Bench}}
+                        <tr><td>{{.Pos}}</td><td>{{.Name}}</td><td>{{.Tier}}</td></tr>
+                    {{end}}
+                    {{range $l.BenchUnranked}}
+                        <tr><td>{{.Pos}}</td><td>{{.Name}}</td><td>{{.Tier}}</td></tr>
+                    {{end}}
+                </tfoot>
+            </table>
+        </div>
+    {{end}}
+</div>
+<script>
+function showLeagueTab(evt, tabId) {
+    document.querySelectorAll('.league-content').forEach(div => div.style.display = 'none');
+    document.getElementById(tabId).style.display = 'block';
+    document.querySelectorAll('.league-tab').forEach(btn => btn.classList.remove('active'));
+    evt.currentTarget.classList.add('active');
+}
+if (document.getElementById('defaultTab')) document.getElementById('defaultTab').click();
+</script>
+<script src="/static/sortable.js"></script>
+{{end}}
