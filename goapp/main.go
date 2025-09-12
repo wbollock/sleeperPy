@@ -9,6 +9,7 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -82,6 +83,10 @@ type PlayerRow struct {
 	Tier                 interface{}
 	IsTierWorseThanBench bool
 	ShouldSwapIn         bool
+	IsFreeAgent          bool
+	IsUpgrade            bool
+	UpgradeFor           string // Name of player this FA is better than
+	UpgradeType          string // "Starter" or "Bench" or ""
 }
 
 type LeagueData struct {
@@ -94,6 +99,7 @@ type LeagueData struct {
 	WinProb       string
 	Bench         []PlayerRow
 	BenchUnranked []PlayerRow
+	FreeAgentsByPos map[string][]PlayerRow
 }
 
 type TiersPage struct {
@@ -249,10 +255,9 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		// Fetch Boris Chen tiers
 		borisTiers := fetchBorisTiers(scoring)
 
-		// Build rows
-		// Build bench rows first to get best bench tier per position (for red highlighting on starters)
-		benchRows, benchUnrankedRows, _ := buildRows(bench, players, borisTiers, false, userRoster, irPlayers, nil)
-		// Build map of best bench tier per position
+
+		// Build rows for roster
+		benchRows, _, _ := buildRows(bench, players, borisTiers, false, userRoster, irPlayers, nil)
 		bestBenchTier := make(map[string]int)
 		for _, row := range benchRows {
 			pos := row.Pos
@@ -263,9 +268,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-		// Now build starter rows, passing bestBenchTier for red highlighting
 		startersRows, unrankedRows, starterTiers := buildRows(starters, players, borisTiers, true, userRoster, irPlayers, bestBenchTier)
-		// Build map of worst starter tier per position (for swap highlighting on bench)
 		worstStarterTier := make(map[string]int)
 		for _, row := range startersRows {
 			pos := row.Pos
@@ -276,9 +279,124 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-		// Rebuild bench rows, passing worstStarterTier for swap highlighting
-		benchRows, benchUnrankedRows, _ = buildRows(bench, players, borisTiers, false, userRoster, irPlayers, worstStarterTier)
+		benchRows, _, _ = buildRows(bench, players, borisTiers, false, userRoster, irPlayers, worstStarterTier)
 		_, _, oppTiers := buildRows(oppStarters, players, borisTiers, true, nil, nil, nil)
+
+		// --- FREE AGENTS LOGIC ---
+		// Find all rostered player IDs
+		rostered := map[string]bool{}
+		for _, r := range rosters {
+			for _, pid := range toStringSlice(r["players"]) {
+				rostered[pid] = true
+			}
+			for _, pid := range toStringSlice(r["reserve"]) {
+				rostered[pid] = true
+			}
+		}
+		// Find free agents: not rostered, not on user's team, valid tier, and sort by roster_percent
+		type faInfo struct {
+			pid string
+			percent float64
+			tier int
+			pos string
+			name string
+		}
+		faList := []faInfo{}
+		for pid, p := range players {
+			if _, ok := rostered[pid]; ok {
+				continue
+			}
+			pm, ok := p.(map[string]interface{})
+			if !ok || pm["active"] == false {
+				continue
+			}
+			pos, _ := pm["position"].(string)
+			if pos == "" || (pos != "QB" && pos != "RB" && pos != "WR" && pos != "TE" && pos != "K" && pos != "DEF" && pos != "DST") {
+				continue
+			}
+			name := getPlayerName(pm)
+			lookupPos := pos
+			if lookupPos == "DEF" {
+				lookupPos = "DST"
+			}
+			tier := findTier(borisTiers[lookupPos], name)
+			if tier <= 0 {
+				continue // Only show ranked players
+			}
+			percent := 0.0
+			if v, ok := pm["roster_percent"].(float64); ok {
+				percent = v
+			} else if v, ok := pm["roster_percent"].(string); ok {
+				percent, _ = strconv.ParseFloat(v, 64)
+			}
+			faList = append(faList, faInfo{pid, percent, tier, pos, name})
+		}
+		// Sort by roster_percent descending
+		sort.Slice(faList, func(i, j int) bool {
+			return faList[i].percent > faList[j].percent
+		})
+		maxFA := 20
+		if len(faList) > maxFA {
+			faList = faList[:maxFA]
+		}
+		// Group and limit free agents by position (top 5 per position)
+		faByPos := map[string][]faInfo{}
+		for _, fa := range faList {
+			faByPos[fa.pos] = append(faByPos[fa.pos], fa)
+		}
+		freeAgentsByPos := map[string][]PlayerRow{}
+	// Show K last, after DST
+	faOrder := []string{"QB", "RB", "WR", "TE", "DST", "K"}
+	for _, pos := range faOrder {
+			posList := faByPos[pos]
+			if len(posList) > 3 {
+				posList = posList[:3]
+			}
+			rows := []PlayerRow{}
+			for _, fa := range posList {
+				isUpgrade := false
+				upgradeFor := ""
+				upgradeType := ""
+				// Check starters first
+				for _, row := range startersRows {
+					if row.Pos == fa.pos {
+						t, ok := row.Tier.(int)
+						if ok && t > 0 && fa.tier > 0 && fa.tier < t {
+							isUpgrade = true
+							upgradeFor = row.Name
+							upgradeType = "Starter"
+							break
+						}
+					}
+				}
+				// If not upgrade for starter, check bench
+				if !isUpgrade {
+					for _, row := range benchRows {
+						if row.Pos == fa.pos {
+							t, ok := row.Tier.(int)
+							if ok && t > 0 && fa.tier > 0 && fa.tier < t {
+								isUpgrade = true
+								upgradeFor = row.Name
+								upgradeType = "Bench"
+								break
+							}
+						}
+					}
+				}
+				rows = append(rows, PlayerRow{
+					Pos: fa.pos,
+					Name: fa.name,
+					Tier: fa.tier,
+					IsFreeAgent: true,
+					IsUpgrade: isUpgrade,
+					UpgradeFor: upgradeFor,
+					UpgradeType: upgradeType,
+				})
+			}
+			if len(rows) > 0 {
+				freeAgentsByPos[pos] = rows
+			}
+		}
 
 		avgTier := avg(starterTiers)
 		avgOppTier := avg(oppTiers)
@@ -293,7 +411,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			AvgOppTier:    avgOppTier,
 			WinProb:       winProb + " " + emoji,
 			Bench:         benchRows,
-			BenchUnranked: benchUnrankedRows,
+			FreeAgentsByPos: freeAgentsByPos,
 		}
 
 		leagueResults = append(leagueResults, leagueData)
@@ -458,12 +576,10 @@ func buildRows(ids []string, players map[string]interface{}, tiers map[string][]
 			displayName += ` <span style="color:#7bb0ff;font-size:0.95em;">(FLEX)</span>`
 		}
 		// IR indicator: if player is in irList
-		if irList != nil {
-			for _, irid := range irList {
-				if irid == pid {
-					displayName += ` <span style="color:#ff7b7b;font-size:0.95em;">(IR)</span>`
-					break
-				}
+		for _, irid := range irList {
+			if irid == pid {
+				displayName += ` <span style="color:#ff7b7b;font-size:0.95em;">(IR)</span>`
+				break
 			}
 		}
 
