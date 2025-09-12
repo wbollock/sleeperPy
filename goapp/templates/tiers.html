@@ -1,6 +1,20 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>SleeperPy Tiers</title>
+    <link rel="stylesheet" href="/static/main.css">
+</head>
+<body>
+<header class="app-header">
+    <h1>SleeperPy Fantasy Tiers</h1>
+</header>
+<div class="main-content">
 {{if .Error}}
 <span style="color:red">{{.Error}}</span>
 {{else}}
+{{with .Leagues}}
+    {{/* Shareable link box removed as the URL is self-evident */}}
+{{end}}
 <div class="league-tabs">
     {{range $i, $l := .Leagues}}
         <button class="league-tab" onclick="showLeagueTab(event, 'league{{$i}}')" {{if eq $i 0}}id="defaultTab"{{end}}>{{$l.LeagueName}} ({{$l.Scoring}})</button>
@@ -8,9 +22,7 @@
 </div>
 <div class="league-contents">
     {{range $i, $l := .Leagues}}
-        {{$display := "none"}}
-        {{if eq $i 0}}{{$display = "block"}}{{end}}
-        <div class="league-content" id="league{{$i}}" style="display:{{$display}};">
+        <div class="league-content" id="league{{$i}}" style="display:{{if eq $i 0}}block{{else}}none{{end}};">
             <table class="sortable-table pretty-table">
                 <thead>
                     <tr><th>Position</th><th>Player</th><th>Tier</th></tr>
@@ -26,22 +38,22 @@
                 <tfoot>
                     <tr><td colspan="3" class="summary"><b>Average Tier: {{$l.AvgTier}}</b></td></tr>
                     <tr><td colspan="3" class="summary"><b>Opponent Average Tier: {{$l.AvgOppTier}}</b></td></tr>
-                                        <tr>
-                                            <td colspan="3" class="summary">
-                                                <div class="winprob-row">
-                                                    <span class="winprob-label">Win Probability:</span>
-                                                    <span class="winprob-bar-wrap">
-                                                        <span class="winprob-bar-bg">
-                                                            <span class="winprob-bar" style="width: {{parseWinProb $l.WinProb}}%; background: {{winProbColor $l.WinProb}};"></span>
-                                                        </span>
-                                                    </span>
-                                                    <span class="winprob-badge" style="background: {{winProbColor $l.WinProb}};">
-                                                        {{parseWinProb $l.WinProb}}%
-                                                    </span>
-                                                    <span class="winprob-emoji">{{parseWinEmoji $l.WinProb}}</span>
-                                                </div>
-                                            </td>
-                                        </tr>
+                    <tr>
+                        <td colspan="3" class="summary">
+                            <div class="winprob-row">
+                                <span class="winprob-label">Win Probability:</span>
+                                <span class="winprob-bar-wrap">
+                                    <span class="winprob-bar-bg">
+                                        <span class="winprob-bar" style="width: {{parseWinProb $l.WinProb}}%; background: {{winProbColor $l.WinProb}};"></span>
+                                    </span>
+                                </span>
+                                <span class="winprob-badge" style="background: {{winProbColor $l.WinProb}};">
+                                    {{parseWinProb $l.WinProb}}%
+                                </span>
+                                <span class="winprob-emoji">{{parseWinEmoji $l.WinProb}}</span>
+                            </div>
+                        </td>
+                    </tr>
                     <tr><th colspan="3" class="bench-header">Bench</th></tr>
                     {{range $l.Bench}}
                         <tr{{if eq .Tier 1}} class="tier1"{{else if .ShouldSwapIn}} class="swap-candidate"{{end}}><td>{{.Pos}}</td><td>{{if eq .Tier 1}}<span class="tier1-star">★</span> {{end}}{{if .ShouldSwapIn}}<span class="swap-icon">⇄</span> {{end}}{{.Name | safe}}</td><td>{{.Tier}}</td></tr>
@@ -55,180 +67,202 @@
             <div class="fa-section">
                 <div class="fa-header">Top Free Agents (Top 3 per Position)</div>
                 <div class="fa-tabs">
-                    {{ $first := true }}
-                    {{ with index $l.FreeAgentsByPos "QB" }}<button class="fa-tab" onclick="showFATab(event, 'fa-{{$i}}-QB')" {{if $first}}id="defaultFATab{{$i}}"{{end}}>QB</button>{{ $first = false }}{{ end }}
-                    {{ with index $l.FreeAgentsByPos "RB" }}<button class="fa-tab" onclick="showFATab(event, 'fa-{{$i}}-RB')">RB</button>{{ end }}
-                    {{ with index $l.FreeAgentsByPos "WR" }}<button class="fa-tab" onclick="showFATab(event, 'fa-{{$i}}-WR')">WR</button>{{ end }}
-                    {{ with index $l.FreeAgentsByPos "TE" }}<button class="fa-tab" onclick="showFATab(event, 'fa-{{$i}}-TE')">TE</button>{{ end }}
-                    {{ with index $l.FreeAgentsByPos "DST" }}<button class="fa-tab" onclick="showFATab(event, 'fa-{{$i}}-DST')">DST</button>{{ end }}
-                    {{ with index $l.FreeAgentsByPos "K" }}<button class="fa-tab" onclick="showFATab(event, 'fa-{{$i}}-K')">K</button>{{ end }}
+                    <button class="fa-tab" onclick="showFATab(event, 'fa-{{$i}}-QB')" id="defaultFATab{{$i}}">QB</button>
+                    <button class="fa-tab" onclick="showFATab(event, 'fa-{{$i}}-RB')">RB</button>
+                    <button class="fa-tab" onclick="showFATab(event, 'fa-{{$i}}-WR')">WR</button>
+                    <button class="fa-tab" onclick="showFATab(event, 'fa-{{$i}}-TE')">TE</button>
+                    <button class="fa-tab" onclick="showFATab(event, 'fa-{{$i}}-DST')">DST</button>
+                    <button class="fa-tab" onclick="showFATab(event, 'fa-{{$i}}-K')">K</button>
                 </div>
                 <div class="fa-tab-contents">
-                    {{ $first := true }}
-                    {{ with $faList := index $l.FreeAgentsByPos "QB" }}
-                        {{$display := "none"}}{{if $first}}{{$display = "block"}}{{end}}
-                        <div class="fa-tab-content" id="fa-{{$i}}-QB" style="display:{{$display}};">
-                            <table class="sortable-table pretty-table fa-table">
-                                <thead>
-                                    <tr><th colspan="3" class="fa-pos-header">QB</th></tr>
-                                    <tr><th>Position</th><th>Player</th><th>Tier</th></tr>
-                                </thead>
-                                <tbody>
-                                {{range $faList}}
-                                    <tr{{if .IsUpgrade}} class="fa-upgrade"{{end}}>
-                                        <td>{{.Pos}}</td>
-                                        <td>{{.Name | safe}}
-                                            {{if .IsUpgrade}}
-                                                <span class="fa-upgrade-icon">⬆️</span>
-                                                <span class="fa-upgrade-for">
-                                                    (Upgrade for {{.UpgradeType}}: {{.UpgradeFor}})
-                                                </span>
-                                            {{end}}
-                                        </td>
-                                        <td>{{.Tier}}</td>
-                                    </tr>
-                                {{end}}
-                                </tbody>
-                            </table>
-                        </div>
-                        {{ $first = false }}
-                    {{ end }}
-                    {{ with $faList := index $l.FreeAgentsByPos "RB" }}
-                        <div class="fa-tab-content" id="fa-{{$i}}-RB" style="display:none;">
-                            <table class="sortable-table pretty-table fa-table">
-                                <thead>
-                                    <tr><th colspan="3" class="fa-pos-header">RB</th></tr>
-                                    <tr><th>Position</th><th>Player</th><th>Tier</th></tr>
-                                </thead>
-                                <tbody>
-                                {{range $faList}}
-                                    <tr{{if .IsUpgrade}} class="fa-upgrade"{{end}}>
-                                        <td>{{.Pos}}</td>
-                                        <td>{{.Name | safe}}
-                                            {{if .IsUpgrade}}
-                                                <span class="fa-upgrade-icon">⬆️</span>
-                                                <span class="fa-upgrade-for">
-                                                    (Upgrade for {{.UpgradeType}}: {{.UpgradeFor}})
-                                                </span>
-                                            {{end}}
-                                        </td>
-                                        <td>{{.Tier}}</td>
-                                    </tr>
-                                {{end}}
-                                </tbody>
-                            </table>
-                        </div>
-                    {{ end }}
-                    {{ with $faList := index $l.FreeAgentsByPos "WR" }}
-                        <div class="fa-tab-content" id="fa-{{$i}}-WR" style="display:none;">
-                            <table class="sortable-table pretty-table fa-table">
-                                <thead>
-                                    <tr><th colspan="3" class="fa-pos-header">WR</th></tr>
-                                    <tr><th>Position</th><th>Player</th><th>Tier</th></tr>
-                                </thead>
-                                <tbody>
-                                {{range $faList}}
-                                    <tr{{if .IsUpgrade}} class="fa-upgrade"{{end}}>
-                                        <td>{{.Pos}}</td>
-                                        <td>{{.Name | safe}}
-                                            {{if .IsUpgrade}}
-                                                <span class="fa-upgrade-icon">⬆️</span>
-                                                <span class="fa-upgrade-for">
-                                                    (Upgrade for {{.UpgradeType}}: {{.UpgradeFor}})
-                                                </span>
-                                            {{end}}
-                                        </td>
-                                        <td>{{.Tier}}</td>
-                                    </tr>
-                                {{end}}
-                                </tbody>
-                            </table>
-                        </div>
-                    {{ end }}
-                    {{ with $faList := index $l.FreeAgentsByPos "TE" }}
-                        <div class="fa-tab-content" id="fa-{{$i}}-TE" style="display:none;">
-                            <table class="sortable-table pretty-table fa-table">
-                                <thead>
-                                    <tr><th colspan="3" class="fa-pos-header">TE</th></tr>
-                                    <tr><th>Position</th><th>Player</th><th>Tier</th></tr>
-                                </thead>
-                                <tbody>
-                                {{range $faList}}
-                                    <tr{{if .IsUpgrade}} class="fa-upgrade"{{end}}>
-                                        <td>{{.Pos}}</td>
-                                        <td>{{.Name | safe}}
-                                            {{if .IsUpgrade}}
-                                                <span class="fa-upgrade-icon">⬆️</span>
-                                                <span class="fa-upgrade-for">
-                                                    (Upgrade for {{.UpgradeType}}: {{.UpgradeFor}})
-                                                </span>
-                                            {{end}}
-                                        </td>
-                                        <td>{{.Tier}}</td>
-                                    </tr>
-                                {{end}}
-                                </tbody>
-                            </table>
-                        </div>
-                    {{ end }}
-                    {{ with $faList := index $l.FreeAgentsByPos "DST" }}
-                        <div class="fa-tab-content" id="fa-{{$i}}-DST" style="display:none;">
-                            <table class="sortable-table pretty-table fa-table">
-                                <thead>
-                                    <tr><th colspan="3" class="fa-pos-header">DST</th></tr>
-                                    <tr><th>Position</th><th>Player</th><th>Tier</th></tr>
-                                </thead>
-                                <tbody>
-                                {{range $faList}}
-                                    <tr{{if .IsUpgrade}} class="fa-upgrade"{{end}}>
-                                        <td>{{.Pos}}</td>
-                                        <td>{{.Name | safe}}
-                                            {{if .IsUpgrade}}
-                                                <span class="fa-upgrade-icon">⬆️</span>
-                                                <span class="fa-upgrade-for">
-                                                    (Upgrade for {{.UpgradeType}}: {{.UpgradeFor}})
-                                                </span>
-                                            {{end}}
-                                        </td>
-                                        <td>{{.Tier}}</td>
-                                    </tr>
-                                {{end}}
-                                </tbody>
-                            </table>
-                        </div>
-                    {{ end }}
-                    {{ with $faList := index $l.FreeAgentsByPos "K" }}
-                        <div class="fa-tab-content" id="fa-{{$i}}-K" style="display:none;">
-                            <table class="sortable-table pretty-table fa-table">
-                                <thead>
-                                    <tr><th colspan="3" class="fa-pos-header">K</th></tr>
-                                    <tr><th>Position</th><th>Player</th><th>Tier</th></tr>
-                                </thead>
-                                <tbody>
-                                {{range $faList}}
-                                    <tr{{if .IsUpgrade}} class="fa-upgrade"{{end}}>
-                                        <td>{{.Pos}}</td>
-                                        <td>{{.Name | safe}}
-                                            {{if .IsUpgrade}}
-                                                <span class="fa-upgrade-icon">⬆️</span>
-                                                <span class="fa-upgrade-for">
-                                                    (Upgrade for {{.UpgradeType}}: {{.UpgradeFor}})
-                                                </span>
-                                            {{end}}
-                                        </td>
-                                        <td>{{.Tier}}</td>
-                                    </tr>
-                                {{end}}
-                                </tbody>
-                            </table>
-                        </div>
-                    {{ end }}
+                    <div class="fa-tab-content" id="fa-{{$i}}-QB" style="display:block;">
+                        {{with index $l.FreeAgentsByPos "QB"}}
+                        <table class="sortable-table pretty-table fa-table">
+                            <thead>
+                                <tr><th colspan="3" class="fa-pos-header">QB</th></tr>
+                                <tr><th>Position</th><th>Player</th><th>Tier</th></tr>
+                            </thead>
+                            <tbody>
+                            {{range .}}
+                                <tr{{if .IsUpgrade}} class="fa-upgrade"{{end}}>
+                                    <td>{{.Pos}}</td>
+                                    <td>{{.Name | safe}}
+                                        {{if .IsUpgrade}}
+                                            <span class="fa-upgrade-icon">⬆️</span>
+                                            <span class="fa-upgrade-for">
+                                                (Upgrade for {{.UpgradeType}}: {{.UpgradeFor}})
+                                            </span>
+                                        {{end}}
+                                    </td>
+                                    <td>{{.Tier}}</td>
+                                </tr>
+                            {{end}}
+                            </tbody>
+                        </table>
+                        {{end}}
+                    </div>
+                    <div class="fa-tab-content" id="fa-{{$i}}-RB" style="display:none;">
+                        {{with index $l.FreeAgentsByPos "RB"}}
+                        <table class="sortable-table pretty-table fa-table">
+                            <thead>
+                                <tr><th colspan="3" class="fa-pos-header">RB</th></tr>
+                                <tr><th>Position</th><th>Player</th><th>Tier</th></tr>
+                            </thead>
+                            <tbody>
+                            {{range .}}
+                                <tr{{if .IsUpgrade}} class="fa-upgrade"{{end}}>
+                                    <td>{{.Pos}}</td>
+                                    <td>{{.Name | safe}}
+                                        {{if .IsUpgrade}}
+                                            <span class="fa-upgrade-icon">⬆️</span>
+                                            <span class="fa-upgrade-for">
+                                                (Upgrade for {{.UpgradeType}}: {{.UpgradeFor}})
+                                            </span>
+                                        {{end}}
+                                    </td>
+                                    <td>{{.Tier}}</td>
+                                </tr>
+                            {{end}}
+                            </tbody>
+                        </table>
+                        {{end}}
+                    </div>
+                    <div class="fa-tab-content" id="fa-{{$i}}-WR" style="display:none;">
+                        {{with index $l.FreeAgentsByPos "WR"}}
+                        <table class="sortable-table pretty-table fa-table">
+                            <thead>
+                                <tr><th colspan="3" class="fa-pos-header">WR</th></tr>
+                                <tr><th>Position</th><th>Player</th><th>Tier</th></tr>
+                            </thead>
+                            <tbody>
+                            {{range .}}
+                                <tr{{if .IsUpgrade}} class="fa-upgrade"{{end}}>
+                                    <td>{{.Pos}}</td>
+                                    <td>{{.Name | safe}}
+                                        {{if .IsUpgrade}}
+                                            <span class="fa-upgrade-icon">⬆️</span>
+                                            <span class="fa-upgrade-for">
+                                                (Upgrade for {{.UpgradeType}}: {{.UpgradeFor}})
+                                            </span>
+                                        {{end}}
+                                    </td>
+                                    <td>{{.Tier}}</td>
+                                </tr>
+                            {{end}}
+                            </tbody>
+                        </table>
+                        {{end}}
+                    </div>
+                    <div class="fa-tab-content" id="fa-{{$i}}-TE" style="display:none;">
+                        {{with index $l.FreeAgentsByPos "TE"}}
+                        <table class="sortable-table pretty-table fa-table">
+                            <thead>
+                                <tr><th colspan="3" class="fa-pos-header">TE</th></tr>
+                                <tr><th>Position</th><th>Player</th><th>Tier</th></tr>
+                            </thead>
+                            <tbody>
+                            {{range .}}
+                                <tr{{if .IsUpgrade}} class="fa-upgrade"{{end}}>
+                                    <td>{{.Pos}}</td>
+                                    <td>{{.Name | safe}}
+                                        {{if .IsUpgrade}}
+                                            <span class="fa-upgrade-icon">⬆️</span>
+                                            <span class="fa-upgrade-for">
+                                                (Upgrade for {{.UpgradeType}}: {{.UpgradeFor}})
+                                            </span>
+                                        {{end}}
+                                    </td>
+                                    <td>{{.Tier}}</td>
+                                </tr>
+                            {{end}}
+                            </tbody>
+                        </table>
+                        {{end}}
+                    </div>
+                    <div class="fa-tab-content" id="fa-{{$i}}-DST" style="display:none;">
+                        {{with index $l.FreeAgentsByPos "DST"}}
+                        <table class="sortable-table pretty-table fa-table">
+                            <thead>
+                                <tr><th colspan="3" class="fa-pos-header">DST</th></tr>
+                                <tr><th>Position</th><th>Player</th><th>Tier</th></tr>
+                            </thead>
+                            <tbody>
+                            {{range .}}
+                                <tr{{if .IsUpgrade}} class="fa-upgrade"{{end}}>
+                                    <td>{{.Pos}}</td>
+                                    <td>{{.Name | safe}}
+                                        {{if .IsUpgrade}}
+                                            <span class="fa-upgrade-icon">⬆️</span>
+                                            <span class="fa-upgrade-for">
+                                                (Upgrade for {{.UpgradeType}}: {{.UpgradeFor}})
+                                            </span>
+                                        {{end}}
+                                    </td>
+                                    <td>{{.Tier}}</td>
+                                </tr>
+                            {{end}}
+                            </tbody>
+                        </table>
+                        {{end}}
+                    </div>
+                    <div class="fa-tab-content" id="fa-{{$i}}-K" style="display:none;">
+                        {{with index $l.FreeAgentsByPos "K"}}
+                        <table class="sortable-table pretty-table fa-table">
+                            <thead>
+                                <tr><th colspan="3" class="fa-pos-header">K</th></tr>
+                                <tr><th>Position</th><th>Player</th><th>Tier</th></tr>
+                            </thead>
+                            <tbody>
+                            {{range .}}
+                                <tr{{if .IsUpgrade}} class="fa-upgrade"{{end}}>
+                                    <td>{{.Pos}}</td>
+                                    <td>{{.Name | safe}}
+                                        {{if .IsUpgrade}}
+                                            <span class="fa-upgrade-icon">⬆️</span>
+                                            <span class="fa-upgrade-for">
+                                                (Upgrade for {{.UpgradeType}}: {{.UpgradeFor}})
+                                            </span>
+                                        {{end}}
+                                    </td>
+                                    <td>{{.Tier}}</td>
+                                </tr>
+                            {{end}}
+                            </tbody>
+                        </table>
+                        {{end}}
+                    </div>
                 </div>
             </div>
         </div>
     {{end}}
 </div>
+</div>
 <style>
+    .app-header {
+        width: 100%;
+        background: linear-gradient(90deg, #232c41 0%, #3a6ee8 100%);
+        padding: 32px 0 18px 0;
+        text-align: center;
+        margin-bottom: 18px;
+        box-shadow: 0 2px 12px rgba(30,38,54,0.10);
+    }
+    .app-header h1 {
+        color: #eaf0fa;
+        font-family: 'Raleway', Arial, sans-serif;
+        font-size: 2.3em;
+        font-weight: 800;
+        letter-spacing: 1px;
+        margin: 0;
+        text-shadow: 0 2px 8px rgba(30,38,54,0.18);
+    }
+    .main-content {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 24px 16px 0 16px;
+        background: rgba(35,44,65,0.98);
+        border-radius: 10px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+    }
 .fa-section { margin-top: 2em; }
 .fa-header { font-size: 1.2em; font-weight: bold; margin-bottom: 0.5em; }
 .fa-tabs { margin-bottom: 1em; }
@@ -260,4 +294,12 @@ function showFATab(evt, tabId) {
 document.querySelectorAll('[id^=defaultFATab]').forEach(function(tab){ tab.click(); });
 </script>
 <script src="/static/sortable.js"></script>
+
+<footer style="margin-top:2em; text-align:center; font-size:1em; color:#888;">
+        <div style="margin-bottom:0.5em;">
+            Tiers powered by <a href="https://www.borischen.co/" target="_blank" rel="noopener">Boris Chen</a> |
+            <a href="https://github.com/wbollock/sleeperPy" target="_blank" rel="noopener">GitHub Repo</a>
+            <span style="margin-left:1em; color:#666;">If you like this project, please <a href="https://github.com/wbollock/sleeperPy" target="_blank" rel="noopener">drop a ⭐ on GitHub</a>!</span>
+        </div>
+</footer>
 {{end}}

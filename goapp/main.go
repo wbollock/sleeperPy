@@ -90,21 +90,22 @@ type PlayerRow struct {
 }
 
 type LeagueData struct {
-	LeagueName    string
-	Scoring       string
-	Starters      []PlayerRow
-	Unranked      []PlayerRow
-	AvgTier       string
-	AvgOppTier    string
-	WinProb       string
-	Bench         []PlayerRow
-	BenchUnranked []PlayerRow
+	LeagueName      string
+	Scoring         string
+	Starters        []PlayerRow
+	Unranked        []PlayerRow
+	AvgTier         string
+	AvgOppTier      string
+	WinProb         string
+	Bench           []PlayerRow
+	BenchUnranked   []PlayerRow
 	FreeAgentsByPos map[string][]PlayerRow
 }
 
 type TiersPage struct {
-	Error   string
-	Leagues []LeagueData
+	Error    string
+	Leagues  []LeagueData
+	Username string
 }
 
 // Team mapping for DST/DEF
@@ -255,7 +256,6 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		// Fetch Boris Chen tiers
 		borisTiers := fetchBorisTiers(scoring)
 
-
 		// Build rows for roster
 		benchRows, _, _ := buildRows(bench, players, borisTiers, false, userRoster, irPlayers, nil)
 		bestBenchTier := make(map[string]int)
@@ -295,11 +295,11 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		// Find free agents: not rostered, not on user's team, valid tier, and sort by roster_percent
 		type faInfo struct {
-			pid string
+			pid     string
 			percent float64
-			tier int
-			pos string
-			name string
+			tier    int
+			pos     string
+			name    string
 		}
 		faList := []faInfo{}
 		for pid, p := range players {
@@ -345,9 +345,9 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			faByPos[fa.pos] = append(faByPos[fa.pos], fa)
 		}
 		freeAgentsByPos := map[string][]PlayerRow{}
-	// Show K last, after DST
-	faOrder := []string{"QB", "RB", "WR", "TE", "DST", "K"}
-	for _, pos := range faOrder {
+		// Show K last, after DST
+		faOrder := []string{"QB", "RB", "WR", "TE", "DST", "K"}
+		for _, pos := range faOrder {
 			posList := faByPos[pos]
 			if len(posList) > 3 {
 				posList = posList[:3]
@@ -384,12 +384,12 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 				rows = append(rows, PlayerRow{
-					Pos: fa.pos,
-					Name: fa.name,
-					Tier: fa.tier,
+					Pos:         fa.pos,
+					Name:        fa.name,
+					Tier:        fa.tier,
 					IsFreeAgent: true,
-					IsUpgrade: isUpgrade,
-					UpgradeFor: upgradeFor,
+					IsUpgrade:   isUpgrade,
+					UpgradeFor:  upgradeFor,
 					UpgradeType: upgradeType,
 				})
 			}
@@ -403,14 +403,14 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		winProb, emoji := winProbability(avgTier, avgOppTier)
 
 		leagueData := LeagueData{
-			LeagueName:    leagueName,
-			Scoring:       scoring,
-			Starters:      startersRows,
-			Unranked:      unrankedRows,
-			AvgTier:       avgTier,
-			AvgOppTier:    avgOppTier,
-			WinProb:       winProb + " " + emoji,
-			Bench:         benchRows,
+			LeagueName:      leagueName,
+			Scoring:         scoring,
+			Starters:        startersRows,
+			Unranked:        unrankedRows,
+			AvgTier:         avgTier,
+			AvgOppTier:      avgOppTier,
+			WinProb:         winProb + " " + emoji,
+			Bench:           benchRows,
 			FreeAgentsByPos: freeAgentsByPos,
 		}
 
@@ -423,11 +423,16 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	templates.ExecuteTemplate(w, "tiers.html", TiersPage{Leagues: leagueResults})
+	username = r.FormValue("username")
+	templates.ExecuteTemplate(w, "tiers.html", TiersPage{Leagues: leagueResults, Username: username})
 }
 
 func renderError(w http.ResponseWriter, msg string) {
-	templates.ExecuteTemplate(w, "tiers.html", TiersPage{Error: msg})
+	username := ""
+	if u := w.Header().Get("X-Username"); u != "" {
+		username = u
+	}
+	templates.ExecuteTemplate(w, "tiers.html", TiersPage{Error: msg, Username: username})
 }
 
 // --- Helper functions ---

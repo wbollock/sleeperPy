@@ -130,7 +130,12 @@
 /* Sortable column indicator */
 .pretty-table th.asc:after { content: ' \25B2'; }
 .pretty-table th:not(.asc):after { content: ' \25BC'; opacity: 0.3; }
-body { background: #1e2636; color: #eaf0fa; font-family: 'Raleway', Arial, sans-serif; min-height: 100vh; }
+html, body {
+	background: #1e2636 !important;
+	color: #eaf0fa;
+	font-family: 'Raleway', Arial, sans-serif;
+	min-height: 100vh;
+}
 .container { max-width: 700px; margin: 0 auto; padding: 30px 10px 10px 10px; }
 h1 { text-align: center; color: #eaf0fa; }
 #userform { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 20px; }
