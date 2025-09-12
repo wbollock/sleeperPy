@@ -3,3 +3,4 @@ deploy.sh
 sleeperPy.log*
 mongo
 matomo.js
+sleeperpy

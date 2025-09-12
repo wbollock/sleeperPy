@@ -1,5 +1,5 @@
 
-# sleeperPy (Go + HTMX)
+# sleeperPy
 
 ![license](https://img.shields.io/github/license/wbollock/sleeperPy)
 
