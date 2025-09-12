@@ -11,10 +11,113 @@
     <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-    input[type="text"] {
-      color: black !important;
-      background: white !important;
-      width: 250px !important;
+    body {
+      background: #1e2636 !important;
+      color: #eaf0fa;
+      font-family: 'Raleway', 'Roboto', Arial, sans-serif;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 30px 10px 10px 10px;
+    }
+    .homepageHeader {
+      text-align: center;
+      font-size: 2.2em;
+      margin-bottom: 0.2em;
+      color: #eaf0fa;
+      letter-spacing: 1px;
+    }
+    #userform {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    #inputButton {
+      font-size: 1.1em;
+      padding: 12px 16px;
+      border-radius: 6px;
+      border: 1px solid #3a4a6e;
+      background: #232c41;
+      color: #eaf0fa;
+      width: 260px;
+      margin-bottom: 0.5em;
+      box-shadow: 0 1px 4px rgba(30,38,54,0.08);
+    }
+    #generateTiers {
+      font-size: 1.1em;
+      padding: 12px 32px 16px 32px; /* Increased bottom padding to 16px */
+      border-radius: 6px;
+      border: none;
+      background: #3a6ee8;
+      color: #fff;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s;
+      margin-bottom: 0.5em;
+      box-shadow: 0 2px 8px rgba(58,110,232,0.10);
+      letter-spacing: 0.5px;
+    }
+    #generateTiers:hover {
+      background: #254a99;
+      box-shadow: 0 4px 16px rgba(58,110,232,0.18);
+    }
+    #output {
+      margin-top: 24px;
+      margin-bottom: 24px;
+      color: #eaf0fa;
+    }
+    table.table-fill {
+      background: #f4f7fb;
+      border-radius: 10px;
+      border-collapse: collapse;
+      margin: 0 auto 30px auto;
+      width: 100%;
+      box-shadow: 0 2px 12px rgba(30,38,54,0.13);
+      font-size: 1em;
+      color: #27324a;
+    }
+    .table-fill th, .table-fill td {
+      padding: 12px 10px;
+      text-align: left;
+    }
+    .table-fill th {
+      background: #c9d4e7;
+      color: #1a2233;
+      font-weight: 600;
+      border-top-left-radius: 10px;
+      border-top-right-radius: 10px;
+      letter-spacing: 0.5px;
+    }
+    .table-fill tr:nth-child(even) td {
+      background: #eaf0fa;
+    }
+    .table-fill tr:hover td {
+      background: #d2e0f7;
+    }
+    .table-fill td {
+      border-bottom: 1px solid #c3d3ea;
+    }
+    h3 {
+      text-align: center;
+      margin-top: 1.5em;
+      margin-bottom: 0.5em;
+      color: #7bb0ff;
+      letter-spacing: 0.5px;
+    }
+    footer {
+      text-align: center;
+      margin-top: 40px;
+      color: #7bb0ff;
+      font-size: 0.95em;
+    }
+    @media (max-width: 600px) {
+      .container { padding: 10px 2px; }
+      #inputButton { width: 98vw; max-width: 98vw; }
+      table.table-fill { font-size: 0.95em; }
     }
     </style>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
