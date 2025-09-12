@@ -15,7 +15,6 @@
             <span style="margin-left:10px;"><span class="swap-icon">⇄</span> = Swap candidate</span>
             <span style="margin-left:10px;"><span style="color:#2e7d32;">⬆️</span> = Free agent upgrade</span>
             <span style="margin-left:10px;"><span style="background:#3a1e1e; color:#ffb6b6; padding:2px 6px; border-radius:4px;">red row</span> = Suboptimal starter</span>
-            <span style="margin-left:10px; color:#b6c6e0; font-size:0.97em;">FLEX = RB/WR/TE slot; Superflex = FLEX + QB</span>
         </div>
 {{if .Error}}
 <span style="color:red">{{.Error}}</span>
@@ -41,7 +40,9 @@
                         <td>
                             {{if eq .Pos "FLEX"}}<span style="color:#7bb0ff;font-weight:bold;">FLEX</span>{{else if eq .Pos "SUPERFLEX"}}<span style="color:#7bb0ff;font-weight:bold;">SUPERFLEX</span>{{else}}{{.Pos}}{{end}}
                         </td>
-                        <td>{{if eq .Tier 1}}<span class="tier1-star">★</span> {{end}}{{.Name | safe}}</td>
+                        <td>{{if eq .Tier 1}}<span class="tier1-star">★</span> {{end}}{{.Name | safe}}
+                            {{if .IsSuperflex}}<span style="color:#7bb0ff;font-weight:bold; margin-left:6px;">[SUPERFLEX]</span>{{else if .IsFlex}}<span style="color:#7bb0ff;font-weight:bold; margin-left:6px;">[FLEX]</span>{{end}}
+                        </td>
                         <td>{{.Tier}}</td>
                     </tr>
                 {{end}}
@@ -104,13 +105,14 @@
                             </thead>
                             <tbody>
                             {{range .}}
-                                <tr{{if .IsUpgrade}} class="fa-upgrade"{{end}}>
+                                <tr{{if .IsUpgrade}} class="fa-upgrade fa-upgrade-strong"{{end}}>
                                     <td>{{.Pos}}</td>
                                     <td>{{.Name | safe}}
                                         {{if .IsUpgrade}}
-                                            <span class="fa-upgrade-icon">⬆️</span>
-                                            <span class="fa-upgrade-for">
-                                                (Upgrade for {{.UpgradeType}}: {{.UpgradeFor}})
+                                            <span class="fa-upgrade-icon fa-upgrade-strong-icon">⬆️</span>
+                                            <span class="fa-upgrade-for fa-upgrade-strong-for">
+                                                <b style="color:#c62828; font-size:1.08em;">OBVIOUS UPGRADE</b><br>
+                                                <span style="color:#c62828; font-weight:bold;">(Upgrade for {{.UpgradeType}}: {{.UpgradeFor}})</span>
                                             </span>
                                         {{end}}
                                     </td>
@@ -293,6 +295,11 @@
 .fa-upgrade-icon { color: #2e7d32; font-weight: bold; }
 .fa-upgrade-for { color: #2e7d32; font-size: 0.95em; margin-left: 0.3em; }
 .fa-pos-header { background: #f7f7f7; font-size: 1.1em; }
+/* Strong highlight for obvious upgrades on first tab */
+.fa-upgrade-strong { background: #ffeaea !important; border: 2px solid #c62828 !important; box-shadow: 0 0 8px #c6282833; }
+.fa-upgrade-strong-icon { color: #c62828 !important; font-size: 1.3em; animation: fa-pulse 1s infinite alternate; }
+.fa-upgrade-strong-for { color: #c62828 !important; font-size: 1.08em; font-weight: bold; margin-left: 0.3em; }
+@keyframes fa-pulse { 0% { transform: scale(1); } 100% { transform: scale(1.15); } }
 </style>
 <script>
 function showLeagueTab(evt, tabId) {

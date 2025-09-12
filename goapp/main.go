@@ -87,6 +87,8 @@ type PlayerRow struct {
 	IsUpgrade            bool
 	UpgradeFor           string // Name of player this FA is better than
 	UpgradeType          string // "Starter" or "Bench" or ""
+	IsFlex               bool   // Heuristic FLEX indicator
+	IsSuperflex          bool   // Heuristic SUPERFLEX indicator
 }
 
 type LeagueData struct {
@@ -268,7 +270,60 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-		startersRows, unrankedRows, starterTiers := buildRows(starters, players, borisTiers, true, userRoster, irPlayers, bestBenchTier)
+		   startersRows, unrankedRows, starterTiers := buildRows(starters, players, borisTiers, true, userRoster, irPlayers, bestBenchTier)
+
+		   // --- FLEX/SUPERFLEX HEURISTICS ---
+		   // Count FLEX and SUPERFLEX slots
+		   flexCount := 0
+		   superflexCount := 0
+		   if sps, ok := userRoster["starter_positions"].([]interface{}); ok {
+			   for _, slot := range sps {
+				   slotStr, _ := slot.(string)
+				   slotUp := strings.ToUpper(slotStr)
+				   if strings.Contains(slotUp, "SUPER") && strings.Contains(slotUp, "FLEX") {
+					   superflexCount++
+				   } else if strings.Contains(slotUp, "FLEX") {
+					   flexCount++
+				   }
+			   }
+		   }
+		   // Mark SUPERFLEX: if 2+ QBs, lowest tier QB is superflex
+		   qbIdxs := []int{}
+		   for i, row := range startersRows {
+			   if row.Pos == "QB" {
+				   qbIdxs = append(qbIdxs, i)
+			   }
+		   }
+		   if superflexCount > 0 && len(qbIdxs) > 1 {
+			   // Find lowest tier QB
+			   minTier := 1000
+			   minIdx := -1
+			   for _, i := range qbIdxs {
+				   t, ok := startersRows[i].Tier.(int)
+				   if ok && t > 0 && t < minTier {
+					   minTier = t
+					   minIdx = i
+				   }
+			   }
+			   if minIdx >= 0 {
+				   startersRows[minIdx].IsSuperflex = true
+			   }
+		   }
+		   // Mark FLEX: lowest tier RB/WR/TEs (not already marked as superflex), up to flexCount
+		   flexCandidates := []struct{idx, tier int}{}
+		   for i, row := range startersRows {
+			   if (row.Pos == "RB" || row.Pos == "WR" || row.Pos == "TE") && !startersRows[i].IsSuperflex {
+				   t, ok := row.Tier.(int)
+				   if ok && t > 0 {
+					   flexCandidates = append(flexCandidates, struct{idx, tier int}{i, t})
+				   }
+			   }
+		   }
+		   // Sort by tier descending (lowest tier = highest number)
+		   sort.Slice(flexCandidates, func(i, j int) bool { return flexCandidates[i].tier > flexCandidates[j].tier })
+		   for i := 0; i < flexCount && i < len(flexCandidates); i++ {
+			   startersRows[flexCandidates[i].idx].IsFlex = true
+		   }
 		worstStarterTier := make(map[string]int)
 		for _, row := range startersRows {
 			pos := row.Pos
@@ -402,17 +457,17 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		avgOppTier := avg(oppTiers)
 		winProb, emoji := winProbability(avgTier, avgOppTier)
 
-		leagueData := LeagueData{
-			LeagueName:      leagueName,
-			Scoring:         scoring,
-			Starters:        startersRows,
-			Unranked:        unrankedRows,
-			AvgTier:         avgTier,
-			AvgOppTier:      avgOppTier,
-			WinProb:         winProb + " " + emoji,
-			Bench:           benchRows,
-			FreeAgentsByPos: freeAgentsByPos,
-		}
+		   leagueData := LeagueData{
+			   LeagueName:      leagueName,
+			   Scoring:         scoring,
+			   Starters:        startersRows,
+			   Unranked:        unrankedRows,
+			   AvgTier:         avgTier,
+			   AvgOppTier:      avgOppTier,
+			   WinProb:         winProb + " " + emoji,
+			   Bench:           benchRows,
+			   FreeAgentsByPos: freeAgentsByPos,
+		   }
 
 		leagueResults = append(leagueResults, leagueData)
 	}
