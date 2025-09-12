@@ -39,8 +39,8 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 from operator import itemgetter
 from logging.handlers import RotatingFileHandler
-from pymongo import MongoClient
-from os import path
+import unicodedata
+from difflib import get_close_matches
 
 
 # Variables
@@ -53,73 +53,36 @@ htmlFile = "tiers.php"
 loggingFile = "sleeperPy.log"
 playersFile = "players.json"
 
-dbName = "sleeperPy"
-collectionName = "players"
+
+# --- Download and load players.json into memory ---
+def download_players_json():
+    url = "https://api.sleeper.app/v1/players/nfl"
+    if not os.path.exists(playersFile) or (
+        time.time() - os.path.getmtime(playersFile) > 86400
+    ):
+        with urllib.request.urlopen(url) as u:
+            data = json.loads(u.read().decode())
+            with open(playersFile, "w") as f:
+                json.dump(data, f)
+    with open(playersFile, "r") as f:
+        data = json.load(f)
+    return data
+
+# Load all players into a dict: player_id -> player_info
+players_data = download_players_json()
+
+# Helper: get player info by id
+player_cache = {}
+def get_player_info(pid):
+    if pid in player_cache:
+        return player_cache[pid]
+    info = players_data.get(str(pid), None)
+    if info:
+        player_cache[pid] = info
+    return info
 
 
 # Functions
-def mongoConnect():
-    # connect to mongodb
-    client = MongoClient()
-    # default host/port
-    db = client[dbName]
-    collection = db[collectionName]
-    return db, collection
-
-
-def mongoImport():
-    playersPath = Path(playersFile)
-
-    url = "https://api.sleeper.app/v1/players/nfl"
-    today = datetime.today()
-
-    # see if we need a new players.json
-    if playersPath.is_file():
-        # 8 is last modified
-        t = os.stat(playersPath)[8]
-        filetime = today - datetime.fromtimestamp(t)
-
-        if int(filetime.seconds) > 86400:
-            # if it's last been modified longer than a day ago, download new players.txt
-            with urllib.request.urlopen(url) as url:
-                data = json.loads(url.read().decode())
-                with open(playersFile, "w") as f:
-                    json.dump(data, f)
-                    f.close()
-
-            # clean up existing data
-            collection.delete_many({})
-            # import new stuff
-            os.system(
-                "mongoimport --db "
-                + dbName
-                + " --collection "
-                + collectionName
-                + " --file "
-                + playersFile
-            )
-
-    # if file doesn't exist at all"
-    else:
-        with urllib.request.urlopen(url) as url:
-            data = json.loads(url.read().decode())
-            with open(playersFile, "w") as f:
-                json.dump(data, f)
-                f.close()
-
-            # clean up existing data
-            collection.delete_many({})
-            # import new stuff
-            os.system(
-                "mongoimport --db "
-                + dbName
-                + " --collection "
-                + collectionName
-                + " --file "
-                + playersFile
-            )
-
-
 def Diff(li1, li2):
     # used to find "bench" by finding the difference between total team and starters
     li_dif = [i for i in li1 + li2 if i not in li1 or i not in li2]
@@ -171,37 +134,79 @@ def printTiers(playerList, tierList, pos):
     return outputList
 
 
+def normalize_name(name):
+    # Remove accents, lowercase, remove periods, suffixes, and extra spaces
+    name = unicodedata.normalize('NFKD', name).encode('ascii', 'ignore').decode('utf-8')
+    name = name.lower().replace('.', '').replace(',', '')
+    # Remove common suffixes
+    for suffix in [' jr', ' sr', ' ii', ' iii', ' iv', ' v']:
+        if name.endswith(suffix):
+            name = name[: -len(suffix)]
+    name = name.replace('  ', ' ').strip()
+    return name
+
+
+# Expanded Boris/Sleeper name mapping for common mismatches
+NAME_MAP = {
+    'dk metcalf': 'd k metcalf',
+    'jeffery wilson': 'jeff wilson',
+    'jamycal hasty': 'jamycal hasty',
+    'marvin jones jr': 'marvin jones',
+    'will fuller v': 'will fuller',
+    'ronald jones ii': 'ronald jones',
+    'odell beckham jr': 'odell beckham',
+    'robert griffin iii': 'robert griffin',
+    'mvs': 'marquez valdes scantling',
+    # Add more as needed
+}
+
 def validateBoris(tierListPos):
-    # fixing inconsistencies as i find them between boris chen and sleeper player names
-    # ok this works at least but i think i have to edit the list
-    # BorisName, Sleeper Name
-    tierListPos = [w.replace("D.K. Metcalf", "DK Metcalf") for w in tierListPos]
-    tierListPos = [w.replace("Jeff Wilson Jr.", "Jeffery Wilson") for w in tierListPos]
-    tierListPos = [w.replace("JaMycal Hasty", "Jamycal Hasty") for w in tierListPos]
-    return tierListPos
+    # Normalize all names in the tier list
+    newList = []
+    for w in tierListPos:
+        for k, v in NAME_MAP.items():
+            if k in w.lower():
+                w = w.replace(k.title(), v.title())
+        newList.append(w)
+    return newList
+
+
+def match_player_name(fullName, tierListPos):
+    # Try exact match first
+    norm_full = normalize_name(fullName)
+    norm_tiers = [normalize_name(x) for x in tierListPos]
+    if norm_full in norm_tiers:
+        idx = norm_tiers.index(norm_full)
+        return idx
+    # Try mapped name
+    mapped = NAME_MAP.get(norm_full, None)
+    if mapped and mapped in norm_tiers:
+        idx = norm_tiers.index(mapped)
+        return idx
+    # Fuzzy match fallback
+    matches = get_close_matches(norm_full, norm_tiers, n=1, cutoff=0.85)
+    if matches:
+        idx = norm_tiers.index(matches[0])
+        return idx
+    return None
 
 
 def createTiers(tierListPos, fullName, posPlayerList, posTierList, tier):
-    # find the players name in a tier list, when found also note their tier
+    # Use improved matching
     tierListPos = validateBoris(tierListPos)
-    for q in range(len(tierListPos)):
-        # tierListPos[q] means: Tier 1: Lamar Jackson, Dak Prescott, Patrick Mahomes II
-        # iterates through each line of tier
-        if fullName in tierListPos[q]:
-            tier = q + 1
-            posPlayerList.append(f"{fullName}")
-            posTierList.append(f"{tier}")
-
+    idx = match_player_name(fullName, tierListPos)
+    if idx is not None:
+        tier = idx + 1
+        posPlayerList.append(f"{fullName}")
+        posTierList.append(f"{tier}")
     return posPlayerList, posTierList, tier
 
 
 def createUnranked(tierListPos, fullName):
-    # go through entire tier list for a position, if player name not in any of them, they are not ranked
-    flag = False
+    # Use improved matching
     tierListPos = validateBoris(tierListPos)
-    if any(fullName in word for word in tierListPos):
-        flag = True
-    if flag == False:
+    idx = match_player_name(fullName, tierListPos)
+    if idx is None:
         return f"{fullName}"
     else:
         return "ranked"
@@ -259,8 +264,9 @@ def create_rotating_log(path):
 
 
 create_rotating_log(loggingFile)
-db, collection = mongoConnect()
-mongoImport()
+# Remove MongoDB code
+# db, collection = mongoConnect()
+# mongoImport()
 
 # logger = logging.getLogger()
 
@@ -471,10 +477,11 @@ for league in leagues:
 
     # looping through starters[i] to get all IDs of starters, e.g 4881
     while j < len(starters[i]):
-        for key in collection.distinct(str(starters[i][j])):
-            fName = key["first_name"]
-            lName = key["last_name"]
-            pos = key["position"]
+        key = get_player_info(starters[i][j])
+        if key is not None:
+            fName = key.get("first_name", "")
+            lName = key.get("last_name", "")
+            pos = key.get("position", "")
             fullName = fName + " " + lName
 
             # iterate through tierlists based on pos
@@ -568,14 +575,13 @@ for league in leagues:
     if oppStarters:
         j = 0
         tier = 0
-        # key = {}
         try:
-            # looping through starters[i] to get all IDs of starters, e.g 4881
             while j < len(oppStarters[i]):
-                for key in collection.distinct(str(oppStarters[i][j])):
-                    fName = key["first_name"]
-                    lName = key["last_name"]
-                    pos = key["position"]
+                key = get_player_info(oppStarters[i][j])
+                if key is not None:
+                    fName = key.get("first_name", "")
+                    lName = key.get("last_name", "")
+                    pos = key.get("position", "")
                     fullName = fName + " " + lName
 
                     if pos == "QB":
@@ -666,10 +672,11 @@ for league in leagues:
 
     tier = 0
     for b in bench:
-        for key in collection.distinct(str(b)):
-            fName = key["first_name"]
-            lName = key["last_name"]
-            pos = key["position"]
+        key = get_player_info(b)
+        if key is not None:
+            fName = key.get("first_name", "")
+            lName = key.get("last_name", "")
+            pos = key.get("position", "")
             fullName = fName + " " + lName
 
             if pos == "QB":
@@ -680,7 +687,6 @@ for league in leagues:
                     urBenchList.append(createUnranked(tierListQB, fullName))
 
             if pos == "RB":
-                # rbStarterList, rbTierList, tier = createTiers(tierListRB,fullName,rbStarterList,rbTierList,tier)
                 rbBenchList, rbTierBenchList, tier = createTiers(
                     tierListRB, fullName, rbBenchList, rbTierBenchList, tier
                 )
