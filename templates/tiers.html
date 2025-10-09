@@ -59,12 +59,12 @@ function showLeagueTab(evt, tabId) {
                 {{end}}
                 </tbody>
                 <tfoot>
-                    <tr><td colspan="3" class="summary"><b>Average Tier: {{$l.AvgTier}}</b></td></tr>
-                    <tr><td colspan="3" class="summary"><b>Opponent Average Tier: {{$l.AvgOppTier}}</b></td></tr>
+                    <tr><td colspan="3" class="summary" style="padding:16px;"><b>Average Tier: {{$l.AvgTier}}</b></td></tr>
+                    <tr><td colspan="3" class="summary" style="padding:16px;"><b>Opponent Average Tier: {{$l.AvgOppTier}}</b></td></tr>
                     <tr>
-                        <td colspan="3" class="summary">
+                        <td colspan="3" style="padding:12px 0; background:transparent; border:none; text-align:center;">
                             <div class="winprob-row">
-                                <span class="winprob-label">Win Probability:</span>
+                                <span class="winprob-label">Win Probability</span>
                                 <span class="winprob-bar-wrap">
                                     <span class="winprob-bar-bg">
                                         <span class="winprob-bar" style="width: {{parseWinProb $l.WinProb}}%; background: {{winProbColor $l.WinProb}};"></span>
@@ -77,7 +77,7 @@ function showLeagueTab(evt, tabId) {
                             </div>
                         </td>
                     </tr>
-                    <tr><th colspan="3" class="bench-header">Bench</th></tr>
+                    <tr><th colspan="3" class="bench-header" style="padding-top:24px; padding-bottom:16px;">Bench</th></tr>
                     {{range $l.Bench}}
                         <tr{{if eq .Tier 1}} class="tier1"{{else if .ShouldSwapIn}} class="swap-candidate"{{end}}><td>{{.Pos}}</td><td>{{if eq .Tier 1}}<span class="tier1-star">★</span> {{end}}{{if .ShouldSwapIn}}<span class="swap-icon">⇄</span> {{end}}{{.Name | safe}}</td><td>{{.Tier}}{{if .IsFlex}} <span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">FLEX</span>{{end}}</td></tr>
                     {{end}}
@@ -118,12 +118,12 @@ function showLeagueTab(evt, tabId) {
     {{end}}
 </div>
 
-<div class="legend" style="margin-top:24px; margin-bottom:18px; font-size:0.95em; color:#b6c6e0; display:flex; flex-wrap:wrap; gap:15px; align-items:center; justify-content:center;">
-    <span style="font-weight:bold; margin-right:5px;">Legend:</span>
-    <span><span class="tier1-star">★</span> Tier 1</span>
-    <span><span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">FLEX</span> FLEX tier</span>
-    <span><span class="swap-icon">⇄</span> Swap</span>
-    <span style="background:#3a1e1e; color:#ffb6b6; padding:2px 6px; border-radius:4px;">Red = Suboptimal</span>
+<div class="legend" style="margin-top:32px; margin-bottom:24px; font-size:0.9em; color:#c5d5f0; display:flex; flex-wrap:wrap; gap:20px; align-items:center; justify-content:center; padding:16px; background:rgba(30,38,54,0.4); border-radius:12px; backdrop-filter:blur(10px); border:1px solid rgba(123,176,255,0.1);">
+    <span style="font-weight:600; margin-right:8px; color:#7bb0ff; text-transform:uppercase; letter-spacing:0.5px; font-size:0.85em;">Legend:</span>
+    <span style="display:inline-flex; align-items:center; gap:6px;"><span class="tier1-star">★</span> <span style="font-weight:500;">Tier 1</span></span>
+    <span style="display:inline-flex; align-items:center; gap:6px;"><span style="background:#7bb0ff;color:#1a1f2e;padding:3px 7px;border-radius:6px;font-size:0.8em;font-weight:bold;">FLEX</span> <span style="font-weight:500;">FLEX tier</span></span>
+    <span style="display:inline-flex; align-items:center; gap:6px;"><span class="swap-icon">⇄</span> <span style="font-weight:500;">Swap</span></span>
+    <span style="display:inline-flex; align-items:center; gap:6px;"><span style="background:#3a1e1e; color:#ffb6b6; padding:3px 8px; border-radius:6px; font-weight:500;">Red</span> <span style="font-weight:500;">Suboptimal</span></span>
 </div>
 
 </div>
@@ -132,53 +132,81 @@ if (document.getElementById('defaultTab')) document.getElementById('defaultTab')
 </script>
 <script src="/static/sortable.js"></script>
 
-<footer style="margin-top:3em; padding:2em 1em; text-align:center; border-top:1px solid rgba(180,180,180,0.15);">
-    <div style="margin-bottom:1.2em; font-size:0.95em; color:#a0a0a0;">
-        <span style="display:inline-block; margin:0.4em 0.8em;">
-            Tiers powered by <a href="https://www.borischen.co/" target="_blank" rel="noopener" style="color:#7bb0ff; text-decoration:none; font-weight:500;">Boris Chen</a>
+<footer style="margin-top:3em; padding:2.5em 1.5em; text-align:center; border-top:1px solid rgba(123,176,255,0.15); background:rgba(30,38,54,0.3); backdrop-filter:blur(10px);">
+    <div style="margin-bottom:1.4em; font-size:0.95em; color:#c5d5f0;">
+        <span style="display:inline-block; margin:0.5em 1em;">
+            Tiers powered by <a href="https://www.borischen.co/" target="_blank" rel="noopener" style="color:#7bb0ff; text-decoration:none; font-weight:600; transition:color 0.2s;">Boris Chen</a>
         </span>
-        <span style="display:inline-block; margin:0.4em 0.8em;">
-            <a href="https://github.com/wbollock/sleeperPy" target="_blank" rel="noopener" style="color:#7bb0ff; text-decoration:none; font-weight:500;">GitHub</a>
+        <span style="display:inline-block; margin:0.5em 1em;">
+            <a href="https://github.com/wbollock/sleeperPy" target="_blank" rel="noopener" style="color:#7bb0ff; text-decoration:none; font-weight:600; transition:color 0.2s;">GitHub</a>
         </span>
-        <span style="display:inline-block; margin:0.4em 0.8em;">
-            <a href="https://buymeacoffee.com/wbollock" target="_blank" rel="noopener" style="color:#FFDD00; text-decoration:none; font-weight:500;">☕ Buy Me a Coffee</a>
+        <span style="display:inline-block; margin:0.5em 1em;">
+            <a href="https://buymeacoffee.com/wbollock" target="_blank" rel="noopener" style="color:#FFDD00; text-decoration:none; font-weight:600; transition:all 0.2s; text-shadow:0 0 8px rgba(255,221,0,0.3);">☕ Buy Me a Coffee</a>
         </span>
     </div>
-    <div style="font-size:0.88em; color:#777;">
-        If you like this project, please <a href="https://github.com/wbollock/sleeperPy" target="_blank" rel="noopener" style="color:#888; text-decoration:none;">drop a ⭐ on GitHub</a>
+    <div style="font-size:0.88em; color:#8a9ab8;">
+        If you like this project, please <a href="https://github.com/wbollock/sleeperPy" target="_blank" rel="noopener" style="color:#9aa8c0; text-decoration:none; transition:color 0.2s;">drop a ⭐ on GitHub</a>
     </div>
 </footer>
 {{end}}
 <style>
     .app-header {
         width: 100%;
-        background: linear-gradient(90deg, #232c41 0%, #3a6ee8 100%);
-        padding: 32px 0 18px 0;
+        background: linear-gradient(135deg, rgba(58, 110, 232, 0.15) 0%, rgba(88, 86, 214, 0.15) 100%);
+        backdrop-filter: blur(20px);
+        padding: 40px 0 24px 0;
         text-align: center;
-        margin-bottom: 18px;
-        box-shadow: 0 2px 12px rgba(30,38,54,0.10);
+        margin-bottom: 32px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+        border-bottom: 1px solid rgba(123, 176, 255, 0.2);
     }
     .app-header h1 {
-        color: #eaf0fa;
-        font-family: 'Raleway', Arial, sans-serif;
-        font-size: 2.3em;
-        font-weight: 800;
-        letter-spacing: 1px;
+        color: #e8eef7;
+        font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+        font-size: 2.5em;
+        font-weight: 700;
+        letter-spacing: -0.5px;
         margin: 0;
-        text-shadow: 0 2px 8px rgba(30,38,54,0.18);
+        text-shadow: 0 2px 16px rgba(58, 110, 232, 0.3);
     }
     .main-content {
-        max-width: 900px;
+        max-width: 920px;
         margin: 0 auto;
-        padding: 24px 16px 0 16px;
-        background: rgba(35,44,65,0.98);
-        border-radius: 10px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+        padding: 32px 24px 24px 24px;
+        background: rgba(30, 38, 54, 0.4);
+        backdrop-filter: blur(20px);
+        border-radius: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(123, 176, 255, 0.1);
     }
-.fa-section { margin-top: 1.5em; margin-bottom: 1em; }
-.fa-header { font-size: 1.15em; font-weight: bold; margin-bottom: 0.8em; color: #7bb0ff; }
-.fa-upgrade { background: #1e3a2e !important; }
-.fa-upgrade-icon { color: #3ae87a; font-weight: bold; font-size: 1.2em; margin-right: 4px; }
+.fa-section {
+    margin-top: 2em;
+    margin-bottom: 1.5em;
+}
+.fa-header {
+    font-size: 1.2em;
+    font-weight: 700;
+    margin-bottom: 1em;
+    color: #7bb0ff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: center;
+    padding: 12px;
+    background: rgba(123, 176, 255, 0.08);
+    border-radius: 10px;
+    border: 1px solid rgba(123, 176, 255, 0.15);
+}
+.fa-upgrade {
+    background: linear-gradient(90deg, rgba(58, 232, 122, 0.12) 0%, rgba(30, 58, 46, 0.25) 100%) !important;
+    border-left: 3px solid #3ae87a;
+}
+.fa-upgrade-icon {
+    color: #3ae87a;
+    font-weight: bold;
+    font-size: 1.25em;
+    margin-right: 6px;
+    filter: drop-shadow(0 0 4px rgba(58, 232, 122, 0.4));
+}
 </style>
 </body>
 </html>

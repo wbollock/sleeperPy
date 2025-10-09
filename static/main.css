@@ -1,30 +1,35 @@
 .swap-candidate {
-	background: #1e3a2e !important;
+	background: linear-gradient(90deg, rgba(58, 232, 122, 0.15) 0%, rgba(30, 58, 46, 0.3) 100%) !important;
 	color: #b6ffe0 !important;
-	font-weight: bold;
-	border-left: 4px solid #3ae87a;
+	font-weight: 600;
+	border-left: 3px solid #3ae87a;
+	box-shadow: 0 0 15px rgba(58, 232, 122, 0.1);
 }
 .swap-icon {
 	color: #3ae87a;
-	font-size: 1.1em;
-	margin-right: 2px;
+	font-size: 1.15em;
+	margin-right: 4px;
 	vertical-align: middle;
+	filter: drop-shadow(0 0 2px rgba(58, 232, 122, 0.5));
 }
 .tier-worse {
-	background: #3a1e1e !important;
+	background: linear-gradient(90deg, rgba(232, 58, 58, 0.15) 0%, rgba(58, 30, 30, 0.3) 100%) !important;
 	color: #ffb6b6 !important;
-	font-weight: bold;
-	border-left: 4px solid #e83a3a;
+	font-weight: 600;
+	border-left: 3px solid #e83a3a;
+	box-shadow: 0 0 15px rgba(232, 58, 58, 0.1);
 }
 .tier1 {
-	background: #1e3a1e !important;
+	background: linear-gradient(90deg, rgba(182, 255, 182, 0.1) 0%, rgba(30, 58, 30, 0.3) 100%) !important;
 	color: #b6ffb6 !important;
+	font-weight: 600;
 }
 .tier1-star {
-	color: #ffe066;
-	font-size: 1.1em;
-	margin-right: 2px;
+	color: #ffd700;
+	font-size: 1.15em;
+	margin-right: 4px;
 	vertical-align: middle;
+	filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.5));
 }
 # Win Probability Bar
 .winprob-row {
@@ -32,71 +37,100 @@
 	align-items: center;
 	gap: 12px;
 	justify-content: center;
-	margin: 8px 0 2px 0;
+	margin: 20px auto;
+	padding: 18px 16px;
+	background: rgba(30, 38, 54, 0.5);
+	border-radius: 14px;
+	backdrop-filter: blur(10px);
+	border: 1px solid rgba(123, 176, 255, 0.15);
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+	max-width: 650px;
 }
 .winprob-label {
-	font-weight: 500;
+	font-weight: 600;
 	color: #7bb0ff;
-	margin-right: 2px;
-}
-.winprob-bar-wrap {
-	flex: 1 1 120px;
-	max-width: 180px;
+	margin-right: 6px;
+	font-size: 0.85em;
+	text-transform: uppercase;
+	letter-spacing: 0.8px;
+	white-space: nowrap;
 	min-width: 80px;
 }
+.winprob-bar-wrap {
+	flex: 1 1 200px;
+	max-width: 280px;
+	min-width: 120px;
+}
 .winprob-bar-bg {
-	background: #232c41;
-	border-radius: 8px;
+	background: rgba(30, 38, 54, 0.8);
+	border-radius: 12px;
 	width: 100%;
-	height: 18px;
+	height: 24px;
 	overflow: hidden;
-	box-shadow: 0 1px 4px rgba(30,38,54,0.10);
+	box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+	border: 1px solid rgba(123, 176, 255, 0.1);
 }
 .winprob-bar {
 	display: block;
 	height: 100%;
-	border-radius: 8px;
-	transition: width 0.4s cubic-bezier(.4,2,.6,1), background 0.3s;
+	border-radius: 12px;
+	transition: width 0.6s cubic-bezier(.4,2,.6,1), background 0.3s;
+	box-shadow: 0 0 12px currentColor;
+	opacity: 0.9;
 }
 .winprob-badge {
-	display: inline-block;
-	min-width: 44px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 52px;
 	text-align: center;
-	font-weight: bold;
+	font-weight: 700;
 	color: #fff;
-	border-radius: 6px;
-	padding: 3px 10px 3px 10px;
-	font-size: 1.08em;
-	margin-left: 6px;
-	box-shadow: 0 1px 4px rgba(30,38,54,0.10);
+	border-radius: 8px;
+	padding: 6px 14px;
+	font-size: 1.1em;
+	margin-left: 8px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 .winprob-emoji {
-	font-size: 1.3em;
-	margin-left: 6px;
+	font-size: 1.5em;
+	margin-left: 10px;
+	filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 # League tabs and pretty tables
 .league-tabs {
 	display: flex;
-	gap: 8px;
-	margin-bottom: 18px;
+	gap: 10px;
+	margin-bottom: 20px;
 	flex-wrap: wrap;
 	justify-content: center;
 }
 .league-tab {
-	background: #232c41;
-	color: #eaf0fa;
-	border: 1px solid #3a4a6e;
-	border-radius: 6px 6px 0 0;
-	padding: 8px 18px;
-	font-size: 1em;
+	background: rgba(35, 44, 65, 0.5);
+	color: #c5d5f0;
+	border: 1px solid rgba(123, 176, 255, 0.2);
+	border-radius: 10px;
+	padding: 10px 20px;
+	font-size: 0.95em;
+	font-weight: 500;
 	cursor: pointer;
-	margin-bottom: -2px;
-	transition: background 0.2s, color 0.2s;
+	transition: all 0.3s ease;
+	backdrop-filter: blur(10px);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+.league-tab:hover {
+	background: rgba(58, 110, 232, 0.2);
+	border-color: rgba(123, 176, 255, 0.4);
+	transform: translateY(-2px);
+	box-shadow: 0 4px 12px rgba(58, 110, 232, 0.3);
 }
 .league-tab.active, .league-tab:focus {
-	background: #3a6ee8;
+	background: linear-gradient(135deg, #3a6ee8 0%, #5856d6 100%);
 	color: #fff;
 	outline: none;
+	border-color: transparent;
+	box-shadow: 0 4px 16px rgba(58, 110, 232, 0.4);
 }
 .league-content { animation: fadein 0.3s; }
 @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
@@ -105,36 +139,62 @@
 	width: 100%;
 	border-collapse: separate;
 	border-spacing: 0;
-	background: #232c41;
-	border-radius: 8px;
+	background: rgba(30, 38, 54, 0.6);
+	backdrop-filter: blur(10px);
+	border-radius: 12px;
 	overflow: hidden;
 	margin-bottom: 24px;
-	box-shadow: 0 2px 12px rgba(30,38,54,0.10);
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+	border: 1px solid rgba(123, 176, 255, 0.1);
 }
 .pretty-table th, .pretty-table td {
-	padding: 12px 10px;
+	padding: 14px 12px;
 	text-align: left;
 }
 .pretty-table th {
-	background: #1e2636;
+	background: linear-gradient(135deg, rgba(58, 110, 232, 0.15) 0%, rgba(88, 86, 214, 0.15) 100%);
 	color: #7bb0ff;
 	font-weight: 600;
 	user-select: none;
+	text-transform: uppercase;
+	font-size: 0.85em;
+	letter-spacing: 0.5px;
+	border-bottom: 2px solid rgba(123, 176, 255, 0.2);
 }
-.pretty-table tr:nth-child(even) td { background: #232c41; }
-.pretty-table tr:nth-child(odd) td { background: #28304a; }
-.pretty-table tr:hover td { background: #2d3a5a; }
-.pretty-table .summary { background: #1e2636; color: #eaf0fa; text-align: center; font-size: 1.08em; }
-.pretty-table .bench-header { background: #3a4a6e; color: #fff; text-align: center; font-size: 1.05em; }
+.pretty-table tr:nth-child(even) td { background: rgba(35, 44, 65, 0.4); }
+.pretty-table tr:nth-child(odd) td { background: rgba(40, 48, 74, 0.4); }
+.pretty-table tr:hover td {
+	background: rgba(58, 110, 232, 0.1);
+	transition: background 0.2s ease;
+}
+.pretty-table .summary {
+	background: linear-gradient(135deg, rgba(30, 38, 54, 0.8) 0%, rgba(45, 27, 61, 0.8) 100%);
+	color: #e8eef7;
+	text-align: center;
+	font-size: 1.05em;
+	font-weight: 500;
+	border-top: 2px solid rgba(123, 176, 255, 0.2);
+}
+.pretty-table .bench-header {
+	background: linear-gradient(135deg, rgba(88, 86, 214, 0.3) 0%, rgba(58, 110, 232, 0.3) 100%);
+	color: #fff;
+	text-align: center;
+	font-size: 1.05em;
+	font-weight: 600;
+	border-top: 2px solid rgba(123, 176, 255, 0.3);
+	border-bottom: 2px solid rgba(123, 176, 255, 0.3);
+}
 
 /* Sortable column indicator */
 .pretty-table th.asc:after { content: ' \25B2'; }
 .pretty-table th:not(.asc):after { content: ' \25BC'; opacity: 0.3; }
 html, body {
-	background: #1e2636 !important;
-	color: #eaf0fa;
-	font-family: 'Raleway', Arial, sans-serif;
+	background: linear-gradient(135deg, #1a1f2e 0%, #2d1b3d 100%) !important;
+	color: #e8eef7;
+	font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
 	min-height: 100vh;
+	margin: 0;
+	padding: 0;
 }
 .container { max-width: 700px; margin: 0 auto; padding: 30px 10px 10px 10px; }
 h1 { text-align: center; color: #eaf0fa; }
@@ -201,18 +261,29 @@ h1 { text-align: center; color: #eaf0fa; }
 
 	/* Compact win probability on mobile */
 	.winprob-row {
-		gap: 8px;
-		flex-wrap: wrap;
+		gap: 6px;
+		padding: 12px 8px;
+		max-width: 100%;
 	}
 	.winprob-label {
-		font-size: 0.9em;
+		font-size: 0.75em;
+		min-width: 60px;
+		margin-right: 2px;
+	}
+	.winprob-bar-wrap {
+		flex: 1 1 100px;
+		min-width: 80px;
+		max-width: 150px;
 	}
 	.winprob-badge {
-		font-size: 0.95em;
-		padding: 2px 8px;
+		font-size: 0.9em;
+		padding: 4px 8px;
+		min-width: 42px;
+		margin-left: 4px;
 	}
 	.winprob-emoji {
 		font-size: 1.1em;
+		margin-left: 4px;
 	}
 
 	/* Smaller FA section */
