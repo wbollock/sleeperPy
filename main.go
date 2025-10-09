@@ -165,6 +165,7 @@ type LeagueData struct {
 	Bench           []PlayerRow
 	BenchUnranked   []PlayerRow
 	FreeAgentsByPos map[string][]PlayerRow
+	TopFreeAgents   []PlayerRow // Combined prioritized list
 }
 
 type TiersPage struct {
@@ -338,6 +339,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		debugLog("[DEBUG] Boris Tiers loaded for scoring: %s", scoring)
 
 		// Build rows for roster
+		var benchUnrankedRows []PlayerRow
 		benchRows, _, _ := buildRows(bench, players, borisTiers, false, userRoster, irPlayers, nil)
 		debugLog("[DEBUG] Built benchRows: %v", benchRows)
 		bestBenchTier := make(map[string]int)
@@ -461,7 +463,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		debugLog("[DEBUG] Worst starter tier map: %v", worstStarterTier)
-		benchRows, _, _ = buildRows(bench, players, borisTiers, false, userRoster, irPlayers, worstStarterTier)
+		benchRows, benchUnrankedRows, _ = buildRows(bench, players, borisTiers, false, userRoster, irPlayers, worstStarterTier)
 
 		// Re-rank ALL bench RB/WR/TE players using FLEX tiers for comparison with FLEX starters
 		for i, row := range benchRows {
@@ -507,13 +509,17 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		debugLog("[DEBUG] Rostered player IDs: %v", rostered)
-		// Find free agents: not rostered, not on user's team, valid tier, and sort by roster_percent
+		// Find free agents: not rostered, not on user's team, valid tier
 		type faInfo struct {
-			pid     string
-			percent float64
-			tier    int
-			pos     string
-			name    string
+			pid         string
+			percent     float64
+			tier        int
+			pos         string
+			name        string
+			isUpgrade   bool
+			upgradeFor  string
+			upgradeType string
+			tierDiff    int // How much better this FA is than the player it replaces
 		}
 		faList := []faInfo{}
 		for pid, p := range players {
@@ -543,71 +549,134 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			} else if v, ok := pm["roster_percent"].(string); ok {
 				percent, _ = strconv.ParseFloat(v, 64)
 			}
-			faList = append(faList, faInfo{pid, percent, tier, pos, name})
-		}
-		debugLog("[DEBUG] Free agent candidates: %v", faList)
-		// Sort by roster_percent descending
-		sort.Slice(faList, func(i, j int) bool {
-			return faList[i].percent > faList[j].percent
-		})
-		maxFA := 20
-		if len(faList) > maxFA {
-			faList = faList[:maxFA]
-		}
-		// Group and limit free agents by position (top 5 per position)
-		faByPos := map[string][]faInfo{}
-		for _, fa := range faList {
-			faByPos[fa.pos] = append(faByPos[fa.pos], fa)
-		}
-		debugLog("[DEBUG] Free agents by position: %v", faByPos)
-		freeAgentsByPos := map[string][]PlayerRow{}
-		// Show K last, after DST
-		faOrder := []string{"QB", "RB", "WR", "TE", "DST", "K"}
-		for _, pos := range faOrder {
-			posList := faByPos[pos]
-			if len(posList) > 3 {
-				posList = posList[:3]
-			}
-			rows := []PlayerRow{}
-			for _, fa := range posList {
-				isUpgrade := false
-				upgradeFor := ""
-				upgradeType := ""
-				// Check starters first
-				for _, row := range startersRows {
-					if row.Pos == fa.pos {
-						t, ok := row.Tier.(int)
-						if ok && t > 0 && fa.tier > 0 && fa.tier < t {
+
+			// Check if this FA is an upgrade for any position on the team
+			isUpgrade := false
+			upgradeFor := ""
+			upgradeType := ""
+			tierDiff := 0
+
+			// Check starters first (prioritize starter upgrades)
+			for _, row := range startersRows {
+				if row.Pos == pos {
+					t, ok := row.Tier.(int)
+					if ok && t > 0 && tier > 0 && tier < t {
+						diff := t - tier
+						if diff > tierDiff {
 							isUpgrade = true
 							upgradeFor = row.Name
 							upgradeType = "Starter"
-							break
+							tierDiff = diff
 						}
 					}
 				}
-				// If not upgrade for starter, check bench
-				if !isUpgrade {
-					for _, row := range benchRows {
-						if row.Pos == fa.pos {
+			}
+			// For RB/WR/TE, also check FLEX starters
+			if pos == "RB" || pos == "WR" || pos == "TE" {
+				flxTier := findTier(borisTiers["FLX"], name)
+				if flxTier > 0 {
+					for _, row := range startersRows {
+						if row.IsFlex {
 							t, ok := row.Tier.(int)
-							if ok && t > 0 && fa.tier > 0 && fa.tier < t {
-								isUpgrade = true
-								upgradeFor = row.Name
-								upgradeType = "Bench"
-								break
+							if ok && t > 0 && flxTier < t {
+								diff := t - flxTier
+								if diff > tierDiff {
+									isUpgrade = true
+									upgradeFor = row.Name
+									upgradeType = "Starter (FLEX)"
+									tierDiff = diff
+								}
 							}
 						}
 					}
 				}
-				debugLog("[DEBUG] FA: %s | Pos: %s | Tier: %d | IsUpgrade: %v | UpgradeFor: %s | UpgradeType: %s", fa.name, fa.pos, fa.tier, isUpgrade, upgradeFor, upgradeType)
+			}
+			// If not upgrade for starter, check bench
+			if !isUpgrade {
+				for _, row := range benchRows {
+					if row.Pos == pos {
+						t, ok := row.Tier.(int)
+						if ok && t > 0 && tier > 0 && tier < t {
+							diff := t - tier
+							if diff > tierDiff {
+								isUpgrade = true
+								upgradeFor = row.Name
+								upgradeType = "Bench"
+								tierDiff = diff
+							}
+						}
+					}
+				}
+			}
+			debugLog("[DEBUG] FA: %s | Pos: %s | Tier: %d | IsUpgrade: %v | UpgradeFor: %s | UpgradeType: %s | TierDiff: %d", name, pos, tier, isUpgrade, upgradeFor, upgradeType, tierDiff)
+			faList = append(faList, faInfo{pid, percent, tier, pos, name, isUpgrade, upgradeFor, upgradeType, tierDiff})
+		}
+		debugLog("[DEBUG] Free agent candidates: %d total", len(faList))
+
+		// Group by position first
+		faByPos := map[string][]faInfo{}
+		for _, fa := range faList {
+			faByPos[fa.pos] = append(faByPos[fa.pos], fa)
+		}
+
+		// For each position, sort by: upgrades first (by tier diff), then by tier quality, then by roster %
+		freeAgentsByPos := map[string][]PlayerRow{}
+		faOrder := []string{"QB", "RB", "WR", "TE", "DST", "K"}
+		for _, pos := range faOrder {
+			posList := faByPos[pos]
+			if len(posList) == 0 {
+				continue
+			}
+
+			// Sort: upgrades first (by tier diff desc), then by tier asc (better tier), then by roster % desc
+			sort.Slice(posList, func(i, j int) bool {
+				// Upgrades before non-upgrades
+				if posList[i].isUpgrade != posList[j].isUpgrade {
+					return posList[i].isUpgrade
+				}
+				// Among upgrades, sort by tier difference (bigger improvement first)
+				if posList[i].isUpgrade && posList[j].isUpgrade {
+					if posList[i].tierDiff != posList[j].tierDiff {
+						return posList[i].tierDiff > posList[j].tierDiff
+					}
+				}
+				// Then by tier (better tier first)
+				if posList[i].tier != posList[j].tier {
+					return posList[i].tier < posList[j].tier
+				}
+				// Finally by roster percentage
+				return posList[i].percent > posList[j].percent
+			})
+
+			// Take top 3, but prioritize upgrades - if we have upgrades, show up to 5
+			// Exception: only show 2 kickers max
+			limit := 3
+			upgradeCount := 0
+			for _, fa := range posList {
+				if fa.isUpgrade {
+					upgradeCount++
+				}
+			}
+			if upgradeCount > 3 {
+				limit = 5 // Show more if we have many upgrade options
+			}
+			if pos == "K" {
+				limit = 2 // Only show 2 kickers max
+			}
+			if len(posList) > limit {
+				posList = posList[:limit]
+			}
+
+			rows := []PlayerRow{}
+			for _, fa := range posList {
 				rows = append(rows, PlayerRow{
 					Pos:         fa.pos,
 					Name:        fa.name,
 					Tier:        fa.tier,
 					IsFreeAgent: true,
-					IsUpgrade:   isUpgrade,
-					UpgradeFor:  upgradeFor,
-					UpgradeType: upgradeType,
+					IsUpgrade:   fa.isUpgrade,
+					UpgradeFor:  fa.upgradeFor,
+					UpgradeType: fa.upgradeType,
 				})
 			}
 			if len(rows) > 0 {
@@ -615,6 +684,42 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		debugLog("[DEBUG] Final freeAgentsByPos: %v", freeAgentsByPos)
+
+		// Create a combined prioritized list of top free agents across all positions
+		allFAs := []PlayerRow{}
+		for _, rows := range freeAgentsByPos {
+			allFAs = append(allFAs, rows...)
+		}
+		debugLog("[DEBUG] Combined FA list has %d players", len(allFAs))
+
+		// Sort by: upgrades first, then FLEX-eligible positions (RB/WR/TE), then by tier quality
+		sort.Slice(allFAs, func(i, j int) bool {
+			// Upgrades before non-upgrades
+			if allFAs[i].IsUpgrade != allFAs[j].IsUpgrade {
+				return allFAs[i].IsUpgrade
+			}
+			// Among same upgrade status, prioritize FLEX-eligible positions (RB/WR/TE)
+			isFlex_i := allFAs[i].Pos == "RB" || allFAs[i].Pos == "WR" || allFAs[i].Pos == "TE"
+			isFlex_j := allFAs[j].Pos == "RB" || allFAs[j].Pos == "WR" || allFAs[j].Pos == "TE"
+			if isFlex_i != isFlex_j {
+				return isFlex_i
+			}
+			// Then by tier (better tier first)
+			ti, _ := allFAs[i].Tier.(int)
+			tj, _ := allFAs[j].Tier.(int)
+			return ti < tj
+		})
+
+		// Take top 12 most relevant FAs (more to ensure we show FLEX options)
+		limit := 12
+		if len(allFAs) < limit {
+			limit = len(allFAs)
+		}
+		var topFreeAgents []PlayerRow
+		if limit > 0 {
+			topFreeAgents = allFAs[:limit]
+		}
+		debugLog("[DEBUG] Top free agents: %d selected from %d", len(topFreeAgents), len(allFAs))
 
 		avgTier := avg(starterTiers)
 		avgOppTier := avg(oppTiers)
@@ -629,7 +734,9 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			AvgOppTier:      avgOppTier,
 			WinProb:         winProb + " " + emoji,
 			Bench:           benchRows,
+			BenchUnranked:   benchUnrankedRows,
 			FreeAgentsByPos: freeAgentsByPos,
+			TopFreeAgents:   topFreeAgents,
 		}
 
 		leagueResults = append(leagueResults, leagueData)
@@ -642,7 +749,9 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	username = r.FormValue("username")
-	templates.ExecuteTemplate(w, "tiers.html", TiersPage{Leagues: leagueResults, Username: username})
+	if err = templates.ExecuteTemplate(w, "tiers.html", TiersPage{Leagues: leagueResults, Username: username}); err != nil {
+		log.Printf("[ERROR] Template execution error: %v", err)
+	}
 }
 
 func renderError(w http.ResponseWriter, msg string) {
