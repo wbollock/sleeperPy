@@ -13,6 +13,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -20,6 +21,30 @@ import (
 )
 
 var logLevel string
+
+// HTTP client with connection pooling
+var httpClient = &http.Client{
+	Timeout: 10 * time.Second,
+	Transport: &http.Transport{
+		MaxIdleConns:        100,
+		MaxIdleConnsPerHost: 20,
+		IdleConnTimeout:     90 * time.Second,
+	},
+}
+
+// Cache for Boris Chen tiers with TTL
+type tiersCache struct {
+	sync.RWMutex
+	data      map[string]map[string][][]string
+	timestamp map[string]time.Time
+	ttl       time.Duration
+}
+
+var borisTiersCache = &tiersCache{
+	data:      make(map[string]map[string][][]string),
+	timestamp: make(map[string]time.Time),
+	ttl:       15 * time.Minute, // Cache tiers for 15 minutes
+}
 
 func debugLog(format string, v ...interface{}) {
 	if logLevel == "debug" {
@@ -764,7 +789,7 @@ func renderError(w http.ResponseWriter, msg string) {
 
 // --- Helper functions ---
 func fetchJSON(url string) (map[string]interface{}, error) {
-	resp, err := http.Get(url)
+	resp, err := httpClient.Get(url)
 	if err != nil {
 		return nil, err
 	}
@@ -775,7 +800,7 @@ func fetchJSON(url string) (map[string]interface{}, error) {
 }
 
 func fetchJSONArray(url string) ([]map[string]interface{}, error) {
-	resp, err := http.Get(url)
+	resp, err := httpClient.Get(url)
 	if err != nil {
 		return nil, err
 	}
@@ -847,32 +872,75 @@ var borisURLs = map[string]map[string]string{
 }
 
 func fetchBorisTiers(scoring string) map[string][][]string {
-	urls := borisURLs[scoring]
-	out := make(map[string][][]string)
-	for pos, url := range urls {
-		resp, err := http.Get(url)
-		if err != nil {
-			continue
-		}
-		defer resp.Body.Close()
-		body, _ := ioutil.ReadAll(resp.Body)
-		lines := strings.Split(string(body), "\n")
-		for _, line := range lines {
-			if strings.HasPrefix(line, "Tier ") {
-				tierContent := strings.TrimPrefix(line, "Tier ")
-				parts := strings.SplitN(tierContent, ":", 2)
-				if len(parts) < 2 {
-					continue
-				}
-				tier := strings.TrimSpace(parts[1])
-				names := strings.Split(tier, ",")
-				for j := range names {
-					names[j] = strings.TrimSpace(names[j])
-				}
-				out[pos] = append(out[pos], names)
-			}
+	// Check cache first
+	borisTiersCache.RLock()
+	if cached, exists := borisTiersCache.data[scoring]; exists {
+		if time.Since(borisTiersCache.timestamp[scoring]) < borisTiersCache.ttl {
+			debugLog("[DEBUG] Using cached Boris tiers for %s", scoring)
+			borisTiersCache.RUnlock()
+			return cached
 		}
 	}
+	borisTiersCache.RUnlock()
+
+	debugLog("[DEBUG] Fetching fresh Boris tiers for %s", scoring)
+
+	urls := borisURLs[scoring]
+	out := make(map[string][][]string)
+	var mu sync.Mutex
+	var wg sync.WaitGroup
+
+	// Fetch all position tiers concurrently
+	for pos, url := range urls {
+		wg.Add(1)
+		go func(position, tierURL string) {
+			defer wg.Done()
+
+			resp, err := httpClient.Get(tierURL)
+			if err != nil {
+				debugLog("[DEBUG] Error fetching %s tiers: %v", position, err)
+				return
+			}
+			defer resp.Body.Close()
+
+			body, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				debugLog("[DEBUG] Error reading %s tier data: %v", position, err)
+				return
+			}
+
+			var posTiers [][]string
+			lines := strings.Split(string(body), "\n")
+			for _, line := range lines {
+				if strings.HasPrefix(line, "Tier ") {
+					tierContent := strings.TrimPrefix(line, "Tier ")
+					parts := strings.SplitN(tierContent, ":", 2)
+					if len(parts) < 2 {
+						continue
+					}
+					tier := strings.TrimSpace(parts[1])
+					names := strings.Split(tier, ",")
+					for j := range names {
+						names[j] = strings.TrimSpace(names[j])
+					}
+					posTiers = append(posTiers, names)
+				}
+			}
+
+			mu.Lock()
+			out[position] = posTiers
+			mu.Unlock()
+		}(pos, url)
+	}
+
+	wg.Wait()
+
+	// Cache the result
+	borisTiersCache.Lock()
+	borisTiersCache.data[scoring] = out
+	borisTiersCache.timestamp[scoring] = time.Now()
+	borisTiersCache.Unlock()
+
 	return out
 }
 
