@@ -12,13 +12,6 @@
     <h1><a href="/" style="color:inherit; text-decoration:none;">SleeperPy Fantasy Tiers</a></h1>
 </header>
 <div class="main-content">
-        <div class="legend" style="margin-bottom:18px; font-size:0.95em; color:#b6c6e0; display:flex; flex-wrap:wrap; gap:15px; align-items:center;">
-            <span style="font-weight:bold; margin-right:5px;">Legend:</span>
-            <span><span class="tier1-star">★</span> Tier 1</span>
-            <span><span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">FLEX</span> FLEX tier</span>
-            <span><span class="swap-icon">⇄</span> Swap</span>
-            <span style="background:#3a1e1e; color:#ffb6b6; padding:2px 6px; border-radius:4px;">Red = Suboptimal</span>
-        </div>
 {{if .Error}}
 <span style="color:red">{{.Error}}</span>
 {{else}}
@@ -124,18 +117,36 @@ function showLeagueTab(evt, tabId) {
         </div>
     {{end}}
 </div>
+
+<div class="legend" style="margin-top:24px; margin-bottom:18px; font-size:0.95em; color:#b6c6e0; display:flex; flex-wrap:wrap; gap:15px; align-items:center; justify-content:center;">
+    <span style="font-weight:bold; margin-right:5px;">Legend:</span>
+    <span><span class="tier1-star">★</span> Tier 1</span>
+    <span><span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">FLEX</span> FLEX tier</span>
+    <span><span class="swap-icon">⇄</span> Swap</span>
+    <span style="background:#3a1e1e; color:#ffb6b6; padding:2px 6px; border-radius:4px;">Red = Suboptimal</span>
+</div>
+
 </div>
 <script>
 if (document.getElementById('defaultTab')) document.getElementById('defaultTab').click();
 </script>
 <script src="/static/sortable.js"></script>
 
-<footer style="margin-top:2em; text-align:center; font-size:1em; color:#888;">
-        <div style="margin-bottom:0.5em;">
-            Tiers powered by <a href="https://www.borischen.co/" target="_blank" rel="noopener">Boris Chen</a> |
-            <a href="https://github.com/wbollock/sleeperPy" target="_blank" rel="noopener">GitHub Repo</a>
-            <span style="margin-left:1em; color:#666;">If you like this project, please <a href="https://github.com/wbollock/sleeperPy" target="_blank" rel="noopener">drop a ⭐ on GitHub</a>!</span>
-        </div>
+<footer style="margin-top:3em; padding:2em 1em; text-align:center; border-top:1px solid rgba(180,180,180,0.15);">
+    <div style="margin-bottom:1.2em; font-size:0.95em; color:#a0a0a0;">
+        <span style="display:inline-block; margin:0.4em 0.8em;">
+            Tiers powered by <a href="https://www.borischen.co/" target="_blank" rel="noopener" style="color:#7bb0ff; text-decoration:none; font-weight:500;">Boris Chen</a>
+        </span>
+        <span style="display:inline-block; margin:0.4em 0.8em;">
+            <a href="https://github.com/wbollock/sleeperPy" target="_blank" rel="noopener" style="color:#7bb0ff; text-decoration:none; font-weight:500;">GitHub</a>
+        </span>
+        <span style="display:inline-block; margin:0.4em 0.8em;">
+            <a href="https://buymeacoffee.com/wbollock" target="_blank" rel="noopener" style="color:#FFDD00; text-decoration:none; font-weight:500;">☕ Buy Me a Coffee</a>
+        </span>
+    </div>
+    <div style="font-size:0.88em; color:#777;">
+        If you like this project, please <a href="https://github.com/wbollock/sleeperPy" target="_blank" rel="noopener" style="color:#888; text-decoration:none;">drop a ⭐ on GitHub</a>
+    </div>
 </footer>
 {{end}}
 <style>
