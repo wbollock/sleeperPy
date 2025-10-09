@@ -143,3 +143,89 @@ h1 { text-align: center; color: #eaf0fa; }
 #generateTiers { font-size: 1.1em; padding: 12px 32px 16px 32px; border-radius: 6px; border: none; background: #3a6ee8; color: #fff; font-weight: bold; cursor: pointer; transition: background 0.2s, box-shadow 0.2s; margin-bottom: 0.5em; box-shadow: 0 2px 8px rgba(58,110,232,0.10); letter-spacing: 0.5px; }
 #generateTiers:hover { background: #254a99; box-shadow: 0 4px 16px rgba(58,110,232,0.18); }
 #output { margin-top: 24px; margin-bottom: 24px; color: #eaf0fa; }
+
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+	/* Smaller header on mobile */
+	.app-header {
+		padding: 16px 0 12px 0;
+	}
+	.app-header h1 {
+		font-size: 1.5em;
+		letter-spacing: 0.5px;
+	}
+
+	/* Reduce padding on main content */
+	.main-content {
+		padding: 16px 8px 0 8px;
+	}
+
+	/* Smaller league tabs */
+	.league-tab {
+		font-size: 0.9em;
+		padding: 6px 12px;
+	}
+
+	/* Compact legend */
+	.legend {
+		font-size: 0.8em !important;
+		gap: 10px !important;
+	}
+
+	/* Table font sizes */
+	.pretty-table th {
+		font-size: 0.85em;
+		padding: 8px 6px;
+	}
+	.pretty-table td {
+		font-size: 0.95em;
+		padding: 10px 6px;
+	}
+
+	/* Larger player names on mobile */
+	.pretty-table td:nth-child(2) {
+		font-size: 1.05em;
+		font-weight: 500;
+	}
+
+	/* Smaller summary rows */
+	.pretty-table .summary {
+		font-size: 0.95em !important;
+		padding: 8px 6px;
+	}
+
+	/* Smaller bench header */
+	.pretty-table .bench-header {
+		font-size: 0.95em !important;
+	}
+
+	/* Compact win probability on mobile */
+	.winprob-row {
+		gap: 8px;
+		flex-wrap: wrap;
+	}
+	.winprob-label {
+		font-size: 0.9em;
+	}
+	.winprob-badge {
+		font-size: 0.95em;
+		padding: 2px 8px;
+	}
+	.winprob-emoji {
+		font-size: 1.1em;
+	}
+
+	/* Smaller FA section */
+	.fa-header {
+		font-size: 1em;
+	}
+	.fa-tab {
+		font-size: 0.85em;
+		padding: 0.4em 0.8em;
+	}
+
+	/* Compact badges and icons */
+	.tier1-star, .swap-icon {
+		font-size: 1em;
+	}
+}
