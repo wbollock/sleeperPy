@@ -13,6 +13,7 @@
         <div class="legend" style="margin-bottom:18px; font-size:1.08em; color:#b6c6e0;">
             <b>Legend:</b>
             <span style="margin-left:10px;"><span class="tier1-star">★</span> = Tier 1</span>
+            <span style="margin-left:10px;"><span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">FLEX</span> = FLEX slot (using FLEX tiers)</span>
             <span style="margin-left:10px;"><span class="swap-icon">⇄</span> = Swap candidate</span>
             <span style="margin-left:10px;"><span style="color:#2e7d32;">⬆️</span> = Free agent upgrade</span>
             <span style="margin-left:10px;"><span style="background:#3a1e1e; color:#ffb6b6; padding:2px 6px; border-radius:4px;">red row</span> = Suboptimal starter</span>
@@ -38,13 +39,9 @@
                 <tbody>
                 {{range $l.Starters}}
                     <tr{{if eq .Tier 1}} class="tier1"{{else if .IsTierWorseThanBench}} class="tier-worse"{{end}}>
-                        <td>
-                            {{if eq .Pos "FLEX"}}<span style="color:#7bb0ff;font-weight:bold;">FLEX</span>{{else if eq .Pos "SUPERFLEX"}}<span style="color:#7bb0ff;font-weight:bold;">SUPERFLEX</span>{{else}}{{.Pos}}{{end}}
-                        </td>
-                        <td>{{if eq .Tier 1}}<span class="tier1-star">★</span> {{end}}{{.Name | safe}}
-                            {{if .IsSuperflex}}<span style="color:#7bb0ff;font-weight:bold; margin-left:6px;">[SUPERFLEX]</span>{{else if .IsFlex}}<span style="color:#7bb0ff;font-weight:bold; margin-left:6px;">[FLEX]</span>{{end}}
-                        </td>
-                        <td>{{.Tier}}</td>
+                        <td>{{.Pos}}</td>
+                        <td>{{if eq .Tier 1}}<span class="tier1-star">★</span> {{end}}{{.Name | safe}}</td>
+                        <td>{{.Tier}}{{if .IsFlex}} <span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">FLEX</span>{{else if .IsSuperflex}} <span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">SF</span>{{end}}</td>
                     </tr>
                 {{end}}
                 {{range $l.Unranked}}
@@ -78,7 +75,7 @@
                     </tr>
                     <tr><th colspan="3" class="bench-header">Bench</th></tr>
                     {{range $l.Bench}}
-                        <tr{{if eq .Tier 1}} class="tier1"{{else if .ShouldSwapIn}} class="swap-candidate"{{end}}><td>{{.Pos}}</td><td>{{if eq .Tier 1}}<span class="tier1-star">★</span> {{end}}{{if .ShouldSwapIn}}<span class="swap-icon">⇄</span> {{end}}{{.Name | safe}}</td><td>{{.Tier}}</td></tr>
+                        <tr{{if eq .Tier 1}} class="tier1"{{else if .ShouldSwapIn}} class="swap-candidate"{{end}}><td>{{.Pos}}</td><td>{{if eq .Tier 1}}<span class="tier1-star">★</span> {{end}}{{if .ShouldSwapIn}}<span class="swap-icon">⇄</span> {{end}}{{.Name | safe}}</td><td>{{.Tier}}{{if .IsFlex}} <span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">FLEX</span>{{end}}</td></tr>
                     {{end}}
                     {{range $l.BenchUnranked}}
                         <tr><td>{{.Pos}}</td><td>{{.Name | safe}}</td><td>{{.Tier}}</td></tr>

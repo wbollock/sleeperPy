@@ -18,6 +18,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
+
 var logLevel string
 
 func debugLog(format string, v ...interface{}) {
@@ -25,6 +26,7 @@ func debugLog(format string, v ...interface{}) {
 		log.Printf(format, v...)
 	}
 }
+
 // --- Prometheus metrics ---
 var (
 	totalVisitors = prometheus.NewCounter(prometheus.CounterOpts{
@@ -191,7 +193,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("username")
 	debugLog("[DEBUG] Username submitted: %s", username)
 	if username == "" {
-	debugLog("[DEBUG] No username provided")
+		debugLog("[DEBUG] No username provided")
 		totalErrors.Inc()
 		renderError(w, "No username provided")
 		return
@@ -286,11 +288,11 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-	starters := toStringSlice(userRoster["starters"])
-	allPlayers := toStringSlice(userRoster["players"])
-	irPlayers := toStringSlice(userRoster["reserve"])
-	bench := diff(allPlayers, starters)
-	// (info log removed, only debug available)
+		starters := toStringSlice(userRoster["starters"])
+		allPlayers := toStringSlice(userRoster["players"])
+		irPlayers := toStringSlice(userRoster["reserve"])
+		bench := diff(allPlayers, starters)
+		// (info log removed, only debug available)
 		// Add IR players to bench if not already present
 		for _, ir := range irPlayers {
 			found := false
@@ -304,7 +306,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 				bench = append(bench, ir)
 			}
 		}
-	debugLog("[DEBUG] After IR merge, Bench: %v", bench)
+		debugLog("[DEBUG] After IR merge, Bench: %v", bench)
 
 		// Find opponent
 		var myMatchup, oppMatchup map[string]interface{}
@@ -323,21 +325,21 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-	debugLog("[DEBUG] MyMatchup: %v | OppMatchup: %v", myMatchup, oppMatchup)
+		debugLog("[DEBUG] MyMatchup: %v | OppMatchup: %v", myMatchup, oppMatchup)
 
 		oppStarters := []string{}
 		if oppMatchup != nil {
 			oppStarters = toStringSlice(oppMatchup["starters"])
 		}
-	debugLog("[DEBUG] Opponent Starters: %v", oppStarters)
+		debugLog("[DEBUG] Opponent Starters: %v", oppStarters)
 
 		// Fetch Boris Chen tiers
-	borisTiers := fetchBorisTiers(scoring)
-	debugLog("[DEBUG] Boris Tiers loaded for scoring: %s", scoring)
+		borisTiers := fetchBorisTiers(scoring)
+		debugLog("[DEBUG] Boris Tiers loaded for scoring: %s", scoring)
 
 		// Build rows for roster
-	benchRows, _, _ := buildRows(bench, players, borisTiers, false, userRoster, irPlayers, nil)
-	debugLog("[DEBUG] Built benchRows: %v", benchRows)
+		benchRows, _, _ := buildRows(bench, players, borisTiers, false, userRoster, irPlayers, nil)
+		debugLog("[DEBUG] Built benchRows: %v", benchRows)
 		bestBenchTier := make(map[string]int)
 		for _, row := range benchRows {
 			pos := row.Pos
@@ -348,65 +350,106 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-	debugLog("[DEBUG] Best bench tier map: %v", bestBenchTier)
-		   startersRows, unrankedRows, starterTiers := buildRows(starters, players, borisTiers, true, userRoster, irPlayers, bestBenchTier)
-	debugLog("[DEBUG] Built startersRows: %v", startersRows)
+		debugLog("[DEBUG] Best bench tier map: %v", bestBenchTier)
+		startersRows, unrankedRows, starterTiers := buildRows(starters, players, borisTiers, true, userRoster, irPlayers, bestBenchTier)
+		debugLog("[DEBUG] Built startersRows: %v", startersRows)
 
-		   // --- FLEX/SUPERFLEX HEURISTICS ---
-		   // Count FLEX and SUPERFLEX slots
+		// --- FLEX/SUPERFLEX HEURISTICS ---
+		// Heuristically detect FLEX slots by counting position occurrences
+		// Count how many of each position we have in starters
+		posCount := make(map[string]int)
+		for _, row := range startersRows {
+			posCount[row.Pos]++
+		}
+		debugLog("[DEBUG] Position counts in starters: %v", posCount)
+
+		// Assume FLEX if we have more than 2 RBs or more than 2 WRs
+		// Standard lineup is usually: 1 QB, 2 RB, 2-3 WR, 1 TE, 1 K, 1 DEF
 		flexCount := 0
 		superflexCount := 0
-		if sps, ok := userRoster["starter_positions"].([]interface{}); ok {
-			for _, slot := range sps {
-				slotStr, _ := slot.(string)
-				slotUp := strings.ToUpper(slotStr)
-				if strings.Contains(slotUp, "SUPER") && strings.Contains(slotUp, "FLEX") {
-					superflexCount++
-				} else if strings.Contains(slotUp, "FLEX") {
-					flexCount++
-				}
-			}
+
+		// Count extra RB/WR/TE beyond typical positions
+		rbCount := posCount["RB"]
+		wrCount := posCount["WR"]
+		teCount := posCount["TE"]
+		qbCount := posCount["QB"]
+
+		// If we have 3+ RBs or 3+ WRs, assume FLEX
+		if rbCount > 2 {
+			flexCount += (rbCount - 2)
 		}
-	debugLog("[DEBUG] FLEX count: %d | SUPERFLEX count: %d", flexCount, superflexCount)
-		   // Mark SUPERFLEX: if 2+ QBs, lowest tier QB is superflex
+		if wrCount > 2 {
+			flexCount += (wrCount - 2)
+		}
+		if teCount > 1 {
+			// Extra TE slots could be FLEX
+			flexCount += (teCount - 1)
+		}
+
+		// If we have 2+ QBs, assume superflex
+		if qbCount > 1 {
+			superflexCount = 1
+		}
+
+		debugLog("[DEBUG] FLEX count (heuristic): %d | SUPERFLEX count: %d", flexCount, superflexCount)
+		// Mark SUPERFLEX: if 2+ QBs, lowest tier QB is superflex
 		qbIdxs := []int{}
 		for i, row := range startersRows {
 			if row.Pos == "QB" {
 				qbIdxs = append(qbIdxs, i)
 			}
 		}
-	debugLog("[DEBUG] QB indexes: %v", qbIdxs)
+		debugLog("[DEBUG] QB indexes: %v", qbIdxs)
 		if superflexCount > 0 && len(qbIdxs) > 1 {
-			// Find lowest tier QB
-			minTier := 1000
-			minIdx := -1
+			// Find worst tier QB (highest tier number)
+			maxTier := 0
+			maxIdx := -1
 			for _, i := range qbIdxs {
 				t, ok := startersRows[i].Tier.(int)
-				if ok && t > 0 && t < minTier {
-					minTier = t
-					minIdx = i
+				if ok && t > 0 && t > maxTier {
+					maxTier = t
+					maxIdx = i
 				}
 			}
-			if minIdx >= 0 {
-				startersRows[minIdx].IsSuperflex = true
+			if maxIdx >= 0 {
+				startersRows[maxIdx].IsSuperflex = true
 			}
 		}
-		   // Mark FLEX: lowest tier RB/WR/TEs (not already marked as superflex), up to flexCount
-		flexCandidates := []struct{idx, tier int}{}
+		// Mark FLEX: lowest tier RB/WR/TEs (not already marked as superflex), up to flexCount
+		flexCandidates := []struct{ idx, tier int }{}
 		for i, row := range startersRows {
 			if (row.Pos == "RB" || row.Pos == "WR" || row.Pos == "TE") && !startersRows[i].IsSuperflex {
 				t, ok := row.Tier.(int)
 				if ok && t > 0 {
-					flexCandidates = append(flexCandidates, struct{idx, tier int}{i, t})
+					flexCandidates = append(flexCandidates, struct{ idx, tier int }{i, t})
 				}
 			}
 		}
-	debugLog("[DEBUG] FLEX candidates: %v", flexCandidates)
+		debugLog("[DEBUG] FLEX candidates: %v", flexCandidates)
 		// Sort by tier descending (lowest tier = highest number)
 		sort.Slice(flexCandidates, func(i, j int) bool { return flexCandidates[i].tier > flexCandidates[j].tier })
 		for i := 0; i < flexCount && i < len(flexCandidates); i++ {
-			startersRows[flexCandidates[i].idx].IsFlex = true
+			idx := flexCandidates[i].idx
+			startersRows[idx].IsFlex = true
+			// Keep actual position (RB/WR/TE) but re-rank using FLX tiers
+			pid := starters[idx]
+			if p, ok := players[pid].(map[string]interface{}); ok {
+				name := getPlayerName(p)
+				flxTier := findTier(borisTiers["FLX"], name)
+				if flxTier > 0 {
+					debugLog("[DEBUG] Re-ranking FLEX player %s (Pos: %s) from tier %d to FLX tier %d", name, startersRows[idx].Pos, flexCandidates[i].tier, flxTier)
+					startersRows[idx].Tier = flxTier
+				}
+			}
 		}
+		// Recalculate starterTiers after FLEX re-ranking
+		starterTiers = []int{}
+		for _, row := range startersRows {
+			if t, ok := row.Tier.(int); ok && t > 0 {
+				starterTiers = append(starterTiers, t)
+			}
+		}
+
 		worstStarterTier := make(map[string]int)
 		for _, row := range startersRows {
 			pos := row.Pos
@@ -417,8 +460,39 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-	debugLog("[DEBUG] Worst starter tier map: %v", worstStarterTier)
+		debugLog("[DEBUG] Worst starter tier map: %v", worstStarterTier)
 		benchRows, _, _ = buildRows(bench, players, borisTiers, false, userRoster, irPlayers, worstStarterTier)
+
+		// Re-rank ALL bench RB/WR/TE players using FLEX tiers for comparison with FLEX starters
+		for i, row := range benchRows {
+			if row.Pos == "RB" || row.Pos == "WR" || row.Pos == "TE" {
+				pid := bench[i]
+				if p, ok := players[pid].(map[string]interface{}); ok {
+					name := getPlayerName(p)
+					flxTier := findTier(borisTiers["FLX"], name)
+					// Always mark RB/WR/TE as FLEX for display, even if no tier found
+					benchRows[i].IsFlex = true
+					if flxTier > 0 {
+						// Use FLEX tier instead of position tier
+						benchRows[i].Tier = flxTier
+						debugLog("[DEBUG] Bench player %s re-ranked with FLEX tier %d", name, flxTier)
+						// Check if this bench player with FLEX tier is better than any FLEX starter
+						for _, starter := range startersRows {
+							if starter.IsFlex {
+								starterTier, ok := starter.Tier.(int)
+								if ok && starterTier > 0 && flxTier < starterTier {
+									benchRows[i].ShouldSwapIn = true
+									debugLog("[DEBUG] Bench player %s (FLEX tier %d) should swap with FLEX starter", name, flxTier)
+									break
+								}
+							}
+						}
+					} else {
+						debugLog("[DEBUG] Bench player %s has no FLEX tier, keeping position tier", name)
+					}
+				}
+			}
+		}
 		_, _, oppTiers := buildRows(oppStarters, players, borisTiers, true, nil, nil, nil)
 
 		// --- FREE AGENTS LOGIC ---
@@ -432,7 +506,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 				rostered[pid] = true
 			}
 		}
-	debugLog("[DEBUG] Rostered player IDs: %v", rostered)
+		debugLog("[DEBUG] Rostered player IDs: %v", rostered)
 		// Find free agents: not rostered, not on user's team, valid tier, and sort by roster_percent
 		type faInfo struct {
 			pid     string
@@ -471,7 +545,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			faList = append(faList, faInfo{pid, percent, tier, pos, name})
 		}
-	debugLog("[DEBUG] Free agent candidates: %v", faList)
+		debugLog("[DEBUG] Free agent candidates: %v", faList)
 		// Sort by roster_percent descending
 		sort.Slice(faList, func(i, j int) bool {
 			return faList[i].percent > faList[j].percent
@@ -485,7 +559,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		for _, fa := range faList {
 			faByPos[fa.pos] = append(faByPos[fa.pos], fa)
 		}
-	debugLog("[DEBUG] Free agents by position: %v", faByPos)
+		debugLog("[DEBUG] Free agents by position: %v", faByPos)
 		freeAgentsByPos := map[string][]PlayerRow{}
 		// Show K last, after DST
 		faOrder := []string{"QB", "RB", "WR", "TE", "DST", "K"}
@@ -540,29 +614,29 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 				freeAgentsByPos[pos] = rows
 			}
 		}
-	debugLog("[DEBUG] Final freeAgentsByPos: %v", freeAgentsByPos)
+		debugLog("[DEBUG] Final freeAgentsByPos: %v", freeAgentsByPos)
 
 		avgTier := avg(starterTiers)
 		avgOppTier := avg(oppTiers)
 		winProb, emoji := winProbability(avgTier, avgOppTier)
 
-		   leagueData := LeagueData{
-			   LeagueName:      leagueName,
-			   Scoring:         scoring,
-			   Starters:        startersRows,
-			   Unranked:        unrankedRows,
-			   AvgTier:         avgTier,
-			   AvgOppTier:      avgOppTier,
-			   WinProb:         winProb + " " + emoji,
-			   Bench:           benchRows,
-			   FreeAgentsByPos: freeAgentsByPos,
-		   }
+		leagueData := LeagueData{
+			LeagueName:      leagueName,
+			Scoring:         scoring,
+			Starters:        startersRows,
+			Unranked:        unrankedRows,
+			AvgTier:         avgTier,
+			AvgOppTier:      avgOppTier,
+			WinProb:         winProb + " " + emoji,
+			Bench:           benchRows,
+			FreeAgentsByPos: freeAgentsByPos,
+		}
 
 		leagueResults = append(leagueResults, leagueData)
 	}
 
 	if len(leagueResults) == 0 {
-	debugLog("[DEBUG] No valid leagues found with matchups for user %s", username)
+		debugLog("[DEBUG] No valid leagues found with matchups for user %s", username)
 		renderError(w, "No valid leagues found with matchups")
 		return
 	}
@@ -639,6 +713,7 @@ var borisURLs = map[string]map[string]string{
 		"RB":  "https://s3-us-west-1.amazonaws.com/fftiers/out/text_RB-PPR.txt",
 		"WR":  "https://s3-us-west-1.amazonaws.com/fftiers/out/text_WR-PPR.txt",
 		"TE":  "https://s3-us-west-1.amazonaws.com/fftiers/out/text_TE-PPR.txt",
+		"FLX": "https://s3-us-west-1.amazonaws.com/fftiers/out/text_FLX-PPR.txt",
 		"K":   "https://s3-us-west-1.amazonaws.com/fftiers/out/text_K.txt",
 		"DST": "https://s3-us-west-1.amazonaws.com/fftiers/out/text_DST.txt",
 	},
@@ -647,6 +722,7 @@ var borisURLs = map[string]map[string]string{
 		"RB":  "https://s3-us-west-1.amazonaws.com/fftiers/out/text_RB-HALF.txt",
 		"WR":  "https://s3-us-west-1.amazonaws.com/fftiers/out/text_WR-HALF.txt",
 		"TE":  "https://s3-us-west-1.amazonaws.com/fftiers/out/text_TE-HALF.txt",
+		"FLX": "https://s3-us-west-1.amazonaws.com/fftiers/out/text_FLX-HALF.txt",
 		"K":   "https://s3-us-west-1.amazonaws.com/fftiers/out/text_K.txt",
 		"DST": "https://s3-us-west-1.amazonaws.com/fftiers/out/text_DST.txt",
 	},
@@ -655,6 +731,7 @@ var borisURLs = map[string]map[string]string{
 		"RB":  "https://s3-us-west-1.amazonaws.com/fftiers/out/text_RB.txt",
 		"WR":  "https://s3-us-west-1.amazonaws.com/fftiers/out/text_WR.txt",
 		"TE":  "https://s3-us-west-1.amazonaws.com/fftiers/out/text_TE.txt",
+		"FLX": "https://s3-us-west-1.amazonaws.com/fftiers/out/text_FLX.txt",
 		"K":   "https://s3-us-west-1.amazonaws.com/fftiers/out/text_K.txt",
 		"DST": "https://s3-us-west-1.amazonaws.com/fftiers/out/text_DST.txt",
 	},
@@ -719,13 +796,8 @@ func buildRows(ids []string, players map[string]interface{}, tiers map[string][]
 
 		tier := findTier(tiers[lookupPos], name)
 
-		// Add FLEX/SUPERFLEX/IR indicator to name if applicable
+		// IR indicator will be added to displayName
 		displayName := name
-		if pos == "FLEX" {
-			displayName += ` <span style="color:#7bb0ff;font-size:0.95em;">(FLEX)</span>`
-		} else if pos == "SUPERFLEX" {
-			displayName += ` <span style="color:#7bb0ff;font-size:0.95em;">(SUPERFLEX)</span>`
-		}
 		// IR indicator: if player is in irList
 		for _, irid := range irList {
 			if irid == pid {
