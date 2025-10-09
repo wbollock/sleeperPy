@@ -491,32 +491,60 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		benchRows, benchUnrankedRows, _ = buildRows(bench, players, borisTiers, false, userRoster, irPlayers, worstStarterTier)
 
 		// Re-rank ALL bench RB/WR/TE players using FLEX tiers for comparison with FLEX starters
-		for i, row := range benchRows {
-			if row.Pos == "RB" || row.Pos == "WR" || row.Pos == "TE" {
-				pid := bench[i]
-				if p, ok := players[pid].(map[string]interface{}); ok {
-					name := getPlayerName(p)
-					flxTier := findTier(borisTiers["FLX"], name)
-					// Always mark RB/WR/TE as FLEX for display, even if no tier found
-					benchRows[i].IsFlex = true
-					if flxTier > 0 {
-						// Use FLEX tier instead of position tier
-						benchRows[i].Tier = flxTier
-						debugLog("[DEBUG] Bench player %s re-ranked with FLEX tier %d", name, flxTier)
-						// Check if this bench player with FLEX tier is better than any FLEX starter
-						for _, starter := range startersRows {
-							if starter.IsFlex {
-								starterTier, ok := starter.Tier.(int)
-								if ok && starterTier > 0 && flxTier < starterTier {
-									benchRows[i].ShouldSwapIn = true
-									debugLog("[DEBUG] Bench player %s (FLEX tier %d) should swap with FLEX starter", name, flxTier)
-									break
-								}
+		// Loop through actual bench player IDs to match them with benchRows correctly
+		for _, pid := range bench {
+			if p, ok := players[pid].(map[string]interface{}); ok {
+				pos, _ := p["position"].(string)
+				if pos != "RB" && pos != "WR" && pos != "TE" {
+					continue
+				}
+
+				// Find this player in benchRows
+				name := getPlayerName(p)
+				var rowIdx = -1
+				for i, row := range benchRows {
+					// Match by checking if the name (without HTML) matches
+					rowName := row.Name
+					if strings.Contains(rowName, "<span") {
+						// Strip HTML to compare
+						rowName = strings.Split(rowName, " <span")[0]
+					}
+					if rowName == name {
+						rowIdx = i
+						break
+					}
+				}
+
+				if rowIdx < 0 {
+					// Player not in ranked bench rows (must be in benchUnranked)
+					continue
+				}
+
+				// Reset ShouldSwapIn for all FLEX-eligible bench players first
+				// since we're switching from position-based to FLEX-based comparison
+				benchRows[rowIdx].ShouldSwapIn = false
+
+				flxTier := findTier(borisTiers["FLX"], name)
+				debugLog("[DEBUG] Looking up FLEX tier for %s (pos: %s): found tier %d", name, pos, flxTier)
+				// Always mark RB/WR/TE as FLEX for display, even if no tier found
+				benchRows[rowIdx].IsFlex = true
+				if flxTier > 0 {
+					// Use FLEX tier instead of position tier
+					benchRows[rowIdx].Tier = flxTier
+					debugLog("[DEBUG] Bench player %s re-ranked with FLEX tier %d", name, flxTier)
+					// Check if this bench player with FLEX tier is better than any FLEX starter
+					for _, starter := range startersRows {
+						if starter.IsFlex {
+							starterTier, ok := starter.Tier.(int)
+							if ok && starterTier > 0 && flxTier < starterTier {
+								benchRows[rowIdx].ShouldSwapIn = true
+								debugLog("[DEBUG] Bench player %s (FLEX tier %d) should swap with FLEX starter (tier %d)", name, flxTier, starterTier)
+								break
 							}
 						}
-					} else {
-						debugLog("[DEBUG] Bench player %s has no FLEX tier, keeping position tier", name)
 					}
+				} else {
+					debugLog("[DEBUG] Bench player %s has no FLEX tier, keeping position tier", name)
 				}
 			}
 		}
