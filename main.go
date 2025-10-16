@@ -284,6 +284,13 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
+		// Debug: Check league roster_positions
+		if rosterPositions, ok := league["roster_positions"].([]interface{}); ok {
+			debugLog("[DEBUG] League roster_positions: %v", rosterPositions)
+		} else {
+			debugLog("[DEBUG] roster_positions not found in league settings")
+		}
+
 		// Get rosters and matchups
 		rosters, err := fetchJSONArray(fmt.Sprintf("https://api.sleeper.app/v1/league/%s/rosters", leagueID))
 		if err != nil {
@@ -363,9 +370,20 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		borisTiers := fetchBorisTiers(scoring)
 		debugLog("[DEBUG] Boris Tiers loaded for scoring: %s", scoring)
 
+		// Get roster positions from league settings
+		var leagueRosterPositions []string
+		if rp, ok := league["roster_positions"].([]interface{}); ok {
+			for _, pos := range rp {
+				if posStr, ok := pos.(string); ok {
+					leagueRosterPositions = append(leagueRosterPositions, posStr)
+				}
+			}
+		}
+		debugLog("[DEBUG] Parsed roster positions for league: %v", leagueRosterPositions)
+
 		// Build rows for roster
 		var benchUnrankedRows []PlayerRow
-		benchRows, _, _ := buildRows(bench, players, borisTiers, false, userRoster, irPlayers, nil)
+		benchRows, _, _ := buildRowsWithPositions(bench, players, borisTiers, false, nil, irPlayers, nil)
 		debugLog("[DEBUG] Built benchRows: %v", benchRows)
 		bestBenchTier := make(map[string]int)
 		for _, row := range benchRows {
@@ -378,98 +396,47 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		debugLog("[DEBUG] Best bench tier map: %v", bestBenchTier)
-		startersRows, unrankedRows, starterTiers := buildRows(starters, players, borisTiers, true, userRoster, irPlayers, bestBenchTier)
+
+		// Debug: Log starters with their designated positions
+		for i, pid := range starters {
+			if i < len(leagueRosterPositions) {
+				if p, ok := players[pid].(map[string]interface{}); ok {
+					name := getPlayerName(p)
+					debugLog("[DEBUG] Starter %d: %s -> Designated position: %s", i, name, leagueRosterPositions[i])
+				}
+			}
+		}
+
+		startersRows, unrankedRows, starterTiers := buildRowsWithPositions(starters, players, borisTiers, true, leagueRosterPositions, irPlayers, bestBenchTier)
 		debugLog("[DEBUG] Built startersRows: %v", startersRows)
-
-		// --- FLEX/SUPERFLEX HEURISTICS ---
-		// Heuristically detect FLEX slots by counting position occurrences
-		// Count how many of each position we have in starters
-		posCount := make(map[string]int)
-		for _, row := range startersRows {
-			posCount[row.Pos]++
-		}
-		debugLog("[DEBUG] Position counts in starters: %v", posCount)
-
-		// Assume FLEX if we have more than 2 RBs or more than 2 WRs
-		// Standard lineup is usually: 1 QB, 2 RB, 2-3 WR, 1 TE, 1 K, 1 DEF
-		flexCount := 0
-		superflexCount := 0
-
-		// Count extra RB/WR/TE beyond typical positions
-		rbCount := posCount["RB"]
-		wrCount := posCount["WR"]
-		teCount := posCount["TE"]
-		qbCount := posCount["QB"]
-
-		// If we have 3+ RBs or 3+ WRs, assume FLEX
-		if rbCount > 2 {
-			flexCount += (rbCount - 2)
-		}
-		if wrCount > 2 {
-			flexCount += (wrCount - 2)
-		}
-		if teCount > 1 {
-			// Extra TE slots could be FLEX
-			flexCount += (teCount - 1)
-		}
-
-		// If we have 2+ QBs, assume superflex
-		if qbCount > 1 {
-			superflexCount = 1
-		}
-
-		debugLog("[DEBUG] FLEX count (heuristic): %d | SUPERFLEX count: %d", flexCount, superflexCount)
-		// Mark SUPERFLEX: if 2+ QBs, lowest tier QB is superflex
-		qbIdxs := []int{}
 		for i, row := range startersRows {
-			if row.Pos == "QB" {
-				qbIdxs = append(qbIdxs, i)
-			}
+			debugLog("[DEBUG]   Row %d: Pos=%s, Name=%s, Tier=%v", i, row.Pos, row.Name, row.Tier)
 		}
-		debugLog("[DEBUG] QB indexes: %v", qbIdxs)
-		if superflexCount > 0 && len(qbIdxs) > 1 {
-			// Find worst tier QB (highest tier number)
-			maxTier := 0
-			maxIdx := -1
-			for _, i := range qbIdxs {
-				t, ok := startersRows[i].Tier.(int)
-				if ok && t > 0 && t > maxTier {
-					maxTier = t
-					maxIdx = i
-				}
-			}
-			if maxIdx >= 0 {
-				startersRows[maxIdx].IsSuperflex = true
-			}
-		}
-		// Mark FLEX: lowest tier RB/WR/TEs (not already marked as superflex), up to flexCount
-		flexCandidates := []struct{ idx, tier int }{}
+
+		// --- FLEX/SUPERFLEX MARKING ---
+		// Mark FLEX and SUPERFLEX positions based on league roster configuration
+		// and re-rank them using FLEX tiers
 		for i, row := range startersRows {
-			if (row.Pos == "RB" || row.Pos == "WR" || row.Pos == "TE") && !startersRows[i].IsSuperflex {
-				t, ok := row.Tier.(int)
-				if ok && t > 0 {
-					flexCandidates = append(flexCandidates, struct{ idx, tier int }{i, t})
+			if row.Pos == "FLEX" || row.Pos == "SUPER_FLEX" {
+				pid := starters[i]
+				if p, ok := players[pid].(map[string]interface{}); ok {
+					name := getPlayerName(p)
+					flxTier := findTier(borisTiers["FLX"], name)
+					if flxTier > 0 {
+						if row.Pos == "FLEX" {
+							startersRows[i].IsFlex = true
+							debugLog("[DEBUG] FLEX position: %s, re-ranking from tier %v to FLX tier %d", name, row.Tier, flxTier)
+						} else {
+							startersRows[i].IsSuperflex = true
+							debugLog("[DEBUG] SUPERFLEX position: %s, re-ranking from tier %v to FLX tier %d", name, row.Tier, flxTier)
+						}
+						startersRows[i].Tier = flxTier
+					}
 				}
 			}
 		}
-		debugLog("[DEBUG] FLEX candidates: %v", flexCandidates)
-		// Sort by tier descending (lowest tier = highest number)
-		sort.Slice(flexCandidates, func(i, j int) bool { return flexCandidates[i].tier > flexCandidates[j].tier })
-		for i := 0; i < flexCount && i < len(flexCandidates); i++ {
-			idx := flexCandidates[i].idx
-			startersRows[idx].IsFlex = true
-			// Keep actual position (RB/WR/TE) but re-rank using FLX tiers
-			pid := starters[idx]
-			if p, ok := players[pid].(map[string]interface{}); ok {
-				name := getPlayerName(p)
-				flxTier := findTier(borisTiers["FLX"], name)
-				if flxTier > 0 {
-					debugLog("[DEBUG] Re-ranking FLEX player %s (Pos: %s) from tier %d to FLX tier %d", name, startersRows[idx].Pos, flexCandidates[i].tier, flxTier)
-					startersRows[idx].Tier = flxTier
-				}
-			}
-		}
-		// Recalculate starterTiers after FLEX re-ranking
+
+		// Recalculate starterTiers after FLEX re-ranking (whether from API or heuristic)
 		starterTiers = []int{}
 		for _, row := range startersRows {
 			if t, ok := row.Tier.(int); ok && t > 0 {
@@ -488,7 +455,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		debugLog("[DEBUG] Worst starter tier map: %v", worstStarterTier)
-		benchRows, benchUnrankedRows, _ = buildRows(bench, players, borisTiers, false, userRoster, irPlayers, worstStarterTier)
+		benchRows, benchUnrankedRows, _ = buildRowsWithPositions(bench, players, borisTiers, false, nil, irPlayers, worstStarterTier)
 
 		// Re-rank ALL bench RB/WR/TE players using FLEX tiers for comparison with FLEX starters
 		// Loop through actual bench player IDs to match them with benchRows correctly
@@ -548,7 +515,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-		_, _, oppTiers := buildRows(oppStarters, players, borisTiers, true, nil, nil, nil)
+		_, _, oppTiers := buildRowsWithPositions(oppStarters, players, borisTiers, true, nil, nil, nil)
 
 		// --- FREE AGENTS LOGIC ---
 		// Find all rostered player IDs
@@ -617,7 +584,8 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 						diff := t - tier
 						if diff > tierDiff {
 							isUpgrade = true
-							upgradeFor = row.Name
+							// Strip HTML from name for display
+							upgradeFor = stripHTML(row.Name)
 							upgradeType = "Starter"
 							tierDiff = diff
 						}
@@ -635,7 +603,8 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 								diff := t - flxTier
 								if diff > tierDiff {
 									isUpgrade = true
-									upgradeFor = row.Name
+									// Strip HTML from name for display
+									upgradeFor = stripHTML(row.Name)
 									upgradeType = "Starter (FLEX)"
 									tierDiff = diff
 								}
@@ -644,16 +613,21 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 			}
-			// If not upgrade for starter, check bench
+			// If not upgrade for starter, check bench (but skip IR players)
 			if !isUpgrade {
 				for _, row := range benchRows {
+					// Skip IR players - check if name contains IR marker
+					if strings.Contains(row.Name, "(IR)") {
+						continue
+					}
 					if row.Pos == pos {
 						t, ok := row.Tier.(int)
 						if ok && t > 0 && tier > 0 && tier < t {
 							diff := t - tier
 							if diff > tierDiff {
 								isUpgrade = true
-								upgradeFor = row.Name
+								// Strip HTML from name for display
+								upgradeFor = stripHTML(row.Name)
 								upgradeType = "Bench"
 								tierDiff = diff
 							}
@@ -972,8 +946,8 @@ func fetchBorisTiers(scoring string) map[string][][]string {
 	return out
 }
 
-// --- Build rows for starters/bench ---
-func buildRows(ids []string, players map[string]interface{}, tiers map[string][][]string, isStarter bool, userRoster map[string]interface{}, irList []string, bestOtherTier map[string]int) ([]PlayerRow, []PlayerRow, []int) {
+// --- Build rows for starters/bench with roster positions ---
+func buildRowsWithPositions(ids []string, players map[string]interface{}, tiers map[string][][]string, isStarter bool, rosterPositions []string, irList []string, bestOtherTier map[string]int) ([]PlayerRow, []PlayerRow, []int) {
 	rows := []PlayerRow{}
 	unranked := []PlayerRow{}
 	tierNums := []int{}
@@ -984,7 +958,17 @@ func buildRows(ids []string, players map[string]interface{}, tiers map[string][]
 			continue
 		}
 
-		pos := getPos(p, idx, isStarter, userRoster)
+		// Use league roster position if available, otherwise use player's actual position
+		pos := ""
+		if isStarter && idx < len(rosterPositions) {
+			pos = rosterPositions[idx]
+			// Handle bench positions
+			if pos == "BN" {
+				pos, _ = p["position"].(string)
+			}
+		} else {
+			pos, _ = p["position"].(string)
+		}
 		name := getPlayerName(p)
 
 		// For FLEX, use actual position for tier lookup
@@ -1100,6 +1084,14 @@ func normalizeName(name string) string {
 	}
 	name = strings.Join(strings.Fields(result.String()), " ")
 	return name
+}
+
+func stripHTML(s string) string {
+	// Strip HTML tags like <span...>...</span>
+	if idx := strings.Index(s, "<span"); idx >= 0 {
+		return strings.TrimSpace(s[:idx])
+	}
+	return s
 }
 
 func avg(arr []int) string {
