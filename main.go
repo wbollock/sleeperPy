@@ -559,10 +559,25 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			if lookupPos == "DEF" {
 				lookupPos = "DST"
 			}
-			tier := findTier(borisTiers[lookupPos], name)
-			if tier <= 0 {
-				continue // Only show ranked players
+
+			// Determine which tier to use and how to compare
+			// For RB/WR/TE: try FLEX tier first
+			flexTier := 0
+			posTier := 0
+			isFlexEligible := pos == "RB" || pos == "WR" || pos == "TE"
+
+			if isFlexEligible {
+				flexTier = findTier(borisTiers["FLX"], name)
+				posTier = findTier(borisTiers[lookupPos], name)
+			} else {
+				posTier = findTier(borisTiers[lookupPos], name)
 			}
+
+			// Skip if player has no valid tiers at all
+			if flexTier <= 0 && posTier <= 0 {
+				continue
+			}
+
 			percent := 0.0
 			if v, ok := pm["roster_percent"].(float64); ok {
 				percent = v
@@ -575,58 +590,45 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			upgradeFor := ""
 			upgradeType := ""
 			tierDiff := 0
+			finalTier := 0
 
-			// Check starters first (prioritize starter upgrades)
-			for _, row := range startersRows {
-				if row.Pos == pos {
+			// For RB/WR/TE with FLEX tier: compare using FLEX against all RB/WR/TE starters
+			if isFlexEligible && flexTier > 0 {
+				finalTier = flexTier
+				for _, row := range startersRows {
+					// Skip non-flex positions like QB
+					if row.Pos == "QB" || row.Pos == "K" || row.Pos == "DST" {
+						continue
+					}
 					t, ok := row.Tier.(int)
-					if ok && t > 0 && tier > 0 && tier < t {
-						diff := t - tier
+					if ok && t > 0 && flexTier < t {
+						diff := t - flexTier
 						if diff > tierDiff {
 							isUpgrade = true
-							// Strip HTML from name for display
 							upgradeFor = stripHTML(row.Name)
-							upgradeType = "Starter"
+							if row.IsFlex || row.IsSuperflex {
+								upgradeType = "Starter (FLEX)"
+							} else {
+								upgradeType = "Starter"
+							}
 							tierDiff = diff
 						}
 					}
 				}
-			}
-			// For RB/WR/TE, also check FLEX starters
-			if pos == "RB" || pos == "WR" || pos == "TE" {
-				flxTier := findTier(borisTiers["FLX"], name)
-				if flxTier > 0 {
-					for _, row := range startersRows {
-						if row.IsFlex {
-							t, ok := row.Tier.(int)
-							if ok && t > 0 && flxTier < t {
-								diff := t - flxTier
-								if diff > tierDiff {
-									isUpgrade = true
-									// Strip HTML from name for display
-									upgradeFor = stripHTML(row.Name)
-									upgradeType = "Starter (FLEX)"
-									tierDiff = diff
-								}
-							}
+				// Also check bench RB/WR/TE (but skip IR players)
+				if !isUpgrade {
+					for _, row := range benchRows {
+						if strings.Contains(row.Name, "(IR)") {
+							continue
 						}
-					}
-				}
-			}
-			// If not upgrade for starter, check bench (but skip IR players)
-			if !isUpgrade {
-				for _, row := range benchRows {
-					// Skip IR players - check if name contains IR marker
-					if strings.Contains(row.Name, "(IR)") {
-						continue
-					}
-					if row.Pos == pos {
+						if row.Pos != "RB" && row.Pos != "WR" && row.Pos != "TE" {
+							continue
+						}
 						t, ok := row.Tier.(int)
-						if ok && t > 0 && tier > 0 && tier < t {
-							diff := t - tier
+						if ok && t > 0 && flexTier < t {
+							diff := t - flexTier
 							if diff > tierDiff {
 								isUpgrade = true
-								// Strip HTML from name for display
 								upgradeFor = stripHTML(row.Name)
 								upgradeType = "Bench"
 								tierDiff = diff
@@ -634,9 +636,49 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 						}
 					}
 				}
+			} else if posTier > 0 {
+				// For QB/K/DST or RB/WR/TE without FLEX tier: use position-specific comparison
+				finalTier = posTier
+				for _, row := range startersRows {
+					if row.Pos == pos {
+						t, ok := row.Tier.(int)
+						if ok && t > 0 && posTier < t {
+							diff := t - posTier
+							if diff > tierDiff {
+								isUpgrade = true
+								upgradeFor = stripHTML(row.Name)
+								upgradeType = "Starter"
+								tierDiff = diff
+							}
+						}
+					}
+				}
+				// Check bench (but skip IR players)
+				if !isUpgrade {
+					for _, row := range benchRows {
+						if strings.Contains(row.Name, "(IR)") {
+							continue
+						}
+						if row.Pos == pos {
+							t, ok := row.Tier.(int)
+							if ok && t > 0 && posTier < t {
+								diff := t - posTier
+								if diff > tierDiff {
+									isUpgrade = true
+									upgradeFor = stripHTML(row.Name)
+									upgradeType = "Bench"
+									tierDiff = diff
+								}
+							}
+						}
+					}
+				}
+			} else {
+				continue // No valid tier to use
 			}
-			debugLog("[DEBUG] FA: %s | Pos: %s | Tier: %d | IsUpgrade: %v | UpgradeFor: %s | UpgradeType: %s | TierDiff: %d", name, pos, tier, isUpgrade, upgradeFor, upgradeType, tierDiff)
-			faList = append(faList, faInfo{pid, percent, tier, pos, name, isUpgrade, upgradeFor, upgradeType, tierDiff})
+
+			debugLog("[DEBUG] FA: %s | Pos: %s | PosTier: %d | FlexTier: %d | FinalTier: %d | IsUpgrade: %v | UpgradeFor: %s | UpgradeType: %s | TierDiff: %d", name, pos, posTier, flexTier, finalTier, isUpgrade, upgradeFor, upgradeType, tierDiff)
+			faList = append(faList, faInfo{pid, percent, finalTier, pos, name, isUpgrade, upgradeFor, upgradeType, tierDiff})
 		}
 		debugLog("[DEBUG] Free agent candidates: %d total", len(faList))
 
