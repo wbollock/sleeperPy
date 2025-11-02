@@ -592,12 +592,19 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			tierDiff := 0
 			finalTier := 0
 
-			// For RB/WR/TE with FLEX tier: compare using FLEX against all RB/WR/TE starters
+			// For RB/WR/TE with FLEX tier: compare using FLEX against FLEX starters or same-position starters
 			if isFlexEligible && flexTier > 0 {
 				finalTier = flexTier
 				for _, row := range startersRows {
-					// Skip non-flex positions like QB
+					// Skip non-flex positions like QB/K/DST
 					if row.Pos == "QB" || row.Pos == "K" || row.Pos == "DST" {
+						continue
+					}
+					// Only compare if:
+					// 1. The starter is in a FLEX/SUPERFLEX slot, OR
+					// 2. The starter is in the same position-specific slot as this FA
+					canReplace := (row.IsFlex || row.IsSuperflex) || (row.Pos == pos)
+					if !canReplace {
 						continue
 					}
 					t, ok := row.Tier.(int)
@@ -622,6 +629,10 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 							continue
 						}
 						if row.Pos != "RB" && row.Pos != "WR" && row.Pos != "TE" {
+							continue
+						}
+						// Only compare if same position (e.g., RB FA vs RB bench, not RB vs TE)
+						if row.Pos != pos {
 							continue
 						}
 						t, ok := row.Tier.(int)
