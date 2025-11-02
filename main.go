@@ -415,14 +415,18 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 
 		// --- FLEX/SUPERFLEX MARKING ---
 		// Mark FLEX and SUPERFLEX positions based on league roster configuration
-		// and re-rank them using FLEX tiers
+		// and re-rank them using FLEX tiers (only for FLEX-eligible positions: RB/WR/TE)
 		for i, row := range startersRows {
 			if row.Pos == "FLEX" || row.Pos == "SUPER_FLEX" {
 				pid := starters[i]
 				if p, ok := players[pid].(map[string]interface{}); ok {
 					name := getPlayerName(p)
+					actualPos, _ := p["position"].(string)
+					isFlexEligible := actualPos == "RB" || actualPos == "WR" || actualPos == "TE"
+
 					flxTier := findTier(borisTiers["FLX"], name)
-					if flxTier > 0 {
+					if flxTier > 0 && isFlexEligible {
+						// Re-rank FLEX-eligible positions (RB/WR/TE) using FLEX tier
 						if row.Pos == "FLEX" {
 							startersRows[i].IsFlex = true
 							debugLog("[DEBUG] FLEX position: %s, re-ranking from tier %v to FLX tier %d", name, row.Tier, flxTier)
@@ -431,6 +435,15 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 							debugLog("[DEBUG] SUPERFLEX position: %s, re-ranking from tier %v to FLX tier %d", name, row.Tier, flxTier)
 						}
 						startersRows[i].Tier = flxTier
+					} else {
+						// For QBs or players without FLEX tier, just mark the slot but keep position tier
+						if row.Pos == "FLEX" {
+							startersRows[i].IsFlex = true
+							debugLog("[DEBUG] FLEX position: %s, keeping position tier %v (pos: %s)", name, row.Tier, actualPos)
+						} else {
+							startersRows[i].IsSuperflex = true
+							debugLog("[DEBUG] SUPERFLEX position: %s, keeping position tier %v (pos: %s)", name, row.Tier, actualPos)
+						}
 					}
 				}
 			}
@@ -1024,9 +1037,9 @@ func buildRowsWithPositions(ids []string, players map[string]interface{}, tiers 
 		}
 		name := getPlayerName(p)
 
-		// For FLEX, use actual position for tier lookup
+		// For FLEX and SUPER_FLEX, use actual position for tier lookup
 		lookupPos := pos
-		if pos == "FLEX" {
+		if pos == "FLEX" || pos == "SUPER_FLEX" {
 			if realPos, ok := p["position"].(string); ok {
 				lookupPos = realPos
 			}
