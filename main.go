@@ -21,6 +21,7 @@ import (
 )
 
 var logLevel string
+var testMode bool
 
 // HTTP client with connection pooling
 var httpClient = &http.Client{
@@ -128,11 +129,20 @@ var templates = template.Must(template.New("").Funcs(funcMap).ParseGlob("templat
 
 func main() {
 	flag.StringVar(&logLevel, "log", "info", "Log level: info or debug")
+	flag.BoolVar(&testMode, "test", false, "Run in test mode with mock data")
 	flag.Parse()
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
+	}
+
+	// Initialize test mode if enabled
+	if testMode {
+		initTestMode()
+		log.Printf("[TEST MODE] Mock API endpoints registered")
+		http.HandleFunc("/api/mock/", mockAPIHandler)
+		http.HandleFunc("/boris/mock/", mockBorisTiersHandler)
 	}
 
 	fs := http.FileServer(http.Dir("static"))
@@ -141,7 +151,13 @@ func main() {
 	http.HandleFunc("/lookup", lookupHandler)
 	http.Handle("/metrics", promhttp.Handler())
 
-	log.Printf("Server running on http://localhost:%s (log level: %s)", port, logLevel)
+	if testMode {
+		log.Printf("Server running on http://localhost:%s (log level: %s, TEST MODE ENABLED)", port, logLevel)
+		log.Printf("  → Use username 'testuser' to see mock data")
+		log.Printf("  → 3 test leagues will be loaded with mock tiers")
+	} else {
+		log.Printf("Server running on http://localhost:%s (log level: %s)", port, logLevel)
+	}
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
@@ -470,64 +486,9 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		debugLog("[DEBUG] Worst starter tier map: %v", worstStarterTier)
 		benchRows, benchUnrankedRows, _ = buildRowsWithPositions(bench, players, borisTiers, false, nil, irPlayers, worstStarterTier)
 
-		// Re-rank ALL bench RB/WR/TE players using FLEX tiers for comparison with FLEX starters
-		// Loop through actual bench player IDs to match them with benchRows correctly
-		for _, pid := range bench {
-			if p, ok := players[pid].(map[string]interface{}); ok {
-				pos, _ := p["position"].(string)
-				if pos != "RB" && pos != "WR" && pos != "TE" {
-					continue
-				}
-
-				// Find this player in benchRows
-				name := getPlayerName(p)
-				var rowIdx = -1
-				for i, row := range benchRows {
-					// Match by checking if the name (without HTML) matches
-					rowName := row.Name
-					if strings.Contains(rowName, "<span") {
-						// Strip HTML to compare
-						rowName = strings.Split(rowName, " <span")[0]
-					}
-					if rowName == name {
-						rowIdx = i
-						break
-					}
-				}
-
-				if rowIdx < 0 {
-					// Player not in ranked bench rows (must be in benchUnranked)
-					continue
-				}
-
-				// Reset ShouldSwapIn for all FLEX-eligible bench players first
-				// since we're switching from position-based to FLEX-based comparison
-				benchRows[rowIdx].ShouldSwapIn = false
-
-				flxTier := findTier(borisTiers["FLX"], name)
-				debugLog("[DEBUG] Looking up FLEX tier for %s (pos: %s): found tier %d", name, pos, flxTier)
-				// Always mark RB/WR/TE as FLEX for display, even if no tier found
-				benchRows[rowIdx].IsFlex = true
-				if flxTier > 0 {
-					// Use FLEX tier instead of position tier
-					benchRows[rowIdx].Tier = flxTier
-					debugLog("[DEBUG] Bench player %s re-ranked with FLEX tier %d", name, flxTier)
-					// Check if this bench player with FLEX tier is better than any FLEX starter
-					for _, starter := range startersRows {
-						if starter.IsFlex {
-							starterTier, ok := starter.Tier.(int)
-							if ok && starterTier > 0 && flxTier < starterTier {
-								benchRows[rowIdx].ShouldSwapIn = true
-								debugLog("[DEBUG] Bench player %s (FLEX tier %d) should swap with FLEX starter (tier %d)", name, flxTier, starterTier)
-								break
-							}
-						}
-					}
-				} else {
-					debugLog("[DEBUG] Bench player %s has no FLEX tier, keeping position tier", name)
-				}
-			}
-		}
+		// Don't re-rank bench TEs to FLEX tier - keep them at their position-specific tier for display
+		// Bench RB/WR/TE comparison with FLEX starters happens in free agent logic using FLEX tier lookup,
+		// but we don't change the display tier here
 		_, _, oppTiers := buildRowsWithPositions(oppStarters, players, borisTiers, true, nil, nil, nil)
 
 		// --- FREE AGENTS LOGIC ---
@@ -605,24 +566,31 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			tierDiff := 0
 			finalTier := 0
 
-			// For RB/WR/TE with FLEX tier: compare using FLEX against FLEX starters or same-position starters
-			if isFlexEligible && flexTier > 0 {
-				finalTier = flexTier
+			// For RB/WR/TE: use position-specific tier for display and comparison
+			// (Bench TEs now display their TE tier, not FLEX tier)
+			if isFlexEligible && posTier > 0 {
+				finalTier = posTier
 				for _, row := range startersRows {
 					// Skip non-flex positions like QB/K/DST
 					if row.Pos == "QB" || row.Pos == "K" || row.Pos == "DST" {
 						continue
 					}
-					// Only compare if:
-					// 1. The starter is in a FLEX/SUPERFLEX slot, OR
-					// 2. The starter is in the same position-specific slot as this FA
-					canReplace := (row.IsFlex || row.IsSuperflex) || (row.Pos == pos)
+					// TEs only compare to TE starters (not FLEX slots)
+					// RB/WR can compare to same-position starters OR FLEX/SUPERFLEX starters
+					var canReplace bool
+					if pos == "TE" {
+						// TE only compares to TE position
+						canReplace = (row.Pos == pos)
+					} else {
+						// RB/WR can compare to same position OR FLEX slots
+						canReplace = (row.IsFlex || row.IsSuperflex) || (row.Pos == pos)
+					}
 					if !canReplace {
 						continue
 					}
 					t, ok := row.Tier.(int)
-					if ok && t > 0 && flexTier < t {
-						diff := t - flexTier
+					if ok && t > 0 && posTier < t {
+						diff := t - posTier
 						if diff > tierDiff {
 							isUpgrade = true
 							upgradeFor = stripHTML(row.Name)
@@ -649,8 +617,8 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 							continue
 						}
 						t, ok := row.Tier.(int)
-						if ok && t > 0 && flexTier < t {
-							diff := t - flexTier
+						if ok && t > 0 && posTier < t {
+							diff := t - posTier
 							if diff > tierDiff {
 								isUpgrade = true
 								upgradeFor = stripHTML(row.Name)
@@ -661,7 +629,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 			} else if posTier > 0 {
-				// For QB/K/DST or RB/WR/TE without FLEX tier: use position-specific comparison
+				// For QB/K/DST or RB/WR/TE without position tier: use position-specific comparison
 				finalTier = posTier
 				for _, row := range startersRows {
 					if row.Pos == pos {
@@ -939,7 +907,12 @@ var borisURLs = map[string]map[string]string{
 	},
 }
 
-func fetchBorisTiers(scoring string) map[string][][]string {
+// fetchBorisTiers is a variable to allow mocking in tests
+var fetchBorisTiers = func(scoring string) map[string][][]string {
+	return fetchBorisTiersImpl(scoring)
+}
+
+func fetchBorisTiersImpl(scoring string) map[string][][]string {
 	// Check cache first
 	borisTiersCache.RLock()
 	if cached, exists := borisTiersCache.data[scoring]; exists {

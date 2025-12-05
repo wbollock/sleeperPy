@@ -29,11 +29,40 @@ dev: build ## Run in development mode with debug logging
 dev-watch: ## Run with hot reload (requires air: go install github.com/air-verse/air@latest)
 	air
 
+test-mode: build ## Run in test mode with mock data (use username: testuser)
+	@echo "========================================="
+	@echo "🧪 Starting server in TEST MODE"
+	@echo "========================================="
+	@echo "Open: http://localhost:$(PORT)"
+	@echo "Username: testuser"
+	@echo "========================================="
+	@echo ""
+	PORT=$(PORT) ./$(BINARY_NAME) -test -log=debug
+
 test: ## Run tests
 	$(GO) test -v -race -coverprofile=coverage.out ./...
 
 test-coverage: test ## Run tests and show coverage
 	$(GO) tool cover -html=coverage.out
+
+test-visual: ## Run tests and generate visual HTML outputs
+	$(GO) test -v -run TestGenerateAllVisualOutputs
+	@echo ""
+	@echo "✓ Visual test outputs generated!"
+	@echo "  Open test_output/index.html in your browser to view results"
+
+test-clean: ## Clean test output directory
+	rm -rf test_output
+	rm -f coverage.out
+
+test-view: test-visual ## Generate tests and open in browser (macOS/Linux)
+	@if command -v xdg-open > /dev/null; then \
+		xdg-open test_output/index.html; \
+	elif command -v open > /dev/null; then \
+		open test_output/index.html; \
+	else \
+		echo "Please open test_output/index.html in your browser"; \
+	fi
 
 fmt: ## Format code
 	$(GO) fmt ./...

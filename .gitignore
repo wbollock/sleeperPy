@@ -5,3 +5,11 @@ mongo
 matomo.js
 sleeperpy
 goapp
+sleeperPy
+test_output/
+test_server.log
+testdata/
+TESTING.md
+TEST_MODE.md
+main_test.go
+mock_server.go

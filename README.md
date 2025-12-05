@@ -64,6 +64,43 @@ Then visit [http://localhost:8080](http://localhost:8080) in your browser.
 
 ---
 
+## Testing
+
+sleeperPy includes a comprehensive test suite covering all features. See [TESTING.md](TESTING.md) for detailed documentation.
+
+### Quick Test Commands
+
+```sh
+# Run all tests
+make test
+
+# Generate visual HTML outputs for manual inspection
+make test-visual
+
+# Generate and auto-open visual tests in browser
+make test-view
+
+# Run tests with coverage report
+make test-coverage
+
+# Clean test artifacts
+make test-clean
+```
+
+### Test Coverage
+
+- ✅ All scoring formats (PPR, Half-PPR, Standard)
+- ✅ FLEX and SUPERFLEX logic
+- ✅ Free agent recommendations
+- ✅ Upgrade detection and swap suggestions
+- ✅ IR player handling
+- ✅ Win probability calculations
+- ✅ Template rendering with visual outputs
+
+Visual test outputs are saved to `test_output/` - open `test_output/index.html` to see all rendered scenarios.
+
+---
+
 ## Metrics & Observability
 
 - Prometheus metrics are available at `/metrics`
