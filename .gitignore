@@ -12,4 +12,3 @@ testdata/
 TESTING.md
 TEST_MODE.md
 main_test.go
-mock_server.go
