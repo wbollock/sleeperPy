@@ -47,6 +47,28 @@ var borisTiersCache = &tiersCache{
 	ttl:       15 * time.Minute, // Cache tiers for 15 minutes
 }
 
+// Dynasty value data structure
+type DynastyValue struct {
+	Name         string
+	Position     string
+	Value1QB     int
+	Value2QB     int
+	ScrapeDate   string
+}
+
+// Cache for dynasty values
+type dynastyCache struct {
+	sync.RWMutex
+	data      map[string]DynastyValue // key: normalized player name
+	timestamp time.Time
+	ttl       time.Duration
+}
+
+var dynastyValuesCache = &dynastyCache{
+	data: make(map[string]DynastyValue),
+	ttl:  24 * time.Hour, // Cache for 24 hours (values don't change frequently)
+}
+
 func debugLog(format string, v ...interface{}) {
 	if logLevel == "debug" {
 		log.Printf(format, v...)
@@ -193,20 +215,24 @@ type PlayerRow struct {
 	UpgradeType          string // "Starter" or "Bench" or ""
 	IsFlex               bool   // Heuristic FLEX indicator
 	IsSuperflex          bool   // Heuristic SUPERFLEX indicator
+	DynastyValue         int    // Dynasty value from DynastyProcess (0-10000 scale)
 }
 
 type LeagueData struct {
-	LeagueName      string
-	Scoring         string
-	Starters        []PlayerRow
-	Unranked        []PlayerRow
-	AvgTier         string
-	AvgOppTier      string
-	WinProb         string
-	Bench           []PlayerRow
-	BenchUnranked   []PlayerRow
-	FreeAgentsByPos map[string][]PlayerRow
-	TopFreeAgents   []PlayerRow // Combined prioritized list
+	LeagueName       string
+	Scoring          string
+	IsDynasty        bool
+	HasMatchups      bool
+	DynastyValueDate string // Date dynasty values were last updated
+	Starters         []PlayerRow
+	Unranked         []PlayerRow
+	AvgTier          string
+	AvgOppTier       string
+	WinProb          string
+	Bench            []PlayerRow
+	BenchUnranked    []PlayerRow
+	FreeAgentsByPos  map[string][]PlayerRow
+	TopFreeAgents    []PlayerRow // Combined prioritized list
 }
 
 type TiersPage struct {
@@ -251,11 +277,25 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	userID := user["user_id"].(string)
 
-	// 2. Get leagues
+	// 2. Get leagues (check current year and previous year for dynasty leagues)
 	year := time.Now().Year()
 	leagues, err := fetchJSONArray(fmt.Sprintf("https://api.sleeper.app/v1/user/%s/leagues/nfl/%d", userID, year))
-	if err != nil || len(leagues) == 0 {
-		log.Printf("[ERROR] No leagues found for user %s: %v", userID, err)
+	if err != nil {
+		debugLog("[DEBUG] Error fetching leagues for year %d: %v", year, err)
+	}
+
+	// Also fetch previous year leagues (dynasty leagues often stay on previous season)
+	previousYear := year - 1
+	previousYearLeagues, err := fetchJSONArray(fmt.Sprintf("https://api.sleeper.app/v1/user/%s/leagues/nfl/%d", userID, previousYear))
+	if err != nil {
+		debugLog("[DEBUG] Error fetching leagues for year %d: %v", previousYear, err)
+	} else {
+		// Append previous year leagues to current year leagues
+		leagues = append(leagues, previousYearLeagues...)
+	}
+
+	if len(leagues) == 0 {
+		log.Printf("[ERROR] No leagues found for user %s", userID)
 		totalErrors.Inc()
 		renderError(w, "No leagues found for this user")
 		return
@@ -280,13 +320,43 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// 4.5. Fetch dynasty values if any dynasty leagues exist
+	var dynastyValues map[string]DynastyValue
+	var dynastyValueDate string
+	hasDynasty := false
+	for _, league := range leagues {
+		if isDynastyLeague(league) {
+			hasDynasty = true
+			break
+		}
+	}
+	if hasDynasty {
+		dynastyValues, dynastyValueDate = fetchDynastyValues()
+	}
+
 	// 5. Process each league
 	var leagueResults []LeagueData
 	log.Printf("[INFO] Processed %s with %d leagues", username, len(leagues))
 	totalLeagues.Add(float64(len(leagues)))
+
+	// Sort leagues: dynasty leagues first, then by name
+	sort.Slice(leagues, func(i, j int) bool {
+		isDynastyI := isDynastyLeague(leagues[i])
+		isDynastyJ := isDynastyLeague(leagues[j])
+		if isDynastyI != isDynastyJ {
+			return isDynastyI // Dynasty leagues come first
+		}
+		nameI, _ := leagues[i]["name"].(string)
+		nameJ, _ := leagues[j]["name"].(string)
+		return nameI < nameJ
+	})
+
 	for _, league := range leagues {
 		leagueID := league["league_id"].(string)
 		leagueName := league["name"].(string)
+
+		// Check if this is a dynasty league
+		isDynasty := isDynastyLeague(league)
 
 		// Determine scoring type
 		scoring := "PPR"
@@ -317,10 +387,15 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		totalTeams.Add(float64(len(rosters)))
 
 		matchups, err := fetchJSONArray(fmt.Sprintf("https://api.sleeper.app/v1/league/%s/matchups/%d", leagueID, week))
-		if err != nil || len(matchups) == 0 {
-			log.Printf("[ERROR] No matchups found for league %s week %d: %v", leagueName, week, err)
-			totalErrors.Inc()
-			continue
+		hasMatchups := (err == nil && len(matchups) > 0)
+		if !hasMatchups {
+			if isDynasty {
+				log.Printf("[INFO] No matchups for league %s week %d (dynasty league in offseason)", leagueName, week)
+			} else {
+				log.Printf("[ERROR] No matchups found for league %s week %d: %v", leagueName, week, err)
+				totalErrors.Inc()
+				continue
+			}
 		}
 
 		// Find user roster
@@ -357,30 +432,32 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		debugLog("[DEBUG] After IR merge, Bench: %v", bench)
 
-		// Find opponent
+		// Find opponent (only if we have matchups)
 		var myMatchup, oppMatchup map[string]interface{}
-		for _, m := range matchups {
-			if m["roster_id"] == userRoster["roster_id"] {
-				myMatchup = m
-				break
-			}
-		}
-
-		if myMatchup != nil {
+		oppStarters := []string{}
+		if hasMatchups {
 			for _, m := range matchups {
-				if m["matchup_id"] == myMatchup["matchup_id"] && m["roster_id"] != userRoster["roster_id"] {
-					oppMatchup = m
+				if m["roster_id"] == userRoster["roster_id"] {
+					myMatchup = m
 					break
 				}
 			}
-		}
-		debugLog("[DEBUG] MyMatchup: %v | OppMatchup: %v", myMatchup, oppMatchup)
 
-		oppStarters := []string{}
-		if oppMatchup != nil {
-			oppStarters = toStringSlice(oppMatchup["starters"])
+			if myMatchup != nil {
+				for _, m := range matchups {
+					if m["matchup_id"] == myMatchup["matchup_id"] && m["roster_id"] != userRoster["roster_id"] {
+						oppMatchup = m
+						break
+					}
+				}
+			}
+			debugLog("[DEBUG] MyMatchup: %v | OppMatchup: %v", myMatchup, oppMatchup)
+
+			if oppMatchup != nil {
+				oppStarters = toStringSlice(oppMatchup["starters"])
+			}
+			debugLog("[DEBUG] Opponent Starters: %v", oppStarters)
 		}
-		debugLog("[DEBUG] Opponent Starters: %v", oppStarters)
 
 		// Fetch Boris Chen tiers
 		borisTiers := fetchBorisTiers(scoring)
@@ -485,6 +562,25 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		debugLog("[DEBUG] Worst starter tier map: %v", worstStarterTier)
 		benchRows, benchUnrankedRows, _ = buildRowsWithPositions(bench, players, borisTiers, false, nil, irPlayers, worstStarterTier)
+
+		// Detect if this is a superflex league
+		isSuperFlex := false
+		for _, pos := range leagueRosterPositions {
+			if pos == "SUPER_FLEX" {
+				isSuperFlex = true
+				break
+			}
+		}
+		debugLog("[DEBUG] League is superflex: %v", isSuperFlex)
+
+		// Enrich rows with dynasty values (if this is a dynasty league)
+		if isDynasty && dynastyValues != nil {
+			enrichRowsWithDynastyValues(startersRows, dynastyValues, isSuperFlex)
+			enrichRowsWithDynastyValues(unrankedRows, dynastyValues, isSuperFlex)
+			enrichRowsWithDynastyValues(benchRows, dynastyValues, isSuperFlex)
+			enrichRowsWithDynastyValues(benchUnrankedRows, dynastyValues, isSuperFlex)
+			debugLog("[DEBUG] Enriched starter and bench rows with dynasty values")
+		}
 
 		// Don't re-rank bench TEs to FLEX tier - keep them at their position-specific tier for display
 		// Bench RB/WR/TE comparison with FLEX starters happens in free agent logic using FLEX tier lookup,
@@ -744,6 +840,16 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 				freeAgentsByPos[pos] = rows
 			}
 		}
+
+		// Enrich free agents with dynasty values
+		if isDynasty && dynastyValues != nil {
+			for pos, faRows := range freeAgentsByPos {
+				enrichRowsWithDynastyValues(faRows, dynastyValues, isSuperFlex)
+				freeAgentsByPos[pos] = faRows // Update the map with enriched rows
+			}
+			debugLog("[DEBUG] Enriched free agents by position with dynasty values")
+		}
+
 		debugLog("[DEBUG] Final freeAgentsByPos: %v", freeAgentsByPos)
 
 		// Create a combined prioritized list of top free agents across all positions
@@ -779,6 +885,11 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		var topFreeAgents []PlayerRow
 		if limit > 0 {
 			topFreeAgents = allFAs[:limit]
+			// Enrich top free agents with dynasty values
+			if isDynasty && dynastyValues != nil {
+				enrichRowsWithDynastyValues(topFreeAgents, dynastyValues, isSuperFlex)
+				debugLog("[DEBUG] Enriched top free agents with dynasty values")
+			}
 		}
 		debugLog("[DEBUG] Top free agents: %d selected from %d", len(topFreeAgents), len(allFAs))
 
@@ -787,17 +898,20 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		winProb, emoji := winProbability(avgTier, avgOppTier)
 
 		leagueData := LeagueData{
-			LeagueName:      leagueName,
-			Scoring:         scoring,
-			Starters:        startersRows,
-			Unranked:        unrankedRows,
-			AvgTier:         avgTier,
-			AvgOppTier:      avgOppTier,
-			WinProb:         winProb + " " + emoji,
-			Bench:           benchRows,
-			BenchUnranked:   benchUnrankedRows,
-			FreeAgentsByPos: freeAgentsByPos,
-			TopFreeAgents:   topFreeAgents,
+			LeagueName:       leagueName,
+			Scoring:          scoring,
+			IsDynasty:        isDynasty,
+			HasMatchups:      hasMatchups,
+			DynastyValueDate: dynastyValueDate,
+			Starters:         startersRows,
+			Unranked:         unrankedRows,
+			AvgTier:          avgTier,
+			AvgOppTier:       avgOppTier,
+			WinProb:          winProb + " " + emoji,
+			Bench:            benchRows,
+			BenchUnranked:    benchUnrankedRows,
+			FreeAgentsByPos:  freeAgentsByPos,
+			TopFreeAgents:    topFreeAgents,
 		}
 
 		leagueResults = append(leagueResults, leagueData)
@@ -874,6 +988,138 @@ func diff(a, b []string) []string {
 		}
 	}
 	return out
+}
+
+func isDynastyLeague(league map[string]interface{}) bool {
+	// Check type field - type 2 indicates dynasty league
+	if settings, ok := league["settings"].(map[string]interface{}); ok {
+		if leagueType, ok := settings["type"].(float64); ok && leagueType == 2 {
+			debugLog("[DEBUG] League detected as dynasty via type: %v", leagueType)
+			return true
+		}
+	}
+
+	// Check for taxi squad (dynasty-specific feature)
+	if settings, ok := league["settings"].(map[string]interface{}); ok {
+		if taxiSlots, ok := settings["taxi_slots"].(float64); ok && taxiSlots > 0 {
+			debugLog("[DEBUG] League detected as dynasty via taxi_slots: %v", taxiSlots)
+			return true
+		}
+	}
+
+	// Fallback: check league name for "dynasty" keyword
+	if name, ok := league["name"].(string); ok {
+		nameLower := strings.ToLower(name)
+		if strings.Contains(nameLower, "dynasty") {
+			debugLog("[DEBUG] League detected as dynasty via name: %s", name)
+			return true
+		}
+	}
+
+	return false
+}
+
+// --- Dynasty Values fetching ---
+func fetchDynastyValues() (map[string]DynastyValue, string) {
+	// Check cache first
+	dynastyValuesCache.RLock()
+	if time.Since(dynastyValuesCache.timestamp) < dynastyValuesCache.ttl && len(dynastyValuesCache.data) > 0 {
+		debugLog("[DEBUG] Using cached dynasty values")
+		scrapeDate := ""
+		for _, v := range dynastyValuesCache.data {
+			scrapeDate = v.ScrapeDate
+			break
+		}
+		dynastyValuesCache.RUnlock()
+		return dynastyValuesCache.data, scrapeDate
+	}
+	dynastyValuesCache.RUnlock()
+
+	debugLog("[DEBUG] Fetching fresh dynasty values from DynastyProcess")
+
+	resp, err := httpClient.Get("https://raw.githubusercontent.com/dynastyprocess/data/master/files/values-players.csv")
+	if err != nil {
+		log.Printf("[ERROR] Failed to fetch dynasty values: %v", err)
+		return nil, ""
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Printf("[ERROR] Failed to read dynasty values: %v", err)
+		return nil, ""
+	}
+
+	// Parse CSV
+	lines := strings.Split(string(body), "\n")
+	values := make(map[string]DynastyValue)
+	scrapeDate := ""
+
+	for i, line := range lines {
+		if i == 0 || line == "" {
+			continue // Skip header and empty lines
+		}
+
+		// Parse CSV line - handle quoted fields
+		fields := parseCSVLine(line)
+		if len(fields) < 12 {
+			continue
+		}
+
+		playerName := strings.Trim(fields[0], "\"")
+		position := strings.Trim(fields[1], "\"")
+		value1QB, _ := strconv.Atoi(strings.Trim(fields[8], "\""))
+		value2QB, _ := strconv.Atoi(strings.Trim(fields[9], "\""))
+		date := strings.Trim(fields[10], "\"")
+
+		if scrapeDate == "" {
+			scrapeDate = date
+		}
+
+		// Store with normalized name as key
+		normalizedName := normalizeName(playerName)
+		values[normalizedName] = DynastyValue{
+			Name:       playerName,
+			Position:   position,
+			Value1QB:   value1QB,
+			Value2QB:   value2QB,
+			ScrapeDate: date,
+		}
+	}
+
+	// Update cache
+	dynastyValuesCache.Lock()
+	dynastyValuesCache.data = values
+	dynastyValuesCache.timestamp = time.Now()
+	dynastyValuesCache.Unlock()
+
+	debugLog("[DEBUG] Loaded %d dynasty values (last updated: %s)", len(values), scrapeDate)
+	return values, scrapeDate
+}
+
+func parseCSVLine(line string) []string {
+	var fields []string
+	var current strings.Builder
+	inQuotes := false
+
+	for _, char := range line {
+		switch char {
+		case '"':
+			inQuotes = !inQuotes
+			current.WriteRune(char)
+		case ',':
+			if inQuotes {
+				current.WriteRune(char)
+			} else {
+				fields = append(fields, current.String())
+				current.Reset()
+			}
+		default:
+			current.WriteRune(char)
+		}
+	}
+	fields = append(fields, current.String())
+	return fields
 }
 
 // --- Boris Chen tier fetching ---
@@ -1131,6 +1377,28 @@ func stripHTML(s string) string {
 		return strings.TrimSpace(s[:idx])
 	}
 	return s
+}
+
+// enrichRowsWithDynastyValues adds dynasty values to player rows
+func enrichRowsWithDynastyValues(rows []PlayerRow, dynastyValues map[string]DynastyValue, isSuperFlex bool) {
+	if dynastyValues == nil {
+		return
+	}
+
+	for i := range rows {
+		// Normalize the player name and lookup dynasty value
+		cleanName := stripHTML(rows[i].Name)
+		normalizedName := normalizeName(cleanName)
+
+		if val, exists := dynastyValues[normalizedName]; exists {
+			// Use 2QB values for superflex leagues, otherwise 1QB
+			if isSuperFlex {
+				rows[i].DynastyValue = val.Value2QB
+			} else {
+				rows[i].DynastyValue = val.Value1QB
+			}
+		}
+	}
 }
 
 func avg(arr []int) string {

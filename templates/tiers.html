@@ -30,7 +30,7 @@ function showLeagueTab(evt, tabId) {
 
 <div class="league-tabs">
     {{range $i, $l := .Leagues}}
-        <button class="league-tab" {{if eq $i 0}}id="defaultTab"{{end}} onclick="showLeagueTab(event, 'league{{$i}}')">{{$l.LeagueName}} ({{$l.Scoring}})</button>
+        <button class="league-tab" {{if eq $i 0}}id="defaultTab"{{end}} onclick="showLeagueTab(event, 'league{{$i}}')">{{if $l.IsDynasty}}⭐ {{end}}{{$l.LeagueName}} ({{$l.Scoring}})</button>
     {{end}}
 </div>
 <div class="league-contents">
@@ -38,7 +38,7 @@ function showLeagueTab(evt, tabId) {
         <div class="league-content" id="league{{$i}}" style="display:{{if eq $i 0}}block{{else}}none{{end}};">
             <table class="sortable-table pretty-table">
                 <thead>
-                    <tr><th>Position</th><th>Player</th><th>Tier</th></tr>
+                    <tr><th>Position</th><th>Player</th><th>Tier</th>{{if $l.IsDynasty}}<th>Dynasty Value</th>{{end}}</tr>
                 </thead>
                 <tbody>
                 {{range $l.Starters}}
@@ -46,6 +46,7 @@ function showLeagueTab(evt, tabId) {
                         <td>{{.Pos}}</td>
                         <td>{{if eq .Tier 1}}<span class="tier1-star">★</span> {{end}}{{.Name | safe}}</td>
                         <td>{{.Tier}}{{if .IsFlex}} <span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">FLEX</span>{{else if .IsSuperflex}} <span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">SF</span>{{end}}</td>
+                        {{if $l.IsDynasty}}<td>{{if .DynastyValue}}{{.DynastyValue}}{{else}}-{{end}}</td>{{end}}
                     </tr>
                 {{end}}
                 {{range $l.Unranked}}
@@ -55,14 +56,16 @@ function showLeagueTab(evt, tabId) {
                         </td>
                         <td>{{.Name | safe}}</td>
                         <td>{{.Tier}}</td>
+                        {{if $l.IsDynasty}}<td>-</td>{{end}}
                     </tr>
                 {{end}}
                 </tbody>
                 <tfoot>
-                    <tr><td colspan="3" class="summary" style="padding:16px;"><b>Average Tier: {{$l.AvgTier}}</b></td></tr>
-                    <tr><td colspan="3" class="summary" style="padding:16px;"><b>Opponent Average Tier: {{$l.AvgOppTier}}</b></td></tr>
+                    <tr><td colspan="{{if $l.IsDynasty}}4{{else}}3{{end}}" class="summary" style="padding:16px;"><b>Average Tier: {{$l.AvgTier}}</b></td></tr>
+                    {{if $l.HasMatchups}}
+                    <tr><td colspan="{{if $l.IsDynasty}}4{{else}}3{{end}}" class="summary" style="padding:16px;"><b>Opponent Average Tier: {{$l.AvgOppTier}}</b></td></tr>
                     <tr>
-                        <td colspan="3" style="padding:12px 0; background:transparent; border:none; text-align:center;">
+                        <td colspan="{{if $l.IsDynasty}}4{{else}}3{{end}}" style="padding:12px 0; background:transparent; border:none; text-align:center;">
                             <div class="winprob-row">
                                 <span class="winprob-label">Win Probability</span>
                                 <span class="winprob-bar-wrap">
@@ -77,14 +80,17 @@ function showLeagueTab(evt, tabId) {
                             </div>
                         </td>
                     </tr>
-                    <tr><th colspan="3" class="bench-header" style="padding-top:24px; padding-bottom:16px;">Bench</th></tr>
+                    {{else}}
+                    <tr><td colspan="{{if $l.IsDynasty}}4{{else}}3{{end}}" class="summary" style="padding:16px;font-style:italic;color:#9fb3d4;">Offseason - No active matchups</td></tr>
+                    {{end}}
+                    <tr><th colspan="{{if $l.IsDynasty}}4{{else}}3{{end}}" class="bench-header" style="padding-top:24px; padding-bottom:16px;">Bench</th></tr>
                     {{range $l.Bench}}
-                        <tr{{if eq .Tier 1}} class="tier1"{{else if .ShouldSwapIn}} class="swap-candidate"{{end}}><td>{{.Pos}}</td><td>{{if eq .Tier 1}}<span class="tier1-star">★</span> {{end}}{{if .ShouldSwapIn}}<span class="swap-icon">⇄</span> {{end}}{{.Name | safe}}</td><td>{{.Tier}}{{if .IsFlex}} <span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">FLEX</span>{{end}}</td></tr>
+                        <tr{{if eq .Tier 1}} class="tier1"{{else if .ShouldSwapIn}} class="swap-candidate"{{end}}><td>{{.Pos}}</td><td>{{if eq .Tier 1}}<span class="tier1-star">★</span> {{end}}{{if .ShouldSwapIn}}<span class="swap-icon">⇄</span> {{end}}{{.Name | safe}}</td><td>{{.Tier}}{{if .IsFlex}} <span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">FLEX</span>{{end}}</td>{{if $l.IsDynasty}}<td>{{if .DynastyValue}}{{.DynastyValue}}{{else}}-{{end}}</td>{{end}}</tr>
                     {{end}}
                     {{range $l.BenchUnranked}}
-                        <tr><td>{{.Pos}}</td><td>{{.Name | safe}}</td><td>{{.Tier}}</td></tr>
+                        <tr><td>{{.Pos}}</td><td>{{.Name | safe}}</td><td>{{.Tier}}</td>{{if $l.IsDynasty}}<td>-</td>{{end}}</tr>
                     {{end}}
-                    <tr><td colspan="3" style="padding-top:8px;font-size:0.9em;color:#9fb3d4;font-style:italic;">Note: RB/WR/TE bench players ranked using FLEX tiers</td></tr>
+                    <tr><td colspan="{{if $l.IsDynasty}}4{{else}}3{{end}}" style="padding-top:8px;font-size:0.9em;color:#9fb3d4;font-style:italic;">Note: RB/WR/TE bench players ranked using FLEX tiers</td></tr>
                 </tfoot>
             </table>
 
@@ -93,7 +99,7 @@ function showLeagueTab(evt, tabId) {
                 <div class="fa-header">Recommended Free Agents</div>
                 <table class="sortable-table pretty-table">
                     <thead>
-                        <tr><th>Pos</th><th>Player</th><th>Tier</th></tr>
+                        <tr><th>Pos</th><th>Player</th><th>Tier</th>{{if $l.IsDynasty}}<th>Dynasty Value</th>{{end}}</tr>
                     </thead>
                     <tbody>
                     {{range $l.TopFreeAgents}}
@@ -106,6 +112,7 @@ function showLeagueTab(evt, tabId) {
                                 {{end}}
                             </td>
                             <td>{{.Tier}}</td>
+                            {{if $l.IsDynasty}}<td>{{if .DynastyValue}}{{.DynastyValue}}{{else}}-{{end}}</td>{{end}}
                         </tr>
                     {{end}}
                     </tbody>
@@ -137,6 +144,16 @@ if (document.getElementById('defaultTab')) document.getElementById('defaultTab')
         <span style="display:inline-block; margin:0.5em 1em;">
             Tiers powered by <a href="https://www.borischen.co/" target="_blank" rel="noopener" style="color:#7bb0ff; text-decoration:none; font-weight:600; transition:color 0.2s;">Boris Chen</a>
         </span>
+        {{with .Leagues}}
+            {{range .}}
+                {{if .IsDynasty}}
+                    <span style="display:inline-block; margin:0.5em 1em;">
+                        Dynasty values by <a href="https://github.com/dynastyprocess/data" target="_blank" rel="noopener" style="color:#7bb0ff; text-decoration:none; font-weight:600; transition:color 0.2s;">DynastyProcess</a>{{if .DynastyValueDate}} (updated {{.DynastyValueDate}}){{end}}
+                    </span>
+                    {{break}}
+                {{end}}
+            {{end}}
+        {{end}}
         <span style="display:inline-block; margin:0.5em 1em;">
             <a href="https://github.com/wbollock/sleeperPy" target="_blank" rel="noopener" style="color:#7bb0ff; text-decoration:none; font-weight:600; transition:color 0.2s;">GitHub</a>
         </span>
