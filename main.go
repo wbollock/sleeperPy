@@ -216,25 +216,37 @@ type PlayerRow struct {
 	IsFlex               bool   // Heuristic FLEX indicator
 	IsSuperflex          bool   // Heuristic SUPERFLEX indicator
 	DynastyValue         int    // Dynasty value from DynastyProcess (0-10000 scale)
+	Age                  int    // Player age from Sleeper API
+}
+
+type TeamAgeData struct {
+	TeamName   string
+	OwnerName  string
+	AvgAge     float64
+	Rank       int // Standings rank
+	RosterID   int
+	IsUserTeam bool
 }
 
 type LeagueData struct {
-	LeagueName          string
-	Scoring             string
-	IsDynasty           bool
-	HasMatchups         bool
-	DynastyValueDate    string // Date dynasty values were last updated
-	Starters            []PlayerRow
-	Unranked            []PlayerRow
-	AvgTier             string
-	AvgOppTier          string
-	WinProb             string
-	Bench               []PlayerRow
-	BenchUnranked       []PlayerRow
-	FreeAgentsByPos     map[string][]PlayerRow
-	TopFreeAgents       []PlayerRow // Combined prioritized list (tier-based)
+	LeagueName           string
+	Scoring              string
+	IsDynasty            bool
+	HasMatchups          bool
+	DynastyValueDate     string // Date dynasty values were last updated
+	Starters             []PlayerRow
+	Unranked             []PlayerRow
+	AvgTier              string
+	AvgOppTier           string
+	WinProb              string
+	Bench                []PlayerRow
+	BenchUnranked        []PlayerRow
+	FreeAgentsByPos      map[string][]PlayerRow
+	TopFreeAgents        []PlayerRow // Combined prioritized list (tier-based)
 	TopFreeAgentsByValue []PlayerRow // Dynasty mode: value-based recommendations
-	TotalRosterValue    int         // Sum of all dynasty values on roster
+	TotalRosterValue     int         // Sum of all dynasty values on roster
+	UserAvgAge           float64     // Average age of user's roster
+	TeamAges             []TeamAgeData // All teams' ages for dynasty chart
 }
 
 type TiersPage struct {
@@ -1000,8 +1012,8 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 				return valueUpgrades[i].DynastyValue > valueUpgrades[j].DynastyValue
 			})
 
-			// Take top 15 most valuable available players
-			limit := 15
+			// Take top 30 most valuable available players (increased for dynasty mode)
+			limit := 30
 			if len(valueUpgrades) < limit {
 				limit = len(valueUpgrades)
 			}
@@ -1011,27 +1023,138 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			debugLog("[DEBUG] Dynasty mode: found %d value-based free agent upgrades", len(topFreeAgentsByValue))
 		}
 
+		// Calculate user's average age (for dynasty mode)
+		var userAvgAge float64
+		if isDynasty {
+			totalAge := 0
+			ageCount := 0
+			for _, row := range startersRows {
+				if row.Age > 0 {
+					totalAge += row.Age
+					ageCount++
+				}
+			}
+			for _, row := range benchRows {
+				if row.Age > 0 {
+					totalAge += row.Age
+					ageCount++
+				}
+			}
+			if ageCount > 0 {
+				userAvgAge = float64(totalAge) / float64(ageCount)
+			}
+			debugLog("[DEBUG] User's average roster age: %.2f (%d players)", userAvgAge, ageCount)
+		}
+
+		// Calculate average age for all teams in the league (for dynasty mode)
+		var teamAges []TeamAgeData
+		if isDynasty {
+			// Get league users for team names
+			leagueUsers, err := fetchJSONArray(fmt.Sprintf("https://api.sleeper.app/v1/league/%s/users", leagueID))
+			if err != nil {
+				debugLog("[DEBUG] Could not fetch league users: %v", err)
+			}
+
+			// Create a map of user_id -> display_name
+			userNames := make(map[string]string)
+			if leagueUsers != nil {
+				for _, u := range leagueUsers {
+					if uid, ok := u["user_id"].(string); ok {
+						displayName := ""
+						if dn, ok := u["display_name"].(string); ok && dn != "" {
+							displayName = dn
+						} else if un, ok := u["username"].(string); ok {
+							displayName = un
+						}
+						userNames[uid] = displayName
+					}
+				}
+			}
+
+			// Calculate average age for each roster
+			for _, r := range rosters {
+				rosterID, _ := r["roster_id"].(float64)
+				ownerID, _ := r["owner_id"].(string)
+				ownerName := userNames[ownerID]
+				if ownerName == "" {
+					ownerName = "Unknown"
+				}
+
+				// Get team name from metadata (if available)
+				teamName := ownerName
+				if metadata, ok := r["metadata"].(map[string]interface{}); ok {
+					if tn, ok := metadata["team_name"].(string); ok && tn != "" {
+						teamName = tn
+					}
+				}
+
+				// Calculate average age for this roster
+				rosterPlayers := toStringSlice(r["players"])
+				totalAge := 0
+				ageCount := 0
+				for _, pid := range rosterPlayers {
+					if p, ok := players[pid].(map[string]interface{}); ok {
+						if ageVal, ok := p["age"].(float64); ok && ageVal > 0 {
+							totalAge += int(ageVal)
+							ageCount++
+						}
+					}
+				}
+
+				avgAge := 0.0
+				if ageCount > 0 {
+					avgAge = float64(totalAge) / float64(ageCount)
+				}
+
+				// Get standings rank (wins)
+				rank := 0
+				if settings, ok := r["settings"].(map[string]interface{}); ok {
+					if wins, ok := settings["wins"].(float64); ok {
+						rank = int(wins)
+					}
+				}
+
+				teamAges = append(teamAges, TeamAgeData{
+					TeamName:   teamName,
+					OwnerName:  ownerName,
+					AvgAge:     avgAge,
+					Rank:       rank,
+					RosterID:   int(rosterID),
+					IsUserTeam: (ownerID == userID),
+				})
+			}
+
+			// Sort teams by average age (oldest first)
+			sort.Slice(teamAges, func(i, j int) bool {
+				return teamAges[i].AvgAge > teamAges[j].AvgAge
+			})
+
+			debugLog("[DEBUG] Calculated ages for %d teams", len(teamAges))
+		}
+
 		avgTier := avg(starterTiers)
 		avgOppTier := avg(oppTiers)
 		winProb, emoji := winProbability(avgTier, avgOppTier)
 
 		leagueData := LeagueData{
-			LeagueName:          leagueName,
-			Scoring:             scoring,
-			IsDynasty:           isDynasty,
-			HasMatchups:         hasMatchups,
-			DynastyValueDate:    dynastyValueDate,
-			Starters:            startersRows,
-			Unranked:            unrankedRows,
-			AvgTier:             avgTier,
-			AvgOppTier:          avgOppTier,
-			WinProb:             winProb + " " + emoji,
-			Bench:               benchRows,
-			BenchUnranked:       benchUnrankedRows,
-			FreeAgentsByPos:     freeAgentsByPos,
-			TopFreeAgents:       topFreeAgents,
+			LeagueName:           leagueName,
+			Scoring:              scoring,
+			IsDynasty:            isDynasty,
+			HasMatchups:          hasMatchups,
+			DynastyValueDate:     dynastyValueDate,
+			Starters:             startersRows,
+			Unranked:             unrankedRows,
+			AvgTier:              avgTier,
+			AvgOppTier:           avgOppTier,
+			WinProb:              winProb + " " + emoji,
+			Bench:                benchRows,
+			BenchUnranked:        benchUnrankedRows,
+			FreeAgentsByPos:      freeAgentsByPos,
+			TopFreeAgents:        topFreeAgents,
 			TopFreeAgentsByValue: topFreeAgentsByValue,
-			TotalRosterValue:    totalRosterValue,
+			TotalRosterValue:     totalRosterValue,
+			UserAvgAge:           userAvgAge,
+			TeamAges:             teamAges,
 		}
 
 		leagueResults = append(leagueResults, leagueData)
@@ -1414,11 +1537,17 @@ func buildRowsWithPositions(ids []string, players map[string]interface{}, tiers 
 				shouldSwapIn = true
 			}
 		}
+		// Get player age
+		age := 0
+		if ageVal, ok := p["age"].(float64); ok {
+			age = int(ageVal)
+		}
+
 		if tier > 0 {
-			rows = append(rows, PlayerRow{Pos: pos, Name: displayName, Tier: tier, IsTierWorseThanBench: isWorse, ShouldSwapIn: shouldSwapIn})
+			rows = append(rows, PlayerRow{Pos: pos, Name: displayName, Tier: tier, IsTierWorseThanBench: isWorse, ShouldSwapIn: shouldSwapIn, Age: age})
 			tierNums = append(tierNums, tier)
 		} else {
-			unranked = append(unranked, PlayerRow{Pos: "?", Name: displayName, Tier: "Not Ranked", IsTierWorseThanBench: false, ShouldSwapIn: false})
+			unranked = append(unranked, PlayerRow{Pos: "?", Name: displayName, Tier: "Not Ranked", IsTierWorseThanBench: false, ShouldSwapIn: false, Age: age})
 		}
 	}
 	return rows, unranked, tierNums

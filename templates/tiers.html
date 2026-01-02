@@ -79,15 +79,30 @@ function switchMode(leagueIndex, mode) {
             {{end}}
             <table class="sortable-table pretty-table">
                 <thead>
-                    <tr><th>Position</th><th>Player</th><th>Tier</th>{{if $l.IsDynasty}}<th>Dynasty Value</th>{{end}}</tr>
+                    <tr>
+                        <th>Position</th>
+                        <th>Player</th>
+                        {{if $l.IsDynasty}}
+                        <th class="inseason-only">Tier</th>
+                        <th class="dynasty-only" style="display:none;">Age</th>
+                        <th>Dynasty Value</th>
+                        {{else}}
+                        <th>Tier</th>
+                        {{end}}
+                    </tr>
                 </thead>
                 <tbody>
                 {{range $l.Starters}}
                     <tr{{if eq .Tier 1}} class="tier1"{{else if .IsTierWorseThanBench}} class="tier-worse"{{end}}>
                         <td>{{.Pos}}</td>
                         <td>{{if eq .Tier 1}}<span class="tier1-star">★</span> {{end}}{{.Name | safe}}</td>
+                        {{if $l.IsDynasty}}
+                        <td class="inseason-only">{{.Tier}}{{if .IsFlex}} <span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">FLEX</span>{{else if .IsSuperflex}} <span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">SF</span>{{end}}</td>
+                        <td class="dynasty-only" style="display:none;">{{if .Age}}{{.Age}}{{else}}-{{end}}</td>
+                        <td>{{if .DynastyValue}}{{.DynastyValue}}{{else}}-{{end}}</td>
+                        {{else}}
                         <td>{{.Tier}}{{if .IsFlex}} <span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">FLEX</span>{{else if .IsSuperflex}} <span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">SF</span>{{end}}</td>
-                        {{if $l.IsDynasty}}<td>{{if .DynastyValue}}{{.DynastyValue}}{{else}}-{{end}}</td>{{end}}
+                        {{end}}
                     </tr>
                 {{end}}
                 {{range $l.Unranked}}
@@ -96,8 +111,13 @@ function switchMode(leagueIndex, mode) {
                             {{if eq .Pos "FLEX"}}<span style="color:#7bb0ff;font-weight:bold;">FLEX</span>{{else if eq .Pos "SUPERFLEX"}}<span style="color:#7bb0ff;font-weight:bold;">SUPERFLEX</span>{{else}}{{.Pos}}{{end}}
                         </td>
                         <td>{{.Name | safe}}</td>
+                        {{if $l.IsDynasty}}
+                        <td class="inseason-only">{{.Tier}}</td>
+                        <td class="dynasty-only" style="display:none;">{{if .Age}}{{.Age}}{{else}}-{{end}}</td>
+                        <td>-</td>
+                        {{else}}
                         <td>{{.Tier}}</td>
-                        {{if $l.IsDynasty}}<td>-</td>{{end}}
+                        {{end}}
                     </tr>
                 {{end}}
                 </tbody>
@@ -125,14 +145,79 @@ function switchMode(leagueIndex, mode) {
                     <tr class="{{if $l.IsDynasty}}inseason-only{{end}}"><td colspan="{{if $l.IsDynasty}}4{{else}}3{{end}}" class="summary" style="padding:16px;font-style:italic;color:#9fb3d4;">Offseason - No active matchups</td></tr>
                     {{end}}
                     {{if $l.IsDynasty}}
-                    <tr class="dynasty-only" style="display:none;"><td colspan="4" class="summary" style="padding:16px;"><b>Total Roster Value: {{$l.TotalRosterValue}}</b></td></tr>
+                    <tr class="dynasty-only" style="display:none;">
+                        <td colspan="4" class="summary" style="padding:16px;">
+                            <b>Total Roster Value: {{$l.TotalRosterValue}}</b><br>
+                            <b style="margin-top:8px;display:block;">Your Team's Average Age: {{printf "%.1f" $l.UserAvgAge}} years</b>
+                        </td>
+                    </tr>
+                    {{if $l.TeamAges}}
+                    <tr class="dynasty-only" style="display:none;">
+                        <td colspan="4" style="padding:16px 0;">
+                            <div class="age-chart-section">
+                                <div class="age-chart-header">League Age Analysis</div>
+                                <div class="age-chart-desc">Teams sorted by roster age (oldest to youngest)</div>
+                                <table class="age-chart-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="text-align:left;">Team</th>
+                                            <th>Avg Age</th>
+                                            <th>Wins</th>
+                                            <th>Strategy</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    {{range $l.TeamAges}}
+                                        <tr{{if .IsUserTeam}} style="background:rgba(123,176,255,0.15);border-left:3px solid #7bb0ff;"{{end}}>
+                                            <td style="text-align:left;">
+                                                {{if .IsUserTeam}}<b>{{.TeamName}}</b> (You){{else}}{{.TeamName}}{{end}}
+                                            </td>
+                                            <td>{{printf "%.1f" .AvgAge}}</td>
+                                            <td>{{.Rank}}</td>
+                                            <td>
+                                                {{if gt .AvgAge 27.0}}
+                                                    <span style="color:#ff9d5c;">Win Now</span>
+                                                {{else if lt .AvgAge 24.5}}
+                                                    <span style="color:#7bb0ff;">Rebuild</span>
+                                                {{else}}
+                                                    <span style="color:#3ae87a;">Contending</span>
+                                                {{end}}
+                                            </td>
+                                        </tr>
+                                    {{end}}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                    {{end}}
                     {{end}}
                     <tr><th colspan="{{if $l.IsDynasty}}4{{else}}3{{end}}" class="bench-header" style="padding-top:24px; padding-bottom:16px;">Bench</th></tr>
                     {{range $l.Bench}}
-                        <tr{{if eq .Tier 1}} class="tier1"{{else if .ShouldSwapIn}} class="swap-candidate"{{end}}><td>{{.Pos}}</td><td>{{if eq .Tier 1}}<span class="tier1-star">★</span> {{end}}{{if .ShouldSwapIn}}<span class="swap-icon">⇄</span> {{end}}{{.Name | safe}}</td><td>{{.Tier}}{{if .IsFlex}} <span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">FLEX</span>{{end}}</td>{{if $l.IsDynasty}}<td>{{if .DynastyValue}}{{.DynastyValue}}{{else}}-{{end}}</td>{{end}}</tr>
+                        <tr{{if eq .Tier 1}} class="tier1"{{else if .ShouldSwapIn}} class="swap-candidate"{{end}}>
+                            <td>{{.Pos}}</td>
+                            <td>{{if eq .Tier 1}}<span class="tier1-star">★</span> {{end}}{{if .ShouldSwapIn}}<span class="swap-icon">⇄</span> {{end}}{{.Name | safe}}</td>
+                            {{if $l.IsDynasty}}
+                            <td class="inseason-only">{{.Tier}}{{if .IsFlex}} <span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">FLEX</span>{{end}}</td>
+                            <td class="dynasty-only" style="display:none;">{{if .Age}}{{.Age}}{{else}}-{{end}}</td>
+                            <td>{{if .DynastyValue}}{{.DynastyValue}}{{else}}-{{end}}</td>
+                            {{else}}
+                            <td>{{.Tier}}{{if .IsFlex}} <span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">FLEX</span>{{end}}</td>
+                            {{end}}
+                        </tr>
                     {{end}}
                     {{range $l.BenchUnranked}}
-                        <tr><td>{{.Pos}}</td><td>{{.Name | safe}}</td><td>{{.Tier}}</td>{{if $l.IsDynasty}}<td>-</td>{{end}}</tr>
+                        <tr>
+                            <td>{{.Pos}}</td>
+                            <td>{{.Name | safe}}</td>
+                            {{if $l.IsDynasty}}
+                            <td class="inseason-only">{{.Tier}}</td>
+                            <td class="dynasty-only" style="display:none;">{{if .Age}}{{.Age}}{{else}}-{{end}}</td>
+                            <td>-</td>
+                            {{else}}
+                            <td>{{.Tier}}</td>
+                            {{end}}
+                        </tr>
                     {{end}}
                     <tr><td colspan="{{if $l.IsDynasty}}4{{else}}3{{end}}" style="padding-top:8px;font-size:0.9em;color:#9fb3d4;font-style:italic;">Note: RB/WR/TE bench players ranked using FLEX tiers</td></tr>
                 </tfoot>
@@ -332,6 +417,54 @@ if (document.getElementById('defaultTab')) document.getElementById('defaultTab')
     font-size: 0.9em;
     color: #8a9ab8;
     font-style: italic;
+}
+.age-chart-section {
+    background: rgba(30, 38, 54, 0.5);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid rgba(123, 176, 255, 0.15);
+}
+.age-chart-header {
+    font-size: 1.15em;
+    font-weight: 700;
+    color: #7bb0ff;
+    text-align: center;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.age-chart-desc {
+    text-align: center;
+    font-size: 0.85em;
+    color: #9fb3d4;
+    margin-bottom: 16px;
+    font-style: italic;
+}
+.age-chart-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+}
+.age-chart-table thead th {
+    background: rgba(123, 176, 255, 0.1);
+    padding: 10px;
+    font-size: 0.9em;
+    font-weight: 600;
+    color: #c5d5f0;
+    border-bottom: 2px solid rgba(123, 176, 255, 0.2);
+}
+.age-chart-table tbody tr {
+    border-bottom: 1px solid rgba(123, 176, 255, 0.05);
+    transition: background 0.2s ease;
+}
+.age-chart-table tbody tr:hover {
+    background: rgba(123, 176, 255, 0.08);
+}
+.age-chart-table tbody td {
+    padding: 12px 10px;
+    font-size: 0.95em;
+    color: #e8eef7;
+    text-align: center;
 }
 </style>
 </body>
