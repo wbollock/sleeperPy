@@ -219,20 +219,22 @@ type PlayerRow struct {
 }
 
 type LeagueData struct {
-	LeagueName       string
-	Scoring          string
-	IsDynasty        bool
-	HasMatchups      bool
-	DynastyValueDate string // Date dynasty values were last updated
-	Starters         []PlayerRow
-	Unranked         []PlayerRow
-	AvgTier          string
-	AvgOppTier       string
-	WinProb          string
-	Bench            []PlayerRow
-	BenchUnranked    []PlayerRow
-	FreeAgentsByPos  map[string][]PlayerRow
-	TopFreeAgents    []PlayerRow // Combined prioritized list
+	LeagueName          string
+	Scoring             string
+	IsDynasty           bool
+	HasMatchups         bool
+	DynastyValueDate    string // Date dynasty values were last updated
+	Starters            []PlayerRow
+	Unranked            []PlayerRow
+	AvgTier             string
+	AvgOppTier          string
+	WinProb             string
+	Bench               []PlayerRow
+	BenchUnranked       []PlayerRow
+	FreeAgentsByPos     map[string][]PlayerRow
+	TopFreeAgents       []PlayerRow // Combined prioritized list (tier-based)
+	TopFreeAgentsByValue []PlayerRow // Dynasty mode: value-based recommendations
+	TotalRosterValue    int         // Sum of all dynasty values on roster
 }
 
 type TiersPage struct {
@@ -893,25 +895,143 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		debugLog("[DEBUG] Top free agents: %d selected from %d", len(topFreeAgents), len(allFAs))
 
+		// Dynasty mode: generate value-based free agent recommendations and calculate total roster value
+		var topFreeAgentsByValue []PlayerRow
+		var totalRosterValue int
+		if isDynasty && dynastyValues != nil {
+			// Calculate total roster value (starters + bench)
+			for _, row := range startersRows {
+				totalRosterValue += row.DynastyValue
+			}
+			for _, row := range benchRows {
+				totalRosterValue += row.DynastyValue
+			}
+			debugLog("[DEBUG] Total roster value: %d", totalRosterValue)
+
+			// Find lowest dynasty values on current roster (to identify upgrade targets)
+			lowestRosterValue := make(map[string]int) // pos -> lowest value on roster
+			for _, row := range startersRows {
+				if row.DynastyValue > 0 {
+					if lowest, exists := lowestRosterValue[row.Pos]; !exists || row.DynastyValue < lowest {
+						lowestRosterValue[row.Pos] = row.DynastyValue
+					}
+				}
+			}
+			for _, row := range benchRows {
+				actualPos := row.Pos
+				// Skip positions like FLEX, use actual player position for comparison
+				if actualPos != "FLEX" && actualPos != "SUPER_FLEX" && row.DynastyValue > 0 {
+					if lowest, exists := lowestRosterValue[actualPos]; !exists || row.DynastyValue < lowest {
+						lowestRosterValue[actualPos] = row.DynastyValue
+					}
+				}
+			}
+			debugLog("[DEBUG] Lowest roster values by position: %v", lowestRosterValue)
+
+			// Find free agents with higher dynasty values than current roster
+			valueUpgrades := []PlayerRow{}
+			for pid, p := range players {
+				if _, ok := rostered[pid]; ok {
+					continue
+				}
+				pm, ok := p.(map[string]interface{})
+				if !ok || pm["active"] == false {
+					continue
+				}
+				pos, _ := pm["position"].(string)
+				if pos == "" || (pos != "QB" && pos != "RB" && pos != "WR" && pos != "TE") {
+					continue // Only consider skill positions for dynasty
+				}
+
+				name := getPlayerName(pm)
+				cleanName := normalizeName(name)
+
+				// Get dynasty value for this FA
+				if val, exists := dynastyValues[cleanName]; exists {
+					faValue := val.Value1QB
+					if isSuperFlex {
+						faValue = val.Value2QB
+					}
+
+					// Check if this FA is an upgrade over anyone on the roster
+					if lowestValue, exists := lowestRosterValue[pos]; exists && faValue > lowestValue {
+						valueDiff := faValue - lowestValue
+						debugLog("[DEBUG] Dynasty upgrade found: %s (pos: %s, value: %d, diff: +%d)", name, pos, faValue, valueDiff)
+
+						// Find the player they would replace
+						upgradeFor := ""
+						upgradeType := ""
+						for _, row := range startersRows {
+							if (row.Pos == pos || row.IsFlex || row.IsSuperflex) && row.DynastyValue > 0 && row.DynastyValue < faValue {
+								if row.DynastyValue == lowestValue {
+									upgradeFor = stripHTML(row.Name)
+									upgradeType = "Starter"
+									break
+								}
+							}
+						}
+						if upgradeFor == "" {
+							for _, row := range benchRows {
+								if row.Pos == pos && row.DynastyValue > 0 && row.DynastyValue < faValue {
+									if row.DynastyValue == lowestValue {
+										upgradeFor = stripHTML(row.Name)
+										upgradeType = "Bench"
+										break
+									}
+								}
+							}
+						}
+
+						valueUpgrades = append(valueUpgrades, PlayerRow{
+							Pos:          pos,
+							Name:         name,
+							DynastyValue: faValue,
+							IsFreeAgent:  true,
+							IsUpgrade:    true,
+							UpgradeFor:   upgradeFor,
+							UpgradeType:  upgradeType,
+						})
+					}
+				}
+			}
+
+			// Sort by dynasty value (highest first)
+			sort.Slice(valueUpgrades, func(i, j int) bool {
+				return valueUpgrades[i].DynastyValue > valueUpgrades[j].DynastyValue
+			})
+
+			// Take top 15 most valuable available players
+			limit := 15
+			if len(valueUpgrades) < limit {
+				limit = len(valueUpgrades)
+			}
+			if limit > 0 {
+				topFreeAgentsByValue = valueUpgrades[:limit]
+			}
+			debugLog("[DEBUG] Dynasty mode: found %d value-based free agent upgrades", len(topFreeAgentsByValue))
+		}
+
 		avgTier := avg(starterTiers)
 		avgOppTier := avg(oppTiers)
 		winProb, emoji := winProbability(avgTier, avgOppTier)
 
 		leagueData := LeagueData{
-			LeagueName:       leagueName,
-			Scoring:          scoring,
-			IsDynasty:        isDynasty,
-			HasMatchups:      hasMatchups,
-			DynastyValueDate: dynastyValueDate,
-			Starters:         startersRows,
-			Unranked:         unrankedRows,
-			AvgTier:          avgTier,
-			AvgOppTier:       avgOppTier,
-			WinProb:          winProb + " " + emoji,
-			Bench:            benchRows,
-			BenchUnranked:    benchUnrankedRows,
-			FreeAgentsByPos:  freeAgentsByPos,
-			TopFreeAgents:    topFreeAgents,
+			LeagueName:          leagueName,
+			Scoring:             scoring,
+			IsDynasty:           isDynasty,
+			HasMatchups:         hasMatchups,
+			DynastyValueDate:    dynastyValueDate,
+			Starters:            startersRows,
+			Unranked:            unrankedRows,
+			AvgTier:             avgTier,
+			AvgOppTier:          avgOppTier,
+			WinProb:             winProb + " " + emoji,
+			Bench:               benchRows,
+			BenchUnranked:       benchUnrankedRows,
+			FreeAgentsByPos:     freeAgentsByPos,
+			TopFreeAgents:       topFreeAgents,
+			TopFreeAgentsByValue: topFreeAgentsByValue,
+			TotalRosterValue:    totalRosterValue,
 		}
 
 		leagueResults = append(leagueResults, leagueData)

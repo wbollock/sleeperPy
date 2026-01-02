@@ -26,6 +26,35 @@ function showLeagueTab(evt, tabId) {
     document.querySelectorAll('.league-tab').forEach(btn => btn.classList.remove('active'));
     evt.currentTarget.classList.add('active');
 }
+
+function switchMode(leagueIndex, mode) {
+    const league = document.getElementById('league' + leagueIndex);
+
+    // Update button states
+    const btns = league.querySelectorAll('.mode-btn');
+    btns.forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+
+    // Update description
+    const inseasonDesc = league.querySelector('.inseason-desc');
+    const dynastyDesc = league.querySelector('.dynasty-desc');
+
+    // Toggle content visibility
+    const inseasonContent = league.querySelectorAll('.inseason-only');
+    const dynastyContent = league.querySelectorAll('.dynasty-only');
+
+    if (mode === 'inseason') {
+        inseasonDesc.style.display = 'inline';
+        dynastyDesc.style.display = 'none';
+        inseasonContent.forEach(el => el.style.display = '');
+        dynastyContent.forEach(el => el.style.display = 'none');
+    } else {
+        inseasonDesc.style.display = 'none';
+        dynastyDesc.style.display = 'inline';
+        inseasonContent.forEach(el => el.style.display = 'none');
+        dynastyContent.forEach(el => el.style.display = '');
+    }
+}
 </script>
 
 <div class="league-tabs">
@@ -36,6 +65,18 @@ function showLeagueTab(evt, tabId) {
 <div class="league-contents">
     {{range $i, $l := .Leagues}}
         <div class="league-content" id="league{{$i}}" style="display:{{if eq $i 0}}block{{else}}none{{end}};">
+            {{if $l.IsDynasty}}
+            <div class="mode-toggle-container">
+                <div class="mode-toggle">
+                    <button class="mode-btn active" onclick="switchMode({{$i}}, 'inseason')">In-Season</button>
+                    <button class="mode-btn" onclick="switchMode({{$i}}, 'dynasty')">Dynasty</button>
+                </div>
+                <div class="mode-description">
+                    <span class="inseason-desc">Weekly matchups & tier-based recommendations</span>
+                    <span class="dynasty-desc" style="display:none;">Long-term value & dynasty toolkit</span>
+                </div>
+            </div>
+            {{end}}
             <table class="sortable-table pretty-table">
                 <thead>
                     <tr><th>Position</th><th>Player</th><th>Tier</th>{{if $l.IsDynasty}}<th>Dynasty Value</th>{{end}}</tr>
@@ -61,10 +102,10 @@ function showLeagueTab(evt, tabId) {
                 {{end}}
                 </tbody>
                 <tfoot>
-                    <tr><td colspan="{{if $l.IsDynasty}}4{{else}}3{{end}}" class="summary" style="padding:16px;"><b>Average Tier: {{$l.AvgTier}}</b></td></tr>
+                    <tr class="{{if $l.IsDynasty}}inseason-only{{end}}"><td colspan="{{if $l.IsDynasty}}4{{else}}3{{end}}" class="summary" style="padding:16px;"><b>Average Tier: {{$l.AvgTier}}</b></td></tr>
                     {{if $l.HasMatchups}}
-                    <tr><td colspan="{{if $l.IsDynasty}}4{{else}}3{{end}}" class="summary" style="padding:16px;"><b>Opponent Average Tier: {{$l.AvgOppTier}}</b></td></tr>
-                    <tr>
+                    <tr class="{{if $l.IsDynasty}}inseason-only{{end}}"><td colspan="{{if $l.IsDynasty}}4{{else}}3{{end}}" class="summary" style="padding:16px;"><b>Opponent Average Tier: {{$l.AvgOppTier}}</b></td></tr>
+                    <tr class="{{if $l.IsDynasty}}inseason-only{{end}}">
                         <td colspan="{{if $l.IsDynasty}}4{{else}}3{{end}}" style="padding:12px 0; background:transparent; border:none; text-align:center;">
                             <div class="winprob-row">
                                 <span class="winprob-label">Win Probability</span>
@@ -81,7 +122,10 @@ function showLeagueTab(evt, tabId) {
                         </td>
                     </tr>
                     {{else}}
-                    <tr><td colspan="{{if $l.IsDynasty}}4{{else}}3{{end}}" class="summary" style="padding:16px;font-style:italic;color:#9fb3d4;">Offseason - No active matchups</td></tr>
+                    <tr class="{{if $l.IsDynasty}}inseason-only{{end}}"><td colspan="{{if $l.IsDynasty}}4{{else}}3{{end}}" class="summary" style="padding:16px;font-style:italic;color:#9fb3d4;">Offseason - No active matchups</td></tr>
+                    {{end}}
+                    {{if $l.IsDynasty}}
+                    <tr class="dynasty-only" style="display:none;"><td colspan="4" class="summary" style="padding:16px;"><b>Total Roster Value: {{$l.TotalRosterValue}}</b></td></tr>
                     {{end}}
                     <tr><th colspan="{{if $l.IsDynasty}}4{{else}}3{{end}}" class="bench-header" style="padding-top:24px; padding-bottom:16px;">Bench</th></tr>
                     {{range $l.Bench}}
@@ -95,8 +139,8 @@ function showLeagueTab(evt, tabId) {
             </table>
 
             {{if $l.TopFreeAgents}}
-            <div class="fa-section">
-                <div class="fa-header">Recommended Free Agents</div>
+            <div class="fa-section {{if $l.IsDynasty}}inseason-only{{end}}">
+                <div class="fa-header">Recommended Free Agents (Tier-Based)</div>
                 <table class="sortable-table pretty-table">
                     <thead>
                         <tr><th>Pos</th><th>Player</th><th>Tier</th>{{if $l.IsDynasty}}<th>Dynasty Value</th>{{end}}</tr>
@@ -113,6 +157,31 @@ function showLeagueTab(evt, tabId) {
                             </td>
                             <td>{{.Tier}}</td>
                             {{if $l.IsDynasty}}<td>{{if .DynastyValue}}{{.DynastyValue}}{{else}}-{{end}}</td>{{end}}
+                        </tr>
+                    {{end}}
+                    </tbody>
+                </table>
+            </div>
+            {{end}}
+
+            {{if $l.TopFreeAgentsByValue}}
+            <div class="fa-section dynasty-only" style="display:none;">
+                <div class="fa-header">Top Available Players (Dynasty Value)</div>
+                <table class="sortable-table pretty-table">
+                    <thead>
+                        <tr><th>Pos</th><th>Player</th><th>Dynasty Value</th></tr>
+                    </thead>
+                    <tbody>
+                    {{range $l.TopFreeAgentsByValue}}
+                        <tr{{if .IsUpgrade}} class="fa-upgrade"{{end}}>
+                            <td>{{.Pos}}</td>
+                            <td>
+                                {{if .IsUpgrade}}<span class="fa-upgrade-icon">⬆</span> {{end}}{{.Name | safe}}
+                                {{if .IsUpgrade}}
+                                    <div style="font-size:0.85em;color:#3ae87a;margin-top:2px;">Upgrade for {{.UpgradeType}}: {{.UpgradeFor}}</div>
+                                {{end}}
+                            </td>
+                            <td>{{.DynastyValue}}</td>
                         </tr>
                     {{end}}
                     </tbody>
@@ -223,6 +292,46 @@ if (document.getElementById('defaultTab')) document.getElementById('defaultTab')
     font-size: 1.25em;
     margin-right: 6px;
     filter: drop-shadow(0 0 4px rgba(58, 232, 122, 0.4));
+}
+.mode-toggle-container {
+    margin-bottom: 24px;
+    text-align: center;
+}
+.mode-toggle {
+    display: inline-flex;
+    background: rgba(30, 38, 54, 0.6);
+    border-radius: 12px;
+    padding: 4px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(123, 176, 255, 0.2);
+}
+.mode-btn {
+    background: transparent;
+    border: none;
+    color: #9fb3d4;
+    padding: 12px 32px;
+    font-size: 0.95em;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.mode-btn:hover {
+    color: #c5d5f0;
+    background: rgba(123, 176, 255, 0.1);
+}
+.mode-btn.active {
+    background: linear-gradient(135deg, rgba(123, 176, 255, 0.3) 0%, rgba(88, 86, 214, 0.3) 100%);
+    color: #e8eef7;
+    box-shadow: 0 2px 8px rgba(123, 176, 255, 0.3);
+}
+.mode-description {
+    margin-top: 12px;
+    font-size: 0.9em;
+    color: #8a9ab8;
+    font-style: italic;
 }
 </style>
 </body>
