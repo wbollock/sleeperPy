@@ -1189,6 +1189,18 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		var draftPicks []DraftPick
 		if isDynasty {
 			// Fetch traded picks from Sleeper API
+			// KNOWN ISSUE: This logic may show incorrect pick ownership
+			// Expected behavior:
+			//   - Only show picks currently owned by the user
+			//   - If pick was acquired via trade, show "from <team>"
+			//   - If pick was traded away, DON'T show it at all
+			//
+			// Current implementation uses:
+			//   - roster_id: assumed to be current owner
+			//   - owner_id: assumed to be original owner (team pick belonged to by default)
+			//   - previous_owner_id: assumed to be previous owner before current trade
+			//
+			// Debug logging will help verify these field meanings with real API data
 			tradedPicks, err := fetchJSONArray(fmt.Sprintf("https://api.sleeper.app/v1/league/%s/traded_picks", leagueID))
 			if err != nil {
 				debugLog("[DEBUG] Could not fetch traded picks: %v", err)
