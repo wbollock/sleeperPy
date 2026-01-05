@@ -108,7 +108,10 @@ func init() {
 }
 
 var funcMap = template.FuncMap{
-	"safe": func(s string) template.HTML { return template.HTML(s) },
+	"safe":    func(s string) template.HTML { return template.HTML(s) },
+	"float64": func(i int) float64 { return float64(i) },
+	"mul":     func(a, b float64) float64 { return a * b },
+	"div":     func(a, b float64) float64 { if b == 0 { return 0 }; return a / b },
 	"parseWinProb": func(s string) int {
 		// s is like "62% You 🏆" or "38% Opponent 💀"
 		parts := strings.Fields(s)
@@ -275,6 +278,7 @@ type LeagueData struct {
 	TeamAges             []TeamAgeData // All teams' ages for dynasty chart
 	DraftPicks           []DraftPick // User's draft picks (dynasty only)
 	TradeTargets         []TradeTarget // Potential trade partners (dynasty only)
+	PositionalBreakdown  PositionalKTC // User's positional value breakdown (dynasty only)
 }
 
 type TiersPage struct {
@@ -1299,6 +1303,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Calculate trade targets for dynasty leagues
 		var tradeTargets []TradeTarget
+		var positionalBreakdown PositionalKTC
 		if isDynasty && dynastyValues != nil {
 			// Build map of all rosters with enriched player rows
 			allRosters := make(map[int][]PlayerRow)
@@ -1341,6 +1346,9 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			userFullRoster := append([]PlayerRow{}, startersRows...)
 			userFullRoster = append(userFullRoster, benchRows...)
 
+			// Calculate user's positional breakdown
+			positionalBreakdown = calculatePositionalKTC(userFullRoster)
+
 			// Find trade targets
 			tradeTargets = findTradeTargets(userFullRoster, allRosters, teamNamesMap, int(userRosterID))
 			debugLog("[DEBUG] Found %d trade targets", len(tradeTargets))
@@ -1371,6 +1379,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			TeamAges:             teamAges,
 			DraftPicks:           draftPicks,
 			TradeTargets:         tradeTargets,
+			PositionalBreakdown:  positionalBreakdown,
 		}
 
 		leagueResults = append(leagueResults, leagueData)

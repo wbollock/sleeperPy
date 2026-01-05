@@ -267,33 +267,88 @@ function toggleSection(sectionId) {
                     </div>
                     {{end}}
 
-                    {{if $l.TradeTargets}}
                     <div class="toolkit-card collapseable">
                         <div class="card-header" onclick="toggleSection('trade-targets-{{$i}}')">
-                            <span class="card-title">Trade Targets</span>
+                            <span class="card-title">
+                                Trade Targets
+                                <span class="info-icon" title="Shows teams with complementary needs based on positional value distribution. Requires clear surplus (>30%) and deficit (<15%) positions.">?</span>
+                            </span>
                             <span class="collapse-icon" id="trade-targets-{{$i}}-icon">▼</span>
                         </div>
                         <div class="card-content" id="trade-targets-{{$i}}-content">
-                            <div class="trade-targets-desc" style="margin-bottom:16px;font-size:0.85em;color:#9fb3d4;font-style:italic;">Potential trade partners based on positional complementarity</div>
-                            {{range $l.TradeTargets}}
-                            <div class="trade-target-item">
-                                <div class="target-team">{{.TeamName}}</div>
-                                <div class="target-reason">{{.Reason}}</div>
-                                <div class="target-details">
-                                    <div class="surplus-row">
-                                        <span class="surplus-label">You offer:</span>
-                                        <span class="surplus-value">{{.YourSurplus}} ({{.YourSurplusKTC}} value)</span>
-                                    </div>
-                                    <div class="surplus-row">
-                                        <span class="surplus-label">They offer:</span>
-                                        <span class="surplus-value">{{.TheirSurplus}} ({{.TheirSurplusKTC}} value)</span>
+                            {{if $l.TradeTargets}}
+                                <div class="trade-targets-desc" style="margin-bottom:16px;font-size:0.85em;color:#9fb3d4;font-style:italic;">Potential trade partners based on positional complementarity</div>
+                                {{range $l.TradeTargets}}
+                                <div class="trade-target-item">
+                                    <div class="target-team">{{.TeamName}}</div>
+                                    <div class="target-reason">{{.Reason}}</div>
+                                    <div class="target-details">
+                                        <div class="surplus-row">
+                                            <span class="surplus-label">You offer:</span>
+                                            <span class="surplus-value">{{.YourSurplus}} ({{.YourSurplusKTC}} value)</span>
+                                        </div>
+                                        <div class="surplus-row">
+                                            <span class="surplus-label">They offer:</span>
+                                            <span class="surplus-value">{{.TheirSurplus}} ({{.TheirSurplusKTC}} value)</span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                                {{end}}
+                            {{else}}
+                                <div class="empty-state">
+                                    <div class="empty-state-icon">🤝</div>
+                                    <div class="empty-state-title">No Trade Recommendations</div>
+                                    <div class="empty-state-text">
+                                        Your roster is well-balanced! Trade targets appear when you have a clear positional surplus (>30% of total value) and deficit (<15% of total value).
+                                    </div>
+                                    {{if gt $l.TotalRosterValue 0}}
+                                    <div class="positional-breakdown">
+                                        <div class="breakdown-title">Your Positional Breakdown</div>
+                                        <div class="breakdown-grid">
+                                            {{$total := $l.TotalRosterValue}}
+                                            {{if gt $l.PositionalBreakdown.QB 0}}
+                                            <div class="breakdown-item">
+                                                <span class="breakdown-pos">QB</span>
+                                                <span class="breakdown-bar-wrap">
+                                                    <span class="breakdown-bar" style="width: {{printf "%.0f" (mul (div (float64 $l.PositionalBreakdown.QB) (float64 $total)) 100)}}%"></span>
+                                                </span>
+                                                <span class="breakdown-pct">{{printf "%.1f" (mul (div (float64 $l.PositionalBreakdown.QB) (float64 $total)) 100)}}%</span>
+                                            </div>
+                                            {{end}}
+                                            {{if gt $l.PositionalBreakdown.RB 0}}
+                                            <div class="breakdown-item">
+                                                <span class="breakdown-pos">RB</span>
+                                                <span class="breakdown-bar-wrap">
+                                                    <span class="breakdown-bar" style="width: {{printf "%.0f" (mul (div (float64 $l.PositionalBreakdown.RB) (float64 $total)) 100)}}%"></span>
+                                                </span>
+                                                <span class="breakdown-pct">{{printf "%.1f" (mul (div (float64 $l.PositionalBreakdown.RB) (float64 $total)) 100)}}%</span>
+                                            </div>
+                                            {{end}}
+                                            {{if gt $l.PositionalBreakdown.WR 0}}
+                                            <div class="breakdown-item">
+                                                <span class="breakdown-pos">WR</span>
+                                                <span class="breakdown-bar-wrap">
+                                                    <span class="breakdown-bar" style="width: {{printf "%.0f" (mul (div (float64 $l.PositionalBreakdown.WR) (float64 $total)) 100)}}%"></span>
+                                                </span>
+                                                <span class="breakdown-pct">{{printf "%.1f" (mul (div (float64 $l.PositionalBreakdown.WR) (float64 $total)) 100)}}%</span>
+                                            </div>
+                                            {{end}}
+                                            {{if gt $l.PositionalBreakdown.TE 0}}
+                                            <div class="breakdown-item">
+                                                <span class="breakdown-pos">TE</span>
+                                                <span class="breakdown-bar-wrap">
+                                                    <span class="breakdown-bar" style="width: {{printf "%.0f" (mul (div (float64 $l.PositionalBreakdown.TE) (float64 $total)) 100)}}%"></span>
+                                                </span>
+                                                <span class="breakdown-pct">{{printf "%.1f" (mul (div (float64 $l.PositionalBreakdown.TE) (float64 $total)) 100)}}%</span>
+                                            </div>
+                                            {{end}}
+                                        </div>
+                                    </div>
+                                    {{end}}
+                                </div>
                             {{end}}
                         </div>
                     </div>
-                    {{end}}
                 </div>
             </div>
             {{end}}
@@ -688,6 +743,97 @@ if (document.getElementById('defaultTab')) document.getElementById('defaultTab')
 .surplus-value {
     color: #c5d5f0;
     font-weight: 600;
+}
+.info-icon {
+    display: inline-block;
+    margin-left: 8px;
+    width: 18px;
+    height: 18px;
+    background: rgba(123, 176, 255, 0.2);
+    color: #7bb0ff;
+    border-radius: 50%;
+    font-size: 0.7em;
+    font-weight: 700;
+    text-align: center;
+    line-height: 18px;
+    cursor: help;
+    transition: all 0.2s ease;
+}
+.info-icon:hover {
+    background: rgba(123, 176, 255, 0.4);
+    transform: scale(1.1);
+}
+.empty-state {
+    text-align: center;
+    padding: 32px 16px;
+}
+.empty-state-icon {
+    font-size: 3em;
+    margin-bottom: 16px;
+    opacity: 0.6;
+}
+.empty-state-title {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #c5d5f0;
+    margin-bottom: 12px;
+}
+.empty-state-text {
+    font-size: 0.9em;
+    color: #9fb3d4;
+    line-height: 1.6;
+    max-width: 400px;
+    margin: 0 auto 24px;
+}
+.positional-breakdown {
+    background: rgba(123, 176, 255, 0.05);
+    border: 1px solid rgba(123, 176, 255, 0.15);
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 16px;
+}
+.breakdown-title {
+    font-size: 0.95em;
+    font-weight: 600;
+    color: #7bb0ff;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.breakdown-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.breakdown-item {
+    display: grid;
+    grid-template-columns: 40px 1fr 60px;
+    align-items: center;
+    gap: 12px;
+}
+.breakdown-pos {
+    font-weight: 600;
+    color: #c5d5f0;
+    font-size: 0.9em;
+}
+.breakdown-bar-wrap {
+    background: rgba(30, 38, 54, 0.6);
+    border-radius: 4px;
+    height: 20px;
+    overflow: hidden;
+}
+.breakdown-bar {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, rgba(123, 176, 255, 0.6) 0%, rgba(123, 176, 255, 0.8) 100%);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+.breakdown-pct {
+    font-size: 0.9em;
+    color: #9fb3d4;
+    font-weight: 500;
+    text-align: right;
 }
 </style>
 </body>
