@@ -1194,6 +1194,30 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 				debugLog("[DEBUG] Could not fetch traded picks: %v", err)
 			}
 
+			// Debug: Log raw traded picks data to understand API response
+			if tradedPicks != nil {
+				debugLog("[DEBUG] ===== TRADED PICKS RAW DATA =====")
+				for i, trade := range tradedPicks {
+					debugLog("[DEBUG] Trade %d: %+v", i, trade)
+					if season, ok := trade["season"].(string); ok {
+						debugLog("[DEBUG]   season: %s", season)
+					}
+					if round, ok := trade["round"].(float64); ok {
+						debugLog("[DEBUG]   round: %.0f", round)
+					}
+					if rosterID, ok := trade["roster_id"].(float64); ok {
+						debugLog("[DEBUG]   roster_id (current owner): %.0f", rosterID)
+					}
+					if ownerID, ok := trade["owner_id"].(float64); ok {
+						debugLog("[DEBUG]   owner_id (original owner): %.0f", ownerID)
+					}
+					if prevOwner, ok := trade["previous_owner_id"].(float64); ok {
+						debugLog("[DEBUG]   previous_owner_id: %.0f", prevOwner)
+					}
+				}
+				debugLog("[DEBUG] ===================================")
+			}
+
 			// Get league settings to determine number of rounds
 			numRounds := 3 // Default to 3 rounds
 			if settings, ok := league["settings"].(map[string]interface{}); ok {
@@ -1201,6 +1225,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 					numRounds = int(rounds)
 				}
 			}
+			debugLog("[DEBUG] League has %d draft rounds", numRounds)
 
 			// Create map of roster_id -> user info for owner names
 			rosterOwners := make(map[int]string)
@@ -1217,10 +1242,12 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 				}
 				rosterOwners[int(rosterID)] = ownerName
 			}
+			debugLog("[DEBUG] Roster owners map: %+v", rosterOwners)
 
 			// Calculate which picks each team has
 			currentYear := time.Now().Year()
 			userRosterID, _ := userRoster["roster_id"].(float64)
+			debugLog("[DEBUG] User roster ID: %.0f", userRosterID)
 
 			// Start with default picks (each team has their own picks by default)
 			pickOwnership := make(map[string]int) // key: "year-round-original_roster_id" -> current_owner_roster_id
@@ -1235,10 +1262,12 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 			}
+			debugLog("[DEBUG] Initialized %d default picks", len(pickOwnership))
 
 			// Apply traded picks
 			if tradedPicks != nil {
-				for _, trade := range tradedPicks {
+				debugLog("[DEBUG] Processing %d traded picks", len(tradedPicks))
+				for i, trade := range tradedPicks {
 					season, _ := trade["season"].(string)
 					round, _ := trade["round"].(float64)
 					rosterID, _ := trade["roster_id"].(float64)          // Current owner
@@ -1248,17 +1277,27 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 					year, _ := strconv.Atoi(season)
 					key := fmt.Sprintf("%d-%d-%d", year, int(round), int(originalRosterID))
 
+					debugLog("[DEBUG] Trade %d: %d Round %d (originally from roster %.0f)", i, year, int(round), originalRosterID)
+					debugLog("[DEBUG]   Current owner (roster_id): %.0f", rosterID)
+					debugLog("[DEBUG]   Previous owner: %.0f", previousOwnerID)
+					debugLog("[DEBUG]   Key: %s", key)
+
 					// Update ownership
+					oldOwner := pickOwnership[key]
 					if rosterID > 0 {
 						pickOwnership[key] = int(rosterID)
+						debugLog("[DEBUG]   ✓ Updated ownership from roster %d to roster %.0f", oldOwner, rosterID)
 					} else if previousOwnerID > 0 {
 						// If roster_id is 0, the pick was traded away from previous owner
 						delete(pickOwnership, key)
+						debugLog("[DEBUG]   ✗ Deleted pick (roster_id is 0, pick traded away)")
 					}
 				}
 			}
 
 			// Extract user's picks
+			debugLog("[DEBUG] ===== EXTRACTING USER PICKS =====")
+			debugLog("[DEBUG] Searching for picks owned by roster %.0f", userRosterID)
 			for key, ownerRosterID := range pickOwnership {
 				if ownerRosterID == int(userRosterID) {
 					parts := strings.Split(key, "-")
@@ -1277,6 +1316,9 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 						if origOwner, exists := rosterOwners[originalRosterID]; exists {
 							originalName = origOwner
 						}
+						debugLog("[DEBUG] Pick %d Round %d: ACQUIRED from roster %d (%s)", year, round, originalRosterID, originalName)
+					} else {
+						debugLog("[DEBUG] Pick %d Round %d: YOUR ORIGINAL pick", year, round)
 					}
 
 					draftPicks = append(draftPicks, DraftPick{
@@ -1298,7 +1340,15 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 				return draftPicks[i].Round < draftPicks[j].Round
 			})
 
-			debugLog("[DEBUG] User has %d draft picks", len(draftPicks))
+			debugLog("[DEBUG] ===================================")
+			debugLog("[DEBUG] FINAL RESULT: User has %d draft picks total", len(draftPicks))
+			for _, pick := range draftPicks {
+				if pick.OriginalName != "" {
+					debugLog("[DEBUG]   - %d Round %d (from %s)", pick.Year, pick.Round, pick.OriginalName)
+				} else {
+					debugLog("[DEBUG]   - %d Round %d (original)", pick.Year, pick.Round)
+				}
+			}
 		}
 
 		// Calculate trade targets for dynasty leagues
