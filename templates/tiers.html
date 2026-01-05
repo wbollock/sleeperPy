@@ -68,12 +68,12 @@ function switchMode(leagueIndex, mode) {
             {{if $l.IsDynasty}}
             <div class="mode-toggle-container">
                 <div class="mode-toggle">
-                    <button class="mode-btn active" onclick="switchMode({{$i}}, 'inseason')">In-Season</button>
-                    <button class="mode-btn" onclick="switchMode({{$i}}, 'dynasty')">Dynasty</button>
+                    <button class="mode-btn" onclick="switchMode({{$i}}, 'inseason')">In-Season</button>
+                    <button class="mode-btn active" onclick="switchMode({{$i}}, 'dynasty')">Dynasty</button>
                 </div>
                 <div class="mode-description">
-                    <span class="inseason-desc">Weekly matchups & tier-based recommendations</span>
-                    <span class="dynasty-desc" style="display:none;">Long-term value & dynasty toolkit</span>
+                    <span class="inseason-desc" style="display:none;">Weekly matchups & tier-based recommendations</span>
+                    <span class="dynasty-desc">Long-term value & dynasty toolkit</span>
                 </div>
             </div>
             {{end}}
@@ -309,7 +309,22 @@ function switchMode(leagueIndex, mode) {
 
 </div>
 <script>
+// Initialize default tab
 if (document.getElementById('defaultTab')) document.getElementById('defaultTab').click();
+
+// Initialize dynasty leagues to dynasty mode
+{{range $i, $l := .Leagues}}
+{{if $l.IsDynasty}}
+(function() {
+    const league = document.getElementById('league{{$i}}');
+    if (league) {
+        // Hide in-season content, show dynasty content
+        league.querySelectorAll('.inseason-only').forEach(el => el.style.display = 'none');
+        league.querySelectorAll('.dynasty-only').forEach(el => el.style.display = '');
+    }
+})();
+{{end}}
+{{end}}
 </script>
 <script src="/static/sortable.js"></script>
 

@@ -1156,9 +1156,9 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 				})
 			}
 
-			// Sort teams by roster value (highest first)
+			// Sort teams by age (oldest to youngest)
 			sort.Slice(teamAges, func(i, j int) bool {
-				return teamAges[i].RosterValue > teamAges[j].RosterValue
+				return teamAges[i].AvgAge > teamAges[j].AvgAge
 			})
 
 			debugLog("[DEBUG] Calculated ages for %d teams", len(teamAges))
