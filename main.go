@@ -1936,11 +1936,14 @@ func findTradeTargets(userRows []PlayerRow, allRosters map[int][]PlayerRow, team
 		userDeficit = append(userDeficit, posNeed{"TE", userKTC.TE, userTEPct})
 	}
 
+	debugLog("[DEBUG] User positional breakdown: QB=%.1f%%, RB=%.1f%%, WR=%.1f%%, TE=%.1f%%",
+		userQBPct*100, userRBPct*100, userWRPct*100, userTEPct*100)
 	debugLog("[DEBUG] User surplus positions: %v", userSurplus)
 	debugLog("[DEBUG] User deficit positions: %v", userDeficit)
 
 	// If no clear surplus/deficit, no trade recommendations
 	if len(userSurplus) == 0 || len(userDeficit) == 0 {
+		debugLog("[DEBUG] No trade targets - need both surplus (>30%%) and deficit (<15%%) positions")
 		return nil
 	}
 
