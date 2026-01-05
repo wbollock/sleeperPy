@@ -238,6 +238,22 @@ type DraftPick struct {
 	IsYours      bool
 }
 
+type PositionalKTC struct {
+	QB int
+	RB int
+	WR int
+	TE int
+}
+
+type TradeTarget struct {
+	TeamName        string
+	Reason          string
+	YourSurplus     string
+	TheirSurplus    string
+	YourSurplusKTC  int
+	TheirSurplusKTC int
+}
+
 type LeagueData struct {
 	LeagueName           string
 	Scoring              string
@@ -258,6 +274,7 @@ type LeagueData struct {
 	UserAvgAge           float64     // Average age of user's roster
 	TeamAges             []TeamAgeData // All teams' ages for dynasty chart
 	DraftPicks           []DraftPick // User's draft picks (dynasty only)
+	TradeTargets         []TradeTarget // Potential trade partners (dynasty only)
 }
 
 type TiersPage struct {
@@ -1797,6 +1814,202 @@ func enrichRowsWithDynastyValues(rows []PlayerRow, dynastyValues map[string]Dyna
 			}
 		}
 	}
+}
+
+// calculatePositionalKTC calculates total dynasty value by position
+func calculatePositionalKTC(rows []PlayerRow) PositionalKTC {
+	posKTC := PositionalKTC{}
+	for _, row := range rows {
+		if row.DynastyValue <= 0 {
+			continue
+		}
+		switch row.Pos {
+		case "QB":
+			posKTC.QB += row.DynastyValue
+		case "RB":
+			posKTC.RB += row.DynastyValue
+		case "WR":
+			posKTC.WR += row.DynastyValue
+		case "TE":
+			posKTC.TE += row.DynastyValue
+		}
+	}
+	return posKTC
+}
+
+// findTradeTargets identifies potential trade partners based on complementary positional needs
+func findTradeTargets(userRows []PlayerRow, allRosters map[int][]PlayerRow, teamNames map[int]string, userRosterID int) []TradeTarget {
+	userKTC := calculatePositionalKTC(userRows)
+	userTotal := userKTC.QB + userKTC.RB + userKTC.WR + userKTC.TE
+
+	if userTotal == 0 {
+		return nil
+	}
+
+	// Calculate user's positional percentages
+	userQBPct := float64(userKTC.QB) / float64(userTotal)
+	userRBPct := float64(userKTC.RB) / float64(userTotal)
+	userWRPct := float64(userKTC.WR) / float64(userTotal)
+	userTEPct := float64(userKTC.TE) / float64(userTotal)
+
+	// Determine surplus and deficit positions (>30% is surplus, <15% is deficit)
+	type posNeed struct {
+		pos   string
+		value int
+		pct   float64
+	}
+
+	userSurplus := []posNeed{}
+	userDeficit := []posNeed{}
+
+	if userQBPct > 0.30 {
+		userSurplus = append(userSurplus, posNeed{"QB", userKTC.QB, userQBPct})
+	} else if userQBPct < 0.15 {
+		userDeficit = append(userDeficit, posNeed{"QB", userKTC.QB, userQBPct})
+	}
+
+	if userRBPct > 0.30 {
+		userSurplus = append(userSurplus, posNeed{"RB", userKTC.RB, userRBPct})
+	} else if userRBPct < 0.15 {
+		userDeficit = append(userDeficit, posNeed{"RB", userKTC.RB, userRBPct})
+	}
+
+	if userWRPct > 0.30 {
+		userSurplus = append(userSurplus, posNeed{"WR", userKTC.WR, userWRPct})
+	} else if userWRPct < 0.15 {
+		userDeficit = append(userDeficit, posNeed{"WR", userKTC.WR, userWRPct})
+	}
+
+	if userTEPct > 0.30 {
+		userSurplus = append(userSurplus, posNeed{"TE", userKTC.TE, userTEPct})
+	} else if userTEPct < 0.15 {
+		userDeficit = append(userDeficit, posNeed{"TE", userKTC.TE, userTEPct})
+	}
+
+	debugLog("[DEBUG] User surplus positions: %v", userSurplus)
+	debugLog("[DEBUG] User deficit positions: %v", userDeficit)
+
+	// If no clear surplus/deficit, no trade recommendations
+	if len(userSurplus) == 0 || len(userDeficit) == 0 {
+		return nil
+	}
+
+	type tradeMatch struct {
+		rosterID        int
+		teamName        string
+		complementarity float64
+		yourSurplus     string
+		theirSurplus    string
+		yourSurplusKTC  int
+		theirSurplusKTC int
+	}
+
+	matches := []tradeMatch{}
+
+	// Analyze each other team
+	for rosterID, roster := range allRosters {
+		if rosterID == userRosterID {
+			continue
+		}
+
+		teamKTC := calculatePositionalKTC(roster)
+		teamTotal := teamKTC.QB + teamKTC.RB + teamKTC.WR + teamKTC.TE
+
+		if teamTotal == 0 {
+			continue
+		}
+
+		teamQBPct := float64(teamKTC.QB) / float64(teamTotal)
+		teamRBPct := float64(teamKTC.RB) / float64(teamTotal)
+		teamWRPct := float64(teamKTC.WR) / float64(teamTotal)
+		teamTEPct := float64(teamKTC.TE) / float64(teamTotal)
+
+		// Find complementary matches: user surplus matches team deficit AND team surplus matches user deficit
+		var bestMatch *tradeMatch
+
+		for _, userSur := range userSurplus {
+			for _, userDef := range userDeficit {
+				// Check if team has surplus in user's deficit AND deficit in user's surplus
+				teamSurPct := 0.0
+				teamDefPct := 0.0
+				teamSurValue := 0
+
+				switch userDef.pos {
+				case "QB":
+					teamSurPct = teamQBPct
+					teamSurValue = teamKTC.QB
+				case "RB":
+					teamSurPct = teamRBPct
+					teamSurValue = teamKTC.RB
+				case "WR":
+					teamSurPct = teamWRPct
+					teamSurValue = teamKTC.WR
+				case "TE":
+					teamSurPct = teamTEPct
+					teamSurValue = teamKTC.TE
+				}
+
+				switch userSur.pos {
+				case "QB":
+					teamDefPct = teamQBPct
+				case "RB":
+					teamDefPct = teamRBPct
+				case "WR":
+					teamDefPct = teamWRPct
+				case "TE":
+					teamDefPct = teamTEPct
+				}
+
+				// Check for complementarity: they have surplus where you need, you have surplus where they need
+				if teamSurPct > 0.30 && teamDefPct < 0.15 {
+					complementarity := (userSur.pct - teamDefPct) + (teamSurPct - userDef.pct)
+
+					if bestMatch == nil || complementarity > bestMatch.complementarity {
+						bestMatch = &tradeMatch{
+							rosterID:        rosterID,
+							teamName:        teamNames[rosterID],
+							complementarity: complementarity,
+							yourSurplus:     userSur.pos,
+							theirSurplus:    userDef.pos,
+							yourSurplusKTC:  userSur.value,
+							theirSurplusKTC: teamSurValue,
+						}
+					}
+				}
+			}
+		}
+
+		if bestMatch != nil {
+			matches = append(matches, *bestMatch)
+		}
+	}
+
+	// Sort by complementarity score (highest first)
+	sort.Slice(matches, func(i, j int) bool {
+		return matches[i].complementarity > matches[j].complementarity
+	})
+
+	// Return top 3 matches
+	limit := 3
+	if len(matches) < limit {
+		limit = len(matches)
+	}
+
+	targets := make([]TradeTarget, limit)
+	for i := 0; i < limit; i++ {
+		m := matches[i]
+		reason := fmt.Sprintf("Has %s depth, needs %s", m.theirSurplus, m.yourSurplus)
+		targets[i] = TradeTarget{
+			TeamName:        m.teamName,
+			Reason:          reason,
+			YourSurplus:     m.yourSurplus,
+			TheirSurplus:    m.theirSurplus,
+			YourSurplusKTC:  m.yourSurplusKTC,
+			TheirSurplusKTC: m.theirSurplusKTC,
+		}
+	}
+
+	return targets
 }
 
 func avg(arr []int) string {
