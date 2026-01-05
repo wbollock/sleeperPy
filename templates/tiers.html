@@ -151,6 +151,26 @@ function switchMode(leagueIndex, mode) {
                             <b style="margin-top:8px;display:block;">Your Team's Average Age: {{printf "%.1f" $l.UserAvgAge}} years</b>
                         </td>
                     </tr>
+                    {{if $l.DraftPicks}}
+                    <tr class="dynasty-only" style="display:none;">
+                        <td colspan="4" style="padding:16px 0;">
+                            <div class="draft-picks-section">
+                                <div class="draft-picks-header">Your Draft Capital</div>
+                                <div class="draft-picks-grid">
+                                    {{range $l.DraftPicks}}
+                                    <div class="draft-pick-card{{if .OriginalName}} traded-pick{{end}}">
+                                        <div class="pick-year">{{.Year}}</div>
+                                        <div class="pick-round">Round {{.Round}}</div>
+                                        {{if .OriginalName}}
+                                        <div class="pick-origin">from {{.OriginalName}}</div>
+                                        {{end}}
+                                    </div>
+                                    {{end}}
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {{end}}
                     {{if $l.TeamAges}}
                     <tr class="dynasty-only" style="display:none;">
                         <td colspan="4" style="padding:16px 0;">
@@ -465,6 +485,66 @@ if (document.getElementById('defaultTab')) document.getElementById('defaultTab')
     font-size: 0.95em;
     color: #e8eef7;
     text-align: center;
+}
+.draft-picks-section {
+    background: rgba(30, 38, 54, 0.5);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid rgba(123, 176, 255, 0.15);
+}
+.draft-picks-header {
+    font-size: 1.15em;
+    font-weight: 700;
+    color: #7bb0ff;
+    text-align: center;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.draft-picks-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+}
+.draft-pick-card {
+    background: rgba(123, 176, 255, 0.08);
+    border: 1px solid rgba(123, 176, 255, 0.2);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+.draft-pick-card:hover {
+    background: rgba(123, 176, 255, 0.12);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+.draft-pick-card.traded-pick {
+    border-color: #3ae87a;
+    background: rgba(58, 232, 122, 0.08);
+}
+.draft-pick-card.traded-pick:hover {
+    background: rgba(58, 232, 122, 0.12);
+}
+.pick-year {
+    font-size: 1.3em;
+    font-weight: 700;
+    color: #7bb0ff;
+    margin-bottom: 4px;
+}
+.draft-pick-card.traded-pick .pick-year {
+    color: #3ae87a;
+}
+.pick-round {
+    font-size: 0.95em;
+    color: #c5d5f0;
+    font-weight: 500;
+}
+.pick-origin {
+    font-size: 0.8em;
+    color: #9fb3d4;
+    margin-top: 6px;
+    font-style: italic;
 }
 </style>
 </body>

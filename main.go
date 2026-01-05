@@ -220,12 +220,22 @@ type PlayerRow struct {
 }
 
 type TeamAgeData struct {
-	TeamName   string
-	OwnerName  string
-	AvgAge     float64
-	Rank       int // Standings rank
-	RosterID   int
-	IsUserTeam bool
+	TeamName    string
+	OwnerName   string
+	AvgAge      float64
+	Rank        int // Standings rank (wins)
+	RosterID    int
+	IsUserTeam  bool
+	RosterValue int // Total dynasty value of roster
+}
+
+type DraftPick struct {
+	Round        int
+	Year         int
+	OwnerName    string // "You" or team name
+	OriginalName string // Original owner if traded, empty if not traded
+	RosterID     int
+	IsYours      bool
 }
 
 type LeagueData struct {
@@ -247,6 +257,7 @@ type LeagueData struct {
 	TotalRosterValue     int         // Sum of all dynasty values on roster
 	UserAvgAge           float64     // Average age of user's roster
 	TeamAges             []TeamAgeData // All teams' ages for dynasty chart
+	DraftPicks           []DraftPick // User's draft picks (dynasty only)
 }
 
 type TiersPage struct {
@@ -1046,17 +1057,16 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			debugLog("[DEBUG] User's average roster age: %.2f (%d players)", userAvgAge, ageCount)
 		}
 
-		// Calculate average age for all teams in the league (for dynasty mode)
-		var teamAges []TeamAgeData
+		// Get league users for team names (for dynasty mode - used by both team ages and draft picks)
+		var userNames map[string]string
 		if isDynasty {
-			// Get league users for team names
 			leagueUsers, err := fetchJSONArray(fmt.Sprintf("https://api.sleeper.app/v1/league/%s/users", leagueID))
 			if err != nil {
 				debugLog("[DEBUG] Could not fetch league users: %v", err)
 			}
 
 			// Create a map of user_id -> display_name
-			userNames := make(map[string]string)
+			userNames = make(map[string]string)
 			if leagueUsers != nil {
 				for _, u := range leagueUsers {
 					if uid, ok := u["user_id"].(string); ok {
@@ -1070,8 +1080,13 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 			}
+		}
 
-			// Calculate average age for each roster
+		// Calculate average age for all teams in the league (for dynasty mode)
+		var teamAges []TeamAgeData
+		if isDynasty {
+
+			// Calculate average age and roster value for each roster
 			for _, r := range rosters {
 				rosterID, _ := r["roster_id"].(float64)
 				ownerID, _ := r["owner_id"].(string)
@@ -1088,15 +1103,31 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 
-				// Calculate average age for this roster
+				// Calculate average age and total roster value
 				rosterPlayers := toStringSlice(r["players"])
 				totalAge := 0
 				ageCount := 0
+				rosterValue := 0
+
 				for _, pid := range rosterPlayers {
 					if p, ok := players[pid].(map[string]interface{}); ok {
+						// Age
 						if ageVal, ok := p["age"].(float64); ok && ageVal > 0 {
 							totalAge += int(ageVal)
 							ageCount++
+						}
+
+						// Dynasty value
+						if dynastyValues != nil {
+							name := getPlayerName(p)
+							cleanName := normalizeName(name)
+							if val, exists := dynastyValues[cleanName]; exists {
+								if isSuperFlex {
+									rosterValue += val.Value2QB
+								} else {
+									rosterValue += val.Value1QB
+								}
+							}
 						}
 					}
 				}
@@ -1115,21 +1146,138 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 				}
 
 				teamAges = append(teamAges, TeamAgeData{
-					TeamName:   teamName,
-					OwnerName:  ownerName,
-					AvgAge:     avgAge,
-					Rank:       rank,
-					RosterID:   int(rosterID),
-					IsUserTeam: (ownerID == userID),
+					TeamName:    teamName,
+					OwnerName:   ownerName,
+					AvgAge:      avgAge,
+					Rank:        rank,
+					RosterID:    int(rosterID),
+					IsUserTeam:  (ownerID == userID),
+					RosterValue: rosterValue,
 				})
 			}
 
-			// Sort teams by average age (oldest first)
+			// Sort teams by roster value (highest first)
 			sort.Slice(teamAges, func(i, j int) bool {
-				return teamAges[i].AvgAge > teamAges[j].AvgAge
+				return teamAges[i].RosterValue > teamAges[j].RosterValue
 			})
 
 			debugLog("[DEBUG] Calculated ages for %d teams", len(teamAges))
+		}
+
+		// Fetch draft picks for dynasty leagues
+		var draftPicks []DraftPick
+		if isDynasty {
+			// Fetch traded picks from Sleeper API
+			tradedPicks, err := fetchJSONArray(fmt.Sprintf("https://api.sleeper.app/v1/league/%s/traded_picks", leagueID))
+			if err != nil {
+				debugLog("[DEBUG] Could not fetch traded picks: %v", err)
+			}
+
+			// Get league settings to determine number of rounds
+			numRounds := 3 // Default to 3 rounds
+			if settings, ok := league["settings"].(map[string]interface{}); ok {
+				if rounds, ok := settings["draft_rounds"].(float64); ok && rounds > 0 {
+					numRounds = int(rounds)
+				}
+			}
+
+			// Create map of roster_id -> user info for owner names
+			rosterOwners := make(map[int]string)
+			for _, r := range rosters {
+				rosterID, _ := r["roster_id"].(float64)
+				ownerID, _ := r["owner_id"].(string)
+
+				// Get owner name from league users (already fetched for team ages)
+				ownerName := "Unknown"
+				if userNames != nil {
+					if name, exists := userNames[ownerID]; exists {
+						ownerName = name
+					}
+				}
+				rosterOwners[int(rosterID)] = ownerName
+			}
+
+			// Calculate which picks each team has
+			currentYear := time.Now().Year()
+			userRosterID, _ := userRoster["roster_id"].(float64)
+
+			// Start with default picks (each team has their own picks by default)
+			pickOwnership := make(map[string]int) // key: "year-round-original_roster_id" -> current_owner_roster_id
+
+			// Initialize with default picks for next 3 years
+			for year := currentYear; year < currentYear+3; year++ {
+				for round := 1; round <= numRounds; round++ {
+					for _, r := range rosters {
+						rosterID, _ := r["roster_id"].(float64)
+						key := fmt.Sprintf("%d-%d-%d", year, round, int(rosterID))
+						pickOwnership[key] = int(rosterID) // Initially owned by the original team
+					}
+				}
+			}
+
+			// Apply traded picks
+			if tradedPicks != nil {
+				for _, trade := range tradedPicks {
+					season, _ := trade["season"].(string)
+					round, _ := trade["round"].(float64)
+					rosterID, _ := trade["roster_id"].(float64)          // Current owner
+					originalRosterID, _ := trade["owner_id"].(float64)  // Original owner (who the pick belonged to)
+					previousOwnerID, _ := trade["previous_owner_id"].(float64)
+
+					year, _ := strconv.Atoi(season)
+					key := fmt.Sprintf("%d-%d-%d", year, int(round), int(originalRosterID))
+
+					// Update ownership
+					if rosterID > 0 {
+						pickOwnership[key] = int(rosterID)
+					} else if previousOwnerID > 0 {
+						// If roster_id is 0, the pick was traded away from previous owner
+						delete(pickOwnership, key)
+					}
+				}
+			}
+
+			// Extract user's picks
+			for key, ownerRosterID := range pickOwnership {
+				if ownerRosterID == int(userRosterID) {
+					parts := strings.Split(key, "-")
+					if len(parts) != 3 {
+						continue
+					}
+					year, _ := strconv.Atoi(parts[0])
+					round, _ := strconv.Atoi(parts[1])
+					originalRosterID, _ := strconv.Atoi(parts[2])
+
+					ownerName := "You"
+					originalName := ""
+
+					// If this pick was traded (original owner != current owner)
+					if originalRosterID != int(userRosterID) {
+						if origOwner, exists := rosterOwners[originalRosterID]; exists {
+							originalName = origOwner
+						}
+					}
+
+					draftPicks = append(draftPicks, DraftPick{
+						Round:        round,
+						Year:         year,
+						OwnerName:    ownerName,
+						OriginalName: originalName,
+						RosterID:     int(userRosterID),
+						IsYours:      true,
+					})
+				}
+			}
+
+			// Sort picks by year, then by round
+			sort.Slice(draftPicks, func(i, j int) bool {
+				if draftPicks[i].Year != draftPicks[j].Year {
+					return draftPicks[i].Year < draftPicks[j].Year
+				}
+				return draftPicks[i].Round < draftPicks[j].Round
+			})
+
+			debugLog("[DEBUG] User has %d draft picks", len(draftPicks))
 		}
 
 		avgTier := avg(starterTiers)
@@ -1155,6 +1303,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			TotalRosterValue:     totalRosterValue,
 			UserAvgAge:           userAvgAge,
 			TeamAges:             teamAges,
+			DraftPicks:           draftPicks,
 		}
 
 		leagueResults = append(leagueResults, leagueData)
