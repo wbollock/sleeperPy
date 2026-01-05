@@ -188,6 +188,8 @@ type LeagueData struct {
 ### 2.3 Available Draft Picks
 **Goal**: Show what draft picks the user has
 
+⚠️ **KNOWN ISSUE**: Draft picks ownership logic may not be 100% accurate. The current implementation may show picks that were traded away or not show acquired picks correctly. This needs debugging with real API data to fix the ownership tracking logic.
+
 **Data Source**:
 - Sleeper API: `/v1/league/{league_id}/traded_picks` endpoint
 - Shows all traded picks (both acquired and traded away)

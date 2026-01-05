@@ -26,6 +26,9 @@ run: build ## Build and run the application
 dev: build ## Run in development mode with debug logging
 	PORT=$(PORT) ./$(BINARY_NAME) -log=$(LOG_LEVEL)
 
+debug: build ## Run with debug logging (alias for dev)
+	PORT=$(PORT) ./$(BINARY_NAME) -log=debug
+
 dev-watch: ## Run with hot reload (requires air: go install github.com/air-verse/air@latest)
 	air
 

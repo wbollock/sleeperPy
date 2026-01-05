@@ -2,9 +2,9 @@
 
 ## Overview
 This plan addresses multiple UI/UX improvements for dynasty mode based on user feedback:
-1. Default to dynasty mode for dynasty leagues
-2. Fix age sorting bug
-3. Fix draft picks ownership logic
+1. ✅ Default to dynasty mode for dynasty leagues
+2. ✅ Fix age sorting bug
+3. ⚠️ Fix draft picks ownership logic (KNOWN ISSUE - may not work correctly, needs debugging with real API data)
 4. Improve horizontal layout utilization
 5. Add collapseable sections
 6. Implement KTC-based trade target suggestions
