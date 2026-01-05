@@ -55,6 +55,19 @@ function switchMode(leagueIndex, mode) {
         dynastyContent.forEach(el => el.style.display = '');
     }
 }
+
+function toggleSection(sectionId) {
+    const content = document.getElementById(sectionId + '-content');
+    const icon = document.getElementById(sectionId + '-icon');
+
+    if (content.style.display === 'none') {
+        content.style.display = '';
+        icon.textContent = '▼';
+    } else {
+        content.style.display = 'none';
+        icon.textContent = '▶';
+    }
+}
 </script>
 
 <div class="league-tabs">
@@ -77,6 +90,9 @@ function switchMode(leagueIndex, mode) {
                 </div>
             </div>
             {{end}}
+
+            <div class="league-grid-container">
+                <div class="roster-card">
             <table class="sortable-table pretty-table">
                 <thead>
                     <tr>
@@ -151,66 +167,6 @@ function switchMode(leagueIndex, mode) {
                             <b style="margin-top:8px;display:block;">Your Team's Average Age: {{printf "%.1f" $l.UserAvgAge}} years</b>
                         </td>
                     </tr>
-                    {{if $l.DraftPicks}}
-                    <tr class="dynasty-only" style="display:none;">
-                        <td colspan="4" style="padding:16px 0;">
-                            <div class="draft-picks-section">
-                                <div class="draft-picks-header">Your Draft Capital</div>
-                                <div class="draft-picks-grid">
-                                    {{range $l.DraftPicks}}
-                                    <div class="draft-pick-card{{if .OriginalName}} traded-pick{{end}}">
-                                        <div class="pick-year">{{.Year}}</div>
-                                        <div class="pick-round">Round {{.Round}}</div>
-                                        {{if .OriginalName}}
-                                        <div class="pick-origin">from {{.OriginalName}}</div>
-                                        {{end}}
-                                    </div>
-                                    {{end}}
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                    {{end}}
-                    {{if $l.TeamAges}}
-                    <tr class="dynasty-only" style="display:none;">
-                        <td colspan="4" style="padding:16px 0;">
-                            <div class="age-chart-section">
-                                <div class="age-chart-header">League Age Analysis</div>
-                                <div class="age-chart-desc">Teams sorted by roster age (oldest to youngest)</div>
-                                <table class="age-chart-table">
-                                    <thead>
-                                        <tr>
-                                            <th style="text-align:left;">Team</th>
-                                            <th>Avg Age</th>
-                                            <th>Wins</th>
-                                            <th>Strategy</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                    {{range $l.TeamAges}}
-                                        <tr{{if .IsUserTeam}} style="background:rgba(123,176,255,0.15);border-left:3px solid #7bb0ff;"{{end}}>
-                                            <td style="text-align:left;">
-                                                {{if .IsUserTeam}}<b>{{.TeamName}}</b> (You){{else}}{{.TeamName}}{{end}}
-                                            </td>
-                                            <td>{{printf "%.1f" .AvgAge}}</td>
-                                            <td>{{.Rank}}</td>
-                                            <td>
-                                                {{if gt .AvgAge 27.0}}
-                                                    <span style="color:#ff9d5c;">Win Now</span>
-                                                {{else if lt .AvgAge 24.5}}
-                                                    <span style="color:#7bb0ff;">Rebuild</span>
-                                                {{else}}
-                                                    <span style="color:#3ae87a;">Contending</span>
-                                                {{end}}
-                                            </td>
-                                        </tr>
-                                    {{end}}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </td>
-                    </tr>
-                    {{end}}
                     {{end}}
                     <tr><th colspan="{{if $l.IsDynasty}}4{{else}}3{{end}}" class="bench-header" style="padding-top:24px; padding-bottom:16px;">Bench</th></tr>
                     {{range $l.Bench}}
@@ -242,6 +198,76 @@ function switchMode(leagueIndex, mode) {
                     <tr><td colspan="{{if $l.IsDynasty}}4{{else}}3{{end}}" style="padding-top:8px;font-size:0.9em;color:#9fb3d4;font-style:italic;">Note: RB/WR/TE bench players ranked using FLEX tiers</td></tr>
                 </tfoot>
             </table>
+                </div>
+
+            {{if $l.IsDynasty}}
+                <div class="dynasty-toolkit dynasty-only" style="display:none;">
+                    {{if $l.DraftPicks}}
+                    <div class="toolkit-card collapseable">
+                        <div class="card-header" onclick="toggleSection('draft-picks-{{$i}}')">
+                            <span class="card-title">Draft Capital</span>
+                            <span class="collapse-icon" id="draft-picks-{{$i}}-icon">▼</span>
+                        </div>
+                        <div class="card-content" id="draft-picks-{{$i}}-content">
+                            <div class="draft-picks-grid">
+                                {{range $l.DraftPicks}}
+                                <div class="draft-pick-card{{if .OriginalName}} traded-pick{{end}}">
+                                    <div class="pick-year">{{.Year}}</div>
+                                    <div class="pick-round">Round {{.Round}}</div>
+                                    {{if .OriginalName}}
+                                    <div class="pick-origin">from {{.OriginalName}}</div>
+                                    {{end}}
+                                </div>
+                                {{end}}
+                            </div>
+                        </div>
+                    </div>
+                    {{end}}
+
+                    {{if $l.TeamAges}}
+                    <div class="toolkit-card collapseable">
+                        <div class="card-header" onclick="toggleSection('league-age-{{$i}}')">
+                            <span class="card-title">League Age Analysis</span>
+                            <span class="collapse-icon" id="league-age-{{$i}}-icon">▼</span>
+                        </div>
+                        <div class="card-content" id="league-age-{{$i}}-content">
+                            <div class="age-chart-desc" style="margin-bottom:12px;">Teams sorted by roster age (oldest to youngest)</div>
+                            <table class="age-chart-table">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:left;">Team</th>
+                                        <th>Avg Age</th>
+                                        <th>Wins</th>
+                                        <th>Strategy</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {{range $l.TeamAges}}
+                                    <tr{{if .IsUserTeam}} style="background:rgba(123,176,255,0.15);border-left:3px solid #7bb0ff;"{{end}}>
+                                        <td style="text-align:left;">
+                                            {{if .IsUserTeam}}<b>{{.TeamName}}</b> (You){{else}}{{.TeamName}}{{end}}
+                                        </td>
+                                        <td>{{printf "%.1f" .AvgAge}}</td>
+                                        <td>{{.Rank}}</td>
+                                        <td>
+                                            {{if gt .AvgAge 27.0}}
+                                                <span style="color:#ff9d5c;">Win Now</span>
+                                            {{else if lt .AvgAge 24.5}}
+                                                <span style="color:#7bb0ff;">Rebuild</span>
+                                            {{else}}
+                                                <span style="color:#3ae87a;">Contending</span>
+                                            {{end}}
+                                        </td>
+                                    </tr>
+                                {{end}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {{end}}
+                </div>
+            {{end}}
+            </div>
 
             {{if $l.TopFreeAgents}}
             <div class="fa-section {{if $l.IsDynasty}}inseason-only{{end}}">
@@ -376,7 +402,7 @@ if (document.getElementById('defaultTab')) document.getElementById('defaultTab')
         text-shadow: 0 2px 16px rgba(58, 110, 232, 0.3);
     }
     .main-content {
-        max-width: 920px;
+        max-width: 1400px;
         margin: 0 auto;
         padding: 32px 24px 24px 24px;
         background: rgba(30, 38, 54, 0.4);
@@ -388,6 +414,11 @@ if (document.getElementById('defaultTab')) document.getElementById('defaultTab')
 .fa-section {
     margin-top: 2em;
     margin-bottom: 1.5em;
+}
+@media (min-width: 1200px) {
+    .league-grid-container .fa-section {
+        grid-column: 1 / -1;
+    }
 }
 .fa-header {
     font-size: 1.2em;
@@ -453,32 +484,65 @@ if (document.getElementById('defaultTab')) document.getElementById('defaultTab')
     color: #8a9ab8;
     font-style: italic;
 }
-.age-chart-section {
+.league-grid-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+}
+@media (min-width: 1200px) {
+    .league-grid-container {
+        grid-template-columns: 1fr 400px;
+    }
+}
+.roster-card {
+    min-width: 0;
+}
+.dynasty-toolkit {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.toolkit-card {
     background: rgba(30, 38, 54, 0.5);
     border-radius: 12px;
-    padding: 20px;
     border: 1px solid rgba(123, 176, 255, 0.15);
+    overflow: hidden;
 }
-.age-chart-header {
+.card-header {
+    padding: 16px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s ease;
+    user-select: none;
+}
+.card-header:hover {
+    background: rgba(123, 176, 255, 0.08);
+}
+.card-title {
     font-size: 1.15em;
     font-weight: 700;
     color: #7bb0ff;
-    text-align: center;
-    margin-bottom: 6px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
+.collapse-icon {
+    color: #9fb3d4;
+    font-size: 0.9em;
+    transition: transform 0.2s ease;
+}
+.card-content {
+    padding: 0 16px 16px 16px;
+}
 .age-chart-desc {
-    text-align: center;
     font-size: 0.85em;
     color: #9fb3d4;
-    margin-bottom: 16px;
     font-style: italic;
 }
 .age-chart-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 12px;
 }
 .age-chart-table thead th {
     background: rgba(123, 176, 255, 0.1);
@@ -500,21 +564,6 @@ if (document.getElementById('defaultTab')) document.getElementById('defaultTab')
     font-size: 0.95em;
     color: #e8eef7;
     text-align: center;
-}
-.draft-picks-section {
-    background: rgba(30, 38, 54, 0.5);
-    border-radius: 12px;
-    padding: 20px;
-    border: 1px solid rgba(123, 176, 255, 0.15);
-}
-.draft-picks-header {
-    font-size: 1.15em;
-    font-weight: 700;
-    color: #7bb0ff;
-    text-align: center;
-    margin-bottom: 16px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
 .draft-picks-grid {
     display: grid;
