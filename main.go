@@ -1297,6 +1297,55 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			debugLog("[DEBUG] User has %d draft picks", len(draftPicks))
 		}
 
+		// Calculate trade targets for dynasty leagues
+		var tradeTargets []TradeTarget
+		if isDynasty && dynastyValues != nil {
+			// Build map of all rosters with enriched player rows
+			allRosters := make(map[int][]PlayerRow)
+			teamNamesMap := make(map[int]string)
+			userRosterID, _ := userRoster["roster_id"].(float64)
+
+			for _, r := range rosters {
+				rosterID, _ := r["roster_id"].(float64)
+				ownerID, _ := r["owner_id"].(string)
+
+				// Get team name
+				teamName := ""
+				if userNames != nil {
+					if name, exists := userNames[ownerID]; exists {
+						teamName = name
+					}
+				}
+				if teamName == "" {
+					teamName = "Unknown"
+				}
+				// Try to get custom team name from metadata
+				if metadata, ok := r["metadata"].(map[string]interface{}); ok {
+					if tn, ok := metadata["team_name"].(string); ok && tn != "" {
+						teamName = tn
+					}
+				}
+				teamNamesMap[int(rosterID)] = teamName
+
+				// Build full roster for this team
+				rosterPlayers := toStringSlice(r["players"])
+				rosterRows, _, _ := buildRowsWithPositions(rosterPlayers, players, borisTiers, false, nil, nil, nil)
+
+				// Enrich with dynasty values
+				enrichRowsWithDynastyValues(rosterRows, dynastyValues, isSuperFlex)
+
+				allRosters[int(rosterID)] = rosterRows
+			}
+
+			// Combine user's starters and bench for trade analysis
+			userFullRoster := append([]PlayerRow{}, startersRows...)
+			userFullRoster = append(userFullRoster, benchRows...)
+
+			// Find trade targets
+			tradeTargets = findTradeTargets(userFullRoster, allRosters, teamNamesMap, int(userRosterID))
+			debugLog("[DEBUG] Found %d trade targets", len(tradeTargets))
+		}
+
 		avgTier := avg(starterTiers)
 		avgOppTier := avg(oppTiers)
 		winProb, emoji := winProbability(avgTier, avgOppTier)
@@ -1321,6 +1370,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			UserAvgAge:           userAvgAge,
 			TeamAges:             teamAges,
 			DraftPicks:           draftPicks,
+			TradeTargets:         tradeTargets,
 		}
 
 		leagueResults = append(leagueResults, leagueData)

@@ -266,6 +266,34 @@ function toggleSection(sectionId) {
                         </div>
                     </div>
                     {{end}}
+
+                    {{if $l.TradeTargets}}
+                    <div class="toolkit-card collapseable">
+                        <div class="card-header" onclick="toggleSection('trade-targets-{{$i}}')">
+                            <span class="card-title">Trade Targets</span>
+                            <span class="collapse-icon" id="trade-targets-{{$i}}-icon">▼</span>
+                        </div>
+                        <div class="card-content" id="trade-targets-{{$i}}-content">
+                            <div class="trade-targets-desc" style="margin-bottom:16px;font-size:0.85em;color:#9fb3d4;font-style:italic;">Potential trade partners based on positional complementarity</div>
+                            {{range $l.TradeTargets}}
+                            <div class="trade-target-item">
+                                <div class="target-team">{{.TeamName}}</div>
+                                <div class="target-reason">{{.Reason}}</div>
+                                <div class="target-details">
+                                    <div class="surplus-row">
+                                        <span class="surplus-label">You offer:</span>
+                                        <span class="surplus-value">{{.YourSurplus}} ({{.YourSurplusKTC}} value)</span>
+                                    </div>
+                                    <div class="surplus-row">
+                                        <span class="surplus-label">They offer:</span>
+                                        <span class="surplus-value">{{.TheirSurplus}} ({{.TheirSurplusKTC}} value)</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {{end}}
+                        </div>
+                    </div>
+                    {{end}}
                 </div>
             </div>
             {{end}}
@@ -610,6 +638,55 @@ if (document.getElementById('defaultTab')) document.getElementById('defaultTab')
     color: #9fb3d4;
     margin-top: 6px;
     font-style: italic;
+}
+.trade-target-item {
+    background: rgba(123, 176, 255, 0.06);
+    border: 1px solid rgba(123, 176, 255, 0.15);
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 12px;
+    transition: all 0.2s ease;
+}
+.trade-target-item:last-child {
+    margin-bottom: 0;
+}
+.trade-target-item:hover {
+    background: rgba(123, 176, 255, 0.1);
+    border-color: rgba(123, 176, 255, 0.25);
+    transform: translateX(4px);
+}
+.target-team {
+    font-size: 1.1em;
+    font-weight: 700;
+    color: #e8eef7;
+    margin-bottom: 8px;
+}
+.target-reason {
+    font-size: 0.9em;
+    color: #3ae87a;
+    margin-bottom: 12px;
+    font-style: italic;
+}
+.target-details {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.surplus-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9em;
+    padding: 6px 0;
+    border-top: 1px solid rgba(123, 176, 255, 0.1);
+}
+.surplus-label {
+    color: #9fb3d4;
+    font-weight: 500;
+}
+.surplus-value {
+    color: #c5d5f0;
+    font-weight: 600;
 }
 </style>
 </body>
