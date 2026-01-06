@@ -203,6 +203,150 @@ function toggleSection(sectionId) {
                 </div>
 
                 <div class="dynasty-toolkit dynasty-only" style="display:none;">
+                    {{if $l.PlayerNewsFeed}}
+                    <div class="toolkit-card collapseable">
+                        <div class="card-header" onclick="toggleSection('injury-report-{{$i}}')">
+                            <span class="card-title">
+                                Injury Report
+                                <span class="news-count">{{len $l.PlayerNewsFeed}}</span>
+                            </span>
+                            <span class="collapse-icon" id="injury-report-{{$i}}-icon">▼</span>
+                        </div>
+                        <div class="card-content" id="injury-report-{{$i}}-content">
+                            <div class="news-feed">
+                                {{range $l.PlayerNewsFeed}}
+                                <div class="news-item news-injury">
+                                    <div class="news-header">
+                                        <span class="news-player">
+                                            {{.PlayerName}} ({{.Position}})
+                                            {{if .IsStarter}}<span class="starter-badge">⭐</span>{{end}}
+                                        </span>
+                                        <span class="news-time">{{formatTime .Timestamp}}</span>
+                                    </div>
+                                    <div class="news-injury-status">{{.InjuryStatus}}</div>
+                                    {{if .InjuryBodyPart}}
+                                    <div class="news-text">{{.InjuryBodyPart}}{{if .InjuryNotes}} - {{.InjuryNotes}}{{end}}</div>
+                                    {{end}}
+                                </div>
+                                {{end}}
+                            </div>
+                        </div>
+                    </div>
+                    {{else}}
+                    <div class="toolkit-card collapseable">
+                        <div class="card-header" onclick="toggleSection('injury-report-{{$i}}')">
+                            <span class="card-title">
+                                Injury Report
+                                <span class="news-count">0</span>
+                            </span>
+                            <span class="collapse-icon" id="injury-report-{{$i}}-icon">▼</span>
+                        </div>
+                        <div class="card-content" id="injury-report-{{$i}}-content">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">🏥</div>
+                                <div class="empty-state-title">No Injuries</div>
+                                <div class="empty-state-text">
+                                    All your players are healthy. Great news!
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {{end}}
+
+                    {{if $l.BreakoutCandidates}}
+                    <div class="toolkit-card collapseable">
+                        <div class="card-header" onclick="toggleSection('breakout-{{$i}}')">
+                            <span class="card-title">
+                                Breakout Candidates
+                                <span class="breakout-count">{{len $l.BreakoutCandidates}}</span>
+                            </span>
+                            <span class="collapse-icon" id="breakout-{{$i}}-icon">▼</span>
+                        </div>
+                        <div class="card-content" id="breakout-{{$i}}-content">
+                            <div class="breakout-desc">Young players with high upside potential (age &lt; 25, value &gt; 500)</div>
+                            <div class="player-list">
+                                {{range $l.BreakoutCandidates}}
+                                <div class="player-card breakout-card">
+                                    <div class="player-card-header">
+                                        <span class="player-card-name">{{.Name | safe}}</span>
+                                        <span class="player-card-age">Age {{.Age}}</span>
+                                    </div>
+                                    <div class="player-card-details">
+                                        <span class="player-card-pos">{{.Pos}}</span>
+                                        <span class="player-card-value">Value: {{.DynastyValue}}</span>
+                                    </div>
+                                </div>
+                                {{end}}
+                            </div>
+                        </div>
+                    </div>
+                    {{end}}
+
+                    {{if $l.AgingPlayers}}
+                    <div class="toolkit-card collapseable">
+                        <div class="card-header" onclick="toggleSection('aging-{{$i}}')">
+                            <span class="card-title">
+                                Aging Players Alert
+                                <span class="aging-count">{{len $l.AgingPlayers}}</span>
+                            </span>
+                            <span class="collapse-icon" id="aging-{{$i}}-icon">▼</span>
+                        </div>
+                        <div class="card-content" id="aging-{{$i}}-content">
+                            <div class="aging-desc">Players approaching decline - consider selling while value is high</div>
+                            <div class="player-list">
+                                {{range $l.AgingPlayers}}
+                                <div class="player-card aging-card">
+                                    <div class="player-card-header">
+                                        <span class="player-card-name">{{.Name | safe}}</span>
+                                        <span class="player-card-age aging-age">Age {{.Age}}</span>
+                                    </div>
+                                    <div class="player-card-details">
+                                        <span class="player-card-pos">{{.Pos}}</span>
+                                        <span class="player-card-value">Value: {{.DynastyValue}}</span>
+                                    </div>
+                                    <div class="aging-warning">
+                                        {{if eq .Pos "RB"}}⚠️ RBs decline sharply after age 28
+                                        {{else if or (eq .Pos "WR") (eq .Pos "TE")}}⚠️ Pass catchers typically decline after 30
+                                        {{else if eq .Pos "QB"}}⚠️ QBs can play longer but decline risk increases
+                                        {{end}}
+                                    </div>
+                                </div>
+                                {{end}}
+                            </div>
+                        </div>
+                    </div>
+                    {{end}}
+
+                    {{if $l.RecentTransactions}}
+                    <div class="toolkit-card collapseable">
+                        <div class="card-header" onclick="toggleSection('transactions-{{$i}}')">
+                            <span class="card-title">
+                                Recent Transactions
+                                <span class="transactions-count">{{len $l.RecentTransactions}}</span>
+                            </span>
+                            <span class="collapse-icon" id="transactions-{{$i}}-icon">▼</span>
+                        </div>
+                        <div class="card-content" id="transactions-{{$i}}-content">
+                            <div class="transactions-list">
+                                {{range $l.RecentTransactions}}
+                                <div class="transaction-item transaction-{{.Type}}">
+                                    <div class="transaction-header">
+                                        <span class="transaction-type">{{if eq .Type "trade"}}📊 Trade{{else if eq .Type "waiver"}}📋 Waiver{{else}}➕ Free Agent{{end}}</span>
+                                        <span class="transaction-time">{{formatTime .Timestamp}}</span>
+                                    </div>
+                                    <div class="transaction-desc">{{.Description}}</div>
+                                    {{if .PlayerNames}}
+                                    <div class="transaction-players">
+                                        {{range $idx, $name := .PlayerNames}}{{if $idx}}, {{end}}{{$name}}{{end}}
+                                    </div>
+                                    {{end}}
+                                </div>
+                                {{end}}
+                            </div>
+                        </div>
+                    </div>
+                    {{end}}
+
                     {{if $l.DraftPicks}}
                     <div class="toolkit-card collapseable">
                         <div class="card-header" onclick="toggleSection('draft-picks-{{$i}}')">
@@ -834,6 +978,247 @@ if (document.getElementById('defaultTab')) document.getElementById('defaultTab')
     color: #9fb3d4;
     font-weight: 500;
     text-align: right;
+}
+.news-feed {
+    max-height: 500px;
+    overflow-y: auto;
+}
+.news-item {
+    padding: 12px;
+    margin-bottom: 8px;
+    background: rgba(30, 38, 54, 0.5);
+    border-left: 3px solid rgba(123, 176, 255, 0.3);
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+.news-item:hover {
+    background: rgba(30, 38, 54, 0.7);
+    border-left-color: rgba(123, 176, 255, 0.5);
+}
+.news-item.news-injury {
+    border-left-color: rgba(255, 123, 123, 0.6);
+    background: rgba(255, 123, 123, 0.05);
+}
+.news-item.news-injury:hover {
+    background: rgba(255, 123, 123, 0.1);
+}
+.news-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    gap: 12px;
+}
+.news-player {
+    font-weight: 600;
+    color: #7bb0ff;
+    font-size: 0.95em;
+}
+.starter-badge {
+    font-size: 0.8em;
+    margin-left: 4px;
+    color: #ffc83a;
+}
+.news-time {
+    font-size: 0.85em;
+    color: #9fb3d4;
+    white-space: nowrap;
+}
+.news-injury-status {
+    display: inline-block;
+    padding: 2px 8px;
+    margin-bottom: 6px;
+    font-size: 0.85em;
+    font-weight: 600;
+    background: rgba(255, 123, 123, 0.2);
+    color: #ff7b7b;
+    border-radius: 4px;
+}
+.news-text {
+    color: #d4dde8;
+    line-height: 1.5;
+    margin-bottom: 4px;
+    font-size: 0.92em;
+}
+.news-source {
+    font-size: 0.8em;
+    color: #9fb3d4;
+    font-style: italic;
+}
+.news-count {
+    display: inline-block;
+    padding: 2px 8px;
+    margin-left: 8px;
+    background: rgba(123, 176, 255, 0.2);
+    border-radius: 10px;
+    font-size: 0.8em;
+    font-weight: 600;
+}
+.breakout-desc, .aging-desc {
+    font-size: 0.85em;
+    color: #9fb3d4;
+    font-style: italic;
+    margin-bottom: 12px;
+}
+.player-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.player-card {
+    background: rgba(30, 38, 54, 0.5);
+    border-radius: 8px;
+    padding: 12px;
+    transition: all 0.2s ease;
+}
+.player-card:hover {
+    background: rgba(30, 38, 54, 0.7);
+    transform: translateX(4px);
+}
+.breakout-card {
+    border-left: 3px solid rgba(58, 232, 122, 0.5);
+}
+.breakout-card:hover {
+    border-left-color: rgba(58, 232, 122, 0.8);
+    box-shadow: 0 2px 8px rgba(58, 232, 122, 0.2);
+}
+.aging-card {
+    border-left: 3px solid rgba(255, 157, 92, 0.5);
+}
+.aging-card:hover {
+    border-left-color: rgba(255, 157, 92, 0.8);
+    box-shadow: 0 2px 8px rgba(255, 157, 92, 0.2);
+}
+.player-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+.player-card-name {
+    font-weight: 600;
+    color: #e8eef7;
+    font-size: 0.95em;
+}
+.player-card-age {
+    font-size: 0.85em;
+    color: #3ae87a;
+    font-weight: 600;
+    background: rgba(58, 232, 122, 0.15);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+.aging-age {
+    color: #ff9d5c;
+    background: rgba(255, 157, 92, 0.15);
+}
+.player-card-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85em;
+}
+.player-card-pos {
+    color: #7bb0ff;
+    font-weight: 600;
+}
+.player-card-value {
+    color: #9fb3d4;
+}
+.aging-warning {
+    margin-top: 8px;
+    font-size: 0.8em;
+    color: #ff9d5c;
+    font-style: italic;
+}
+.breakout-count, .aging-count {
+    display: inline-block;
+    padding: 2px 8px;
+    margin-left: 8px;
+    background: rgba(58, 232, 122, 0.2);
+    border-radius: 10px;
+    font-size: 0.8em;
+    font-weight: 600;
+}
+.aging-count {
+    background: rgba(255, 157, 92, 0.2);
+}
+.transactions-list {
+    max-height: 500px;
+    overflow-y: auto;
+}
+.transactions-count {
+    display: inline-block;
+    padding: 2px 8px;
+    margin-left: 8px;
+    background: rgba(123, 176, 255, 0.2);
+    border-radius: 10px;
+    font-size: 0.8em;
+    font-weight: 600;
+}
+.transaction-item {
+    padding: 12px;
+    margin-bottom: 10px;
+    background: rgba(30, 38, 54, 0.5);
+    border-left: 3px solid rgba(123, 176, 255, 0.3);
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+.transaction-item:hover {
+    background: rgba(30, 38, 54, 0.7);
+    border-left-color: rgba(123, 176, 255, 0.5);
+}
+.transaction-item:last-child {
+    margin-bottom: 0;
+}
+.transaction-trade {
+    border-left-color: rgba(123, 176, 255, 0.6);
+}
+.transaction-trade:hover {
+    border-left-color: rgba(123, 176, 255, 0.8);
+    box-shadow: 0 2px 8px rgba(123, 176, 255, 0.2);
+}
+.transaction-waiver {
+    border-left-color: rgba(255, 157, 92, 0.6);
+}
+.transaction-waiver:hover {
+    border-left-color: rgba(255, 157, 92, 0.8);
+    box-shadow: 0 2px 8px rgba(255, 157, 92, 0.2);
+}
+.transaction-free_agent {
+    border-left-color: rgba(58, 232, 122, 0.6);
+}
+.transaction-free_agent:hover {
+    border-left-color: rgba(58, 232, 122, 0.8);
+    box-shadow: 0 2px 8px rgba(58, 232, 122, 0.2);
+}
+.transaction-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    gap: 12px;
+}
+.transaction-type {
+    font-weight: 600;
+    color: #c5d5f0;
+    font-size: 0.95em;
+}
+.transaction-time {
+    font-size: 0.85em;
+    color: #9fb3d4;
+    white-space: nowrap;
+}
+.transaction-desc {
+    color: #d4dde8;
+    line-height: 1.5;
+    margin-bottom: 6px;
+    font-size: 0.92em;
+}
+.transaction-players {
+    font-size: 0.85em;
+    color: #7bb0ff;
+    font-style: italic;
 }
 </style>
 </body>

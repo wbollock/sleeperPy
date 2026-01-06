@@ -148,6 +148,37 @@ var funcMap = template.FuncMap{
 		}
 		return "🤝"
 	},
+	"formatTime": func(t time.Time) string {
+		if t.IsZero() {
+			return "Unknown"
+		}
+		// Format as relative time
+		now := time.Now()
+		diff := now.Sub(t)
+
+		if diff < time.Minute {
+			return "just now"
+		} else if diff < time.Hour {
+			mins := int(diff.Minutes())
+			if mins == 1 {
+				return "1 min ago"
+			}
+			return fmt.Sprintf("%d mins ago", mins)
+		} else if diff < 24*time.Hour {
+			hours := int(diff.Hours())
+			if hours == 1 {
+				return "1 hour ago"
+			}
+			return fmt.Sprintf("%d hours ago", hours)
+		} else if diff < 7*24*time.Hour {
+			days := int(diff.Hours() / 24)
+			if days == 1 {
+				return "1 day ago"
+			}
+			return fmt.Sprintf("%d days ago", days)
+		}
+		return t.Format("Jan 2, 2006")
+	},
 }
 
 var templates = template.Must(template.New("").Funcs(funcMap).ParseGlob("templates/*.html"))
@@ -257,6 +288,27 @@ type TradeTarget struct {
 	TheirSurplusKTC int
 }
 
+type PlayerNews struct {
+	PlayerName       string
+	Position         string
+	NewsText         string
+	Source           string
+	Timestamp        time.Time
+	InjuryStatus     string
+	InjuryBodyPart   string
+	InjuryNotes      string
+	IsStarter        bool
+	DynastyValue     int
+}
+
+type Transaction struct {
+	Type        string    // "trade", "waiver", "free_agent"
+	Timestamp   time.Time
+	Description string
+	TeamNames   []string
+	PlayerNames []string
+}
+
 type LeagueData struct {
 	LeagueName           string
 	Scoring              string
@@ -279,6 +331,10 @@ type LeagueData struct {
 	DraftPicks           []DraftPick // User's draft picks (dynasty only)
 	TradeTargets         []TradeTarget // Potential trade partners (dynasty only)
 	PositionalBreakdown  PositionalKTC // User's positional value breakdown (dynasty only)
+	PlayerNewsFeed       []PlayerNews    // Player news for all roster players (dynasty only)
+	BreakoutCandidates   []PlayerRow     // Young players with upside (dynasty only)
+	AgingPlayers         []PlayerRow     // Players approaching decline (dynasty only)
+	RecentTransactions   []Transaction   // Recent league transactions (dynasty only)
 }
 
 type TiersPage struct {
@@ -1363,6 +1419,30 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
+		// Aggregate player news for dynasty leagues
+		var playerNewsFeed []PlayerNews
+		var breakoutCandidates []PlayerRow
+		var agingPlayers []PlayerRow
+		var recentTransactions []Transaction
+		if isDynasty {
+			playerNewsFeed = aggregatePlayerNews(allPlayers, players, starters, dynastyValues, isSuperFlex)
+			debugLog("[DEBUG] Aggregated %d player news items", len(playerNewsFeed))
+
+			// Find breakout candidates from bench (only if we have dynasty values)
+			if dynastyValues != nil {
+				breakoutCandidates = findBreakoutCandidates(benchRows)
+				debugLog("[DEBUG] Found %d breakout candidates", len(breakoutCandidates))
+
+				// Find aging players from starters and bench
+				agingPlayers = findAgingPlayers(startersRows, benchRows)
+				debugLog("[DEBUG] Found %d aging players", len(agingPlayers))
+			}
+
+			// Fetch recent league transactions
+			recentTransactions = fetchRecentTransactions(leagueID, week, players, rosters)
+			debugLog("[DEBUG] Found %d recent transactions", len(recentTransactions))
+		}
+
 		// Calculate trade targets for dynasty leagues
 		var tradeTargets []TradeTarget
 		var positionalBreakdown PositionalKTC
@@ -1442,6 +1522,10 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			DraftPicks:           draftPicks,
 			TradeTargets:         tradeTargets,
 			PositionalBreakdown:  positionalBreakdown,
+			PlayerNewsFeed:       playerNewsFeed,
+			BreakoutCandidates:   breakoutCandidates,
+			AgingPlayers:         agingPlayers,
+			RecentTransactions:   recentTransactions,
 		}
 
 		leagueResults = append(leagueResults, leagueData)
@@ -1935,6 +2019,297 @@ func enrichRowsWithDynastyValues(rows []PlayerRow, dynastyValues map[string]Dyna
 			}
 		}
 	}
+}
+
+// aggregatePlayerNews collects news for all players on the user's roster
+func aggregatePlayerNews(rosterPlayerIDs []string, players map[string]interface{}, startersIDs []string, dynastyValues map[string]DynastyValue, isSuperFlex bool) []PlayerNews {
+	newsFeed := []PlayerNews{}
+
+	for _, pid := range rosterPlayerIDs {
+		p, ok := players[pid].(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		name := getPlayerName(p)
+		pos, _ := p["position"].(string)
+
+		// Get injury-related fields
+		injuryStatus := ""
+		if status, ok := p["injury_status"].(string); ok {
+			injuryStatus = status
+		}
+
+		injuryBodyPart := ""
+		if bodyPart, ok := p["injury_body_part"].(string); ok {
+			injuryBodyPart = bodyPart
+		}
+
+		injuryNotes := ""
+		if notes, ok := p["injury_notes"].(string); ok {
+			injuryNotes = notes
+		}
+
+		// Get timestamp from news_updated field (in milliseconds)
+		var timestamp time.Time
+		if newsUpdated, ok := p["news_updated"].(float64); ok {
+			// Convert milliseconds to seconds for Unix timestamp
+			timestamp = time.Unix(int64(newsUpdated/1000), 0)
+		}
+
+		// Check if starter
+		isStarter := false
+		for _, sid := range startersIDs {
+			if sid == pid {
+				isStarter = true
+				break
+			}
+		}
+
+		// Get dynasty value
+		dynastyValue := 0
+		if dynastyValues != nil {
+			cleanName := normalizeName(name)
+			if val, exists := dynastyValues[cleanName]; exists {
+				if isSuperFlex {
+					dynastyValue = val.Value2QB
+				} else {
+					dynastyValue = val.Value1QB
+				}
+			}
+		}
+
+		// Only add to feed if there's an injury status
+		if injuryStatus != "" {
+			debugLog("[DEBUG] Injury: %s - status=%s, timestamp=%v, bodypart=%s, notes=%s", name, injuryStatus, timestamp, injuryBodyPart, injuryNotes)
+			newsFeed = append(newsFeed, PlayerNews{
+				PlayerName:       name,
+				Position:         pos,
+				Timestamp:        timestamp,
+				InjuryStatus:     injuryStatus,
+				InjuryBodyPart:   injuryBodyPart,
+				InjuryNotes:      injuryNotes,
+				IsStarter:        isStarter,
+				DynastyValue:     dynastyValue,
+			})
+		}
+	}
+
+	// Sort by timestamp (newest first)
+	sort.Slice(newsFeed, func(i, j int) bool {
+		return newsFeed[i].Timestamp.After(newsFeed[j].Timestamp)
+	})
+
+	return newsFeed
+}
+
+// findBreakoutCandidates identifies young players with high upside on the bench
+func findBreakoutCandidates(benchRows []PlayerRow) []PlayerRow {
+	candidates := []PlayerRow{}
+
+	for _, row := range benchRows {
+		// Criteria:
+		// 1. Age < 25 (young)
+		// 2. Dynasty value > 500 (has some value)
+		// 3. Currently on bench (not starting)
+		// 4. Position is RB/WR/TE (skill positions)
+
+		if row.Age > 0 && row.Age < 25 &&
+			row.DynastyValue > 500 &&
+			(row.Pos == "RB" || row.Pos == "WR" || row.Pos == "TE") {
+			candidates = append(candidates, row)
+		}
+	}
+
+	// Sort by dynasty value (highest upside first)
+	sort.Slice(candidates, func(i, j int) bool {
+		return candidates[i].DynastyValue > candidates[j].DynastyValue
+	})
+
+	return candidates
+}
+
+// fetchRecentTransactions gets recent trades, adds, and drops from the league
+func fetchRecentTransactions(leagueID string, currentWeek int, players map[string]interface{}, rosters []map[string]interface{}) []Transaction {
+	transactions := []Transaction{}
+
+	// Fetch last 4 weeks of transactions
+	weeksToFetch := 4
+	startWeek := currentWeek - weeksToFetch
+	if startWeek < 1 {
+		startWeek = 1
+	}
+
+	// Build roster ID to team name map
+	rosterIDToName := make(map[int]string)
+	for _, r := range rosters {
+		rosterID, _ := r["roster_id"].(float64)
+		ownerID, _ := r["owner_id"].(string)
+		if ownerID != "" {
+			rosterIDToName[int(rosterID)] = ownerID // We'll use owner_id as placeholder
+		}
+	}
+
+	for week := startWeek; week <= currentWeek; week++ {
+		url := fmt.Sprintf("https://api.sleeper.app/v1/league/%s/transactions/%d", leagueID, week)
+		transactionsData, err := fetchJSONArray(url)
+		if err != nil {
+			debugLog("[DEBUG] Could not fetch transactions for week %d: %v", week, err)
+			continue
+		}
+
+		for _, t := range transactionsData {
+			transType, _ := t["type"].(string)
+			if transType == "" {
+				continue
+			}
+
+			// Parse timestamp (in milliseconds)
+			var timestamp time.Time
+			if created, ok := t["created"].(float64); ok {
+				timestamp = time.Unix(int64(created/1000), 0)
+			}
+
+			// Build description based on transaction type
+			description := ""
+			teamNames := []string{}
+			playerNames := []string{}
+
+			switch transType {
+			case "trade":
+				// Get roster IDs involved
+				rosterIDs, _ := t["roster_ids"].([]interface{})
+				for _, rid := range rosterIDs {
+					if rosterID, ok := rid.(float64); ok {
+						if name, exists := rosterIDToName[int(rosterID)]; exists {
+							teamNames = append(teamNames, name)
+						}
+					}
+				}
+
+				// Get players involved
+				adds, _ := t["adds"].(map[string]interface{})
+				for playerID := range adds {
+					if p, ok := players[playerID].(map[string]interface{}); ok {
+						playerNames = append(playerNames, getPlayerName(p))
+					}
+				}
+
+				if len(teamNames) >= 2 {
+					description = fmt.Sprintf("Trade between %s and %s", teamNames[0], teamNames[1])
+				} else {
+					description = "Trade completed"
+				}
+
+			case "waiver":
+				// Waiver claim
+				adds, _ := t["adds"].(map[string]interface{})
+				drops, _ := t["drops"].(map[string]interface{})
+
+				for playerID, rosterIDVal := range adds {
+					if rosterID, ok := rosterIDVal.(float64); ok {
+						teamName := rosterIDToName[int(rosterID)]
+						if p, ok := players[playerID].(map[string]interface{}); ok {
+							playerName := getPlayerName(p)
+							playerNames = append(playerNames, playerName)
+							description = fmt.Sprintf("%s claimed %s", teamName, playerName)
+						}
+					}
+				}
+
+				for playerID := range drops {
+					if p, ok := players[playerID].(map[string]interface{}); ok {
+						playerNames = append(playerNames, getPlayerName(p))
+					}
+				}
+
+			case "free_agent":
+				// Free agent add/drop
+				adds, _ := t["adds"].(map[string]interface{})
+				drops, _ := t["drops"].(map[string]interface{})
+
+				for playerID, rosterIDVal := range adds {
+					if rosterID, ok := rosterIDVal.(float64); ok {
+						teamName := rosterIDToName[int(rosterID)]
+						if p, ok := players[playerID].(map[string]interface{}); ok {
+							playerName := getPlayerName(p)
+							playerNames = append(playerNames, playerName)
+							description = fmt.Sprintf("%s added %s", teamName, playerName)
+						}
+					}
+				}
+
+				for playerID, rosterIDVal := range drops {
+					if _, ok := rosterIDVal.(float64); ok {
+						if p, ok := players[playerID].(map[string]interface{}); ok {
+							playerNames = append(playerNames, getPlayerName(p))
+						}
+					}
+				}
+			}
+
+			if description != "" {
+				transactions = append(transactions, Transaction{
+					Type:        transType,
+					Timestamp:   timestamp,
+					Description: description,
+					TeamNames:   teamNames,
+					PlayerNames: playerNames,
+				})
+			}
+		}
+	}
+
+	// Sort by timestamp (newest first)
+	sort.Slice(transactions, func(i, j int) bool {
+		return transactions[i].Timestamp.After(transactions[j].Timestamp)
+	})
+
+	// Limit to 20 most recent
+	if len(transactions) > 20 {
+		transactions = transactions[:20]
+	}
+
+	return transactions
+}
+
+// findAgingPlayers flags players approaching the end of their fantasy relevance
+func findAgingPlayers(startersRows, benchRows []PlayerRow) []PlayerRow {
+	aging := []PlayerRow{}
+	allPlayers := append([]PlayerRow{}, startersRows...)
+	allPlayers = append(allPlayers, benchRows...)
+
+	for _, row := range allPlayers {
+		isAging := false
+
+		// Position-specific age thresholds
+		switch row.Pos {
+		case "RB":
+			if row.Age >= 28 {
+				isAging = true
+			}
+		case "WR", "TE":
+			if row.Age >= 30 {
+				isAging = true
+			}
+		case "QB":
+			if row.Age >= 35 {
+				isAging = true
+			}
+		}
+
+		// Only flag if they still have trade value (>1000) and we identified them as aging
+		if isAging && row.DynastyValue > 1000 {
+			aging = append(aging, row)
+		}
+	}
+
+	// Sort by age (oldest first - most urgent)
+	sort.Slice(aging, func(i, j int) bool {
+		return aging[i].Age > aging[j].Age
+	})
+
+	return aging
 }
 
 // calculatePositionalKTC calculates total dynasty value by position
