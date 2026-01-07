@@ -253,7 +253,6 @@ function toggleSection(sectionId) {
                     </div>
                     {{end}}
 
-                    {{if $l.BreakoutCandidates}}
                     <div class="toolkit-card collapseable">
                         <div class="card-header" onclick="toggleSection('breakout-{{$i}}')">
                             <span class="card-title">
@@ -263,6 +262,7 @@ function toggleSection(sectionId) {
                             <span class="collapse-icon" id="breakout-{{$i}}-icon">▼</span>
                         </div>
                         <div class="card-content" id="breakout-{{$i}}-content">
+                            {{if $l.BreakoutCandidates}}
                             <div class="breakout-desc">Young players with high upside potential (age &lt; 25, value &gt; 500)</div>
                             <div class="player-list">
                                 {{range $l.BreakoutCandidates}}
@@ -278,11 +278,18 @@ function toggleSection(sectionId) {
                                 </div>
                                 {{end}}
                             </div>
+                            {{else}}
+                            <div class="empty-state">
+                                <div class="empty-state-icon">🌟</div>
+                                <div class="empty-state-title">No Breakout Candidates</div>
+                                <div class="empty-state-text">
+                                    You don't have young bench players (age &lt; 25) with significant value (&gt; 500). Consider adding high-upside rookies or young players to your roster!
+                                </div>
+                            </div>
+                            {{end}}
                         </div>
                     </div>
-                    {{end}}
 
-                    {{if $l.AgingPlayers}}
                     <div class="toolkit-card collapseable">
                         <div class="card-header" onclick="toggleSection('aging-{{$i}}')">
                             <span class="card-title">
@@ -292,6 +299,7 @@ function toggleSection(sectionId) {
                             <span class="collapse-icon" id="aging-{{$i}}-icon">▼</span>
                         </div>
                         <div class="card-content" id="aging-{{$i}}-content">
+                            {{if $l.AgingPlayers}}
                             <div class="aging-desc">Players approaching decline - consider selling while value is high</div>
                             <div class="player-list">
                                 {{range $l.AgingPlayers}}
@@ -313,11 +321,18 @@ function toggleSection(sectionId) {
                                 </div>
                                 {{end}}
                             </div>
+                            {{else}}
+                            <div class="empty-state">
+                                <div class="empty-state-icon">✅</div>
+                                <div class="empty-state-title">No Aging Concerns</div>
+                                <div class="empty-state-text">
+                                    Your valuable players are in their prime! No players currently flagged as approaching decline based on position-specific age thresholds.
+                                </div>
+                            </div>
+                            {{end}}
                         </div>
                     </div>
-                    {{end}}
 
-                    {{if $l.RecentTransactions}}
                     <div class="toolkit-card collapseable">
                         <div class="card-header" onclick="toggleSection('transactions-{{$i}}')">
                             <span class="card-title">
@@ -327,6 +342,7 @@ function toggleSection(sectionId) {
                             <span class="collapse-icon" id="transactions-{{$i}}-icon">▼</span>
                         </div>
                         <div class="card-content" id="transactions-{{$i}}-content">
+                            {{if $l.RecentTransactions}}
                             <div class="transactions-list">
                                 {{range $l.RecentTransactions}}
                                 <div class="transaction-item transaction-{{.Type}}">
@@ -343,9 +359,17 @@ function toggleSection(sectionId) {
                                 </div>
                                 {{end}}
                             </div>
+                            {{else}}
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📋</div>
+                                <div class="empty-state-title">No Recent Activity</div>
+                                <div class="empty-state-text">
+                                    Your league has been quiet lately. No trades, waiver claims, or free agent moves in the past 4 weeks.
+                                </div>
+                            </div>
+                            {{end}}
                         </div>
                     </div>
-                    {{end}}
 
                     {{if $l.DraftPicks}}
                     <div class="toolkit-card collapseable">
