@@ -2034,6 +2034,23 @@ func aggregatePlayerNews(rosterPlayerIDs []string, players map[string]interface{
 		name := getPlayerName(p)
 		pos, _ := p["position"].(string)
 
+		// Get general news
+		newsText := ""
+		source := ""
+		var timestamp time.Time
+
+		if newsObj, ok := p["news"].(map[string]interface{}); ok {
+			if text, ok := newsObj["text"].(string); ok {
+				newsText = text
+			}
+			if src, ok := newsObj["source"].(string); ok {
+				source = src
+			}
+			if ts, ok := newsObj["timestamp"].(float64); ok {
+				timestamp = time.Unix(int64(ts), 0)
+			}
+		}
+
 		// Get injury-related fields
 		injuryStatus := ""
 		if status, ok := p["injury_status"].(string); ok {
@@ -2050,11 +2067,12 @@ func aggregatePlayerNews(rosterPlayerIDs []string, players map[string]interface{
 			injuryNotes = notes
 		}
 
-		// Get timestamp from news_updated field (in milliseconds)
-		var timestamp time.Time
-		if newsUpdated, ok := p["news_updated"].(float64); ok {
-			// Convert milliseconds to seconds for Unix timestamp
-			timestamp = time.Unix(int64(newsUpdated/1000), 0)
+		// Fallback to news_updated field if no timestamp from news object (in milliseconds)
+		if timestamp.IsZero() {
+			if newsUpdated, ok := p["news_updated"].(float64); ok {
+				// Convert milliseconds to seconds for Unix timestamp
+				timestamp = time.Unix(int64(newsUpdated/1000), 0)
+			}
 		}
 
 		// Check if starter
@@ -2079,12 +2097,19 @@ func aggregatePlayerNews(rosterPlayerIDs []string, players map[string]interface{
 			}
 		}
 
-		// Only add to feed if there's an injury status
-		if injuryStatus != "" {
-			debugLog("[DEBUG] Injury: %s - status=%s, timestamp=%v, bodypart=%s, notes=%s", name, injuryStatus, timestamp, injuryBodyPart, injuryNotes)
+		// Add to feed if there's news text or injury status
+		if newsText != "" || injuryStatus != "" {
+			if injuryStatus != "" {
+				debugLog("[DEBUG] Injury: %s - status=%s, timestamp=%v, bodypart=%s, notes=%s", name, injuryStatus, timestamp, injuryBodyPart, injuryNotes)
+			}
+			if newsText != "" {
+				debugLog("[DEBUG] News: %s - %s (source: %s, timestamp=%v)", name, newsText, source, timestamp)
+			}
 			newsFeed = append(newsFeed, PlayerNews{
 				PlayerName:       name,
 				Position:         pos,
+				NewsText:         newsText,
+				Source:           source,
 				Timestamp:        timestamp,
 				InjuryStatus:     injuryStatus,
 				InjuryBodyPart:   injuryBodyPart,

@@ -205,17 +205,17 @@ function toggleSection(sectionId) {
                 <div class="dynasty-toolkit dynasty-only" style="display:none;">
                     {{if $l.PlayerNewsFeed}}
                     <div class="toolkit-card collapseable">
-                        <div class="card-header" onclick="toggleSection('injury-report-{{$i}}')">
+                        <div class="card-header" onclick="toggleSection('player-news-{{$i}}')">
                             <span class="card-title">
-                                Injury Report
+                                Player News
                                 <span class="news-count">{{len $l.PlayerNewsFeed}}</span>
                             </span>
-                            <span class="collapse-icon" id="injury-report-{{$i}}-icon">▼</span>
+                            <span class="collapse-icon" id="player-news-{{$i}}-icon">▼</span>
                         </div>
-                        <div class="card-content" id="injury-report-{{$i}}-content">
+                        <div class="card-content" id="player-news-{{$i}}-content">
                             <div class="news-feed">
                                 {{range $l.PlayerNewsFeed}}
-                                <div class="news-item news-injury">
+                                <div class="news-item{{if .InjuryStatus}} news-injury{{end}}">
                                     <div class="news-header">
                                         <span class="news-player">
                                             {{.PlayerName}} ({{.Position}})
@@ -223,9 +223,16 @@ function toggleSection(sectionId) {
                                         </span>
                                         <span class="news-time">{{formatTime .Timestamp}}</span>
                                     </div>
+                                    {{if .InjuryStatus}}
                                     <div class="news-injury-status">{{.InjuryStatus}}</div>
-                                    {{if .InjuryBodyPart}}
+                                    {{end}}
+                                    {{if .NewsText}}
+                                    <div class="news-text">{{.NewsText}}</div>
+                                    {{else if .InjuryBodyPart}}
                                     <div class="news-text">{{.InjuryBodyPart}}{{if .InjuryNotes}} - {{.InjuryNotes}}{{end}}</div>
+                                    {{end}}
+                                    {{if .Source}}
+                                    <div class="news-source">Source: {{.Source}}</div>
                                     {{end}}
                                 </div>
                                 {{end}}
@@ -234,19 +241,19 @@ function toggleSection(sectionId) {
                     </div>
                     {{else}}
                     <div class="toolkit-card collapseable">
-                        <div class="card-header" onclick="toggleSection('injury-report-{{$i}}')">
+                        <div class="card-header" onclick="toggleSection('player-news-{{$i}}')">
                             <span class="card-title">
-                                Injury Report
+                                Player News
                                 <span class="news-count">0</span>
                             </span>
-                            <span class="collapse-icon" id="injury-report-{{$i}}-icon">▼</span>
+                            <span class="collapse-icon" id="player-news-{{$i}}-icon">▼</span>
                         </div>
-                        <div class="card-content" id="injury-report-{{$i}}-content">
+                        <div class="card-content" id="player-news-{{$i}}-content">
                             <div class="empty-state">
-                                <div class="empty-state-icon">🏥</div>
-                                <div class="empty-state-title">No Injuries</div>
+                                <div class="empty-state-icon">📰</div>
+                                <div class="empty-state-title">No Recent News</div>
                                 <div class="empty-state-text">
-                                    All your players are healthy. Great news!
+                                    All your players are flying under the radar. Check back later for updates.
                                 </div>
                             </div>
                         </div>
