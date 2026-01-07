@@ -309,6 +309,14 @@ type Transaction struct {
 	PlayerNames []string
 }
 
+type RookieProspect struct {
+	Name     string
+	Position string
+	College  string
+	Value    int
+	Rank     int
+}
+
 type LeagueData struct {
 	LeagueName           string
 	Scoring              string
@@ -331,10 +339,11 @@ type LeagueData struct {
 	DraftPicks           []DraftPick // User's draft picks (dynasty only)
 	TradeTargets         []TradeTarget // Potential trade partners (dynasty only)
 	PositionalBreakdown  PositionalKTC // User's positional value breakdown (dynasty only)
-	PlayerNewsFeed       []PlayerNews    // Player news for all roster players (dynasty only)
-	BreakoutCandidates   []PlayerRow     // Young players with upside (dynasty only)
-	AgingPlayers         []PlayerRow     // Players approaching decline (dynasty only)
-	RecentTransactions   []Transaction   // Recent league transactions (dynasty only)
+	PlayerNewsFeed       []PlayerNews      // Player news for all roster players (dynasty only)
+	BreakoutCandidates   []PlayerRow       // Young players with upside (dynasty only)
+	AgingPlayers         []PlayerRow       // Players approaching decline (dynasty only)
+	RecentTransactions   []Transaction     // Recent league transactions (dynasty only)
+	TopRookies           []RookieProspect  // Top rookie prospects for upcoming draft (dynasty only)
 }
 
 type TiersPage struct {
@@ -1443,6 +1452,21 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			debugLog("[DEBUG] Found %d recent transactions", len(recentTransactions))
 		}
 
+		// Get top rookies for dynasty leagues
+		var topRookies []RookieProspect
+		if isDynasty {
+			topRookies = getTopRookies()
+			// Filter out defensive players (they have 0 fantasy value)
+			fantasyRookies := []RookieProspect{}
+			for _, r := range topRookies {
+				if r.Value > 0 {
+					fantasyRookies = append(fantasyRookies, r)
+				}
+			}
+			topRookies = fantasyRookies
+			debugLog("[DEBUG] Loaded %d top rookie prospects", len(topRookies))
+		}
+
 		// Calculate trade targets for dynasty leagues
 		var tradeTargets []TradeTarget
 		var positionalBreakdown PositionalKTC
@@ -1526,6 +1550,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			BreakoutCandidates:   breakoutCandidates,
 			AgingPlayers:         agingPlayers,
 			RecentTransactions:   recentTransactions,
+			TopRookies:           topRookies,
 		}
 
 		leagueResults = append(leagueResults, leagueData)
@@ -2335,6 +2360,27 @@ func findAgingPlayers(startersRows, benchRows []PlayerRow) []PlayerRow {
 	})
 
 	return aging
+}
+
+// getTopRookies returns top rookie prospects for the 2025 NFL draft
+func getTopRookies() []RookieProspect {
+	return []RookieProspect{
+		{Name: "Shedeur Sanders", Position: "QB", College: "Colorado", Value: 4500, Rank: 1},
+		{Name: "Travis Hunter", Position: "WR", College: "Colorado", Value: 7500, Rank: 2},
+		{Name: "Ashton Jeanty", Position: "RB", College: "Boise State", Value: 6800, Rank: 3},
+		{Name: "Abdul Carter", Position: "LB", College: "Penn State", Value: 0, Rank: 4},
+		{Name: "Tetairoa McMillan", Position: "WR", College: "Arizona", Value: 6500, Rank: 5},
+		{Name: "Will Johnson", Position: "CB", College: "Michigan", Value: 0, Rank: 6},
+		{Name: "Mason Graham", Position: "DT", College: "Michigan", Value: 0, Rank: 7},
+		{Name: "Cam Ward", Position: "QB", College: "Miami", Value: 4200, Rank: 8},
+		{Name: "Malaki Starks", Position: "S", College: "Georgia", Value: 0, Rank: 9},
+		{Name: "Luther Burden III", Position: "WR", College: "Missouri", Value: 6000, Rank: 10},
+		{Name: "Kelvin Banks Jr.", Position: "OT", College: "Texas", Value: 0, Rank: 11},
+		{Name: "Tyler Warren", Position: "TE", College: "Penn State", Value: 3800, Rank: 12},
+		{Name: "Will Campbell", Position: "OT", College: "LSU", Value: 0, Rank: 13},
+		{Name: "Omarion Hampton", Position: "RB", College: "North Carolina", Value: 5500, Rank: 14},
+		{Name: "Mykel Williams", Position: "DE", College: "Georgia", Value: 0, Rank: 15},
+	}
 }
 
 // calculatePositionalKTC calculates total dynasty value by position
