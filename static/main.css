@@ -188,6 +188,10 @@
 /* Sortable column indicator */
 .pretty-table th.asc:after { content: ' \25B2'; }
 .pretty-table th:not(.asc):after { content: ' \25BC'; opacity: 0.3; }
+html {
+	scroll-behavior: smooth;
+}
+
 html, body {
 	background: linear-gradient(135deg, #1a1f2e 0%, #2d1b3d 100%) !important;
 	color: #e8eef7;
@@ -195,6 +199,43 @@ html, body {
 	min-height: 100vh;
 	margin: 0;
 	padding: 0;
+}
+
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+	width: 10px;
+	height: 10px;
+}
+
+::-webkit-scrollbar-track {
+	background: rgba(30, 38, 54, 0.4);
+	border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+	background: linear-gradient(135deg, rgba(123, 176, 255, 0.3), rgba(88, 86, 214, 0.3));
+	border-radius: 10px;
+	border: 2px solid rgba(30, 38, 54, 0.4);
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: linear-gradient(135deg, rgba(123, 176, 255, 0.5), rgba(88, 86, 214, 0.5));
+}
+
+/* Firefox scrollbar styling */
+* {
+	scrollbar-width: thin;
+	scrollbar-color: rgba(123, 176, 255, 0.3) rgba(30, 38, 54, 0.4);
+}
+
+/* Focus states for accessibility */
+button:focus-visible, a:focus-visible {
+	outline: 2px solid #7bb0ff;
+	outline-offset: 2px;
+}
+
+button:focus:not(:focus-visible), a:focus:not(:focus-visible) {
+	outline: none;
 }
 .container { max-width: 700px; margin: 0 auto; padding: 30px 10px 10px 10px; }
 h1 { text-align: center; color: #eaf0fa; }
@@ -298,5 +339,106 @@ h1 { text-align: center; color: #eaf0fa; }
 	/* Compact badges and icons */
 	.tier1-star, .swap-icon {
 		font-size: 1em;
+	}
+
+	/* Dynasty toolkit mobile improvements */
+	.league-grid-container {
+		grid-template-columns: 1fr !important;
+	}
+
+	.dynasty-toolkit {
+		margin-top: 24px;
+	}
+
+	.toolkit-card {
+		margin-bottom: 12px;
+	}
+
+	.card-header {
+		padding: 12px;
+	}
+
+	.card-title {
+		font-size: 1em;
+	}
+
+	.card-content {
+		padding: 0 12px 12px 12px;
+	}
+
+	/* Smaller news items */
+	.news-item, .transaction-item {
+		padding: 10px;
+		margin-bottom: 6px;
+	}
+
+	.news-header, .transaction-header {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 4px;
+	}
+
+	.news-time, .transaction-time {
+		font-size: 0.75em;
+	}
+
+	/* Compact draft picks grid */
+	.draft-picks-grid {
+		grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+		gap: 8px;
+	}
+
+	.draft-pick-card {
+		padding: 10px;
+	}
+
+	.pick-year {
+		font-size: 1.1em;
+	}
+
+	/* Smaller player cards */
+	.player-card {
+		padding: 10px;
+	}
+
+	.player-card-header {
+		flex-wrap: wrap;
+	}
+
+	/* Trade targets on mobile */
+	.trade-target-item {
+		padding: 12px;
+	}
+
+	.target-team {
+		font-size: 1em;
+	}
+
+	/* Positional breakdown */
+	.breakdown-item {
+		grid-template-columns: 35px 1fr 50px;
+		gap: 8px;
+	}
+
+	/* Age chart table */
+	.age-chart-table tbody td {
+		padding: 8px 6px;
+		font-size: 0.9em;
+	}
+
+	/* Rookies table */
+	.rookies-table tbody td {
+		padding: 10px 6px;
+		font-size: 0.9em;
+	}
+
+	/* Mode toggle on mobile */
+	.mode-btn {
+		padding: 10px 20px;
+		font-size: 0.85em;
+	}
+
+	.mode-description {
+		font-size: 0.85em;
 	}
 }
