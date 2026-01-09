@@ -315,6 +315,7 @@ type RookieProspect struct {
 	College  string
 	Value    int
 	Rank     int
+	Year     int // Draft year
 }
 
 type LeagueData struct {
@@ -1448,7 +1449,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// Fetch recent league transactions
-			recentTransactions = fetchRecentTransactions(leagueID, week, players, rosters)
+			recentTransactions = fetchRecentTransactions(leagueID, week, players, rosters, userNames)
 			debugLog("[DEBUG] Found %d recent transactions", len(recentTransactions))
 		}
 
@@ -2180,7 +2181,7 @@ func findBreakoutCandidates(benchRows []PlayerRow) []PlayerRow {
 }
 
 // fetchRecentTransactions gets recent trades, adds, and drops from the league
-func fetchRecentTransactions(leagueID string, currentWeek int, players map[string]interface{}, rosters []map[string]interface{}) []Transaction {
+func fetchRecentTransactions(leagueID string, currentWeek int, players map[string]interface{}, rosters []map[string]interface{}, userNames map[string]string) []Transaction {
 	transactions := []Transaction{}
 
 	// Fetch last 4 weeks of transactions
@@ -2195,8 +2196,31 @@ func fetchRecentTransactions(leagueID string, currentWeek int, players map[strin
 	for _, r := range rosters {
 		rosterID, _ := r["roster_id"].(float64)
 		ownerID, _ := r["owner_id"].(string)
-		if ownerID != "" {
-			rosterIDToName[int(rosterID)] = ownerID // We'll use owner_id as placeholder
+
+		// Get display name from userNames map, fall back to metadata team_name
+		teamName := ""
+		if ownerID != "" && userNames != nil {
+			if displayName, exists := userNames[ownerID]; exists && displayName != "" {
+				teamName = displayName
+			}
+		}
+
+		// If no display name, try metadata team_name
+		if teamName == "" {
+			if metadata, ok := r["metadata"].(map[string]interface{}); ok {
+				if tn, ok := metadata["team_name"].(string); ok && tn != "" {
+					teamName = tn
+				}
+			}
+		}
+
+		// Last resort: use owner ID
+		if teamName == "" && ownerID != "" {
+			teamName = ownerID
+		}
+
+		if teamName != "" {
+			rosterIDToName[int(rosterID)] = teamName
 		}
 	}
 
@@ -2380,24 +2404,37 @@ func findAgingPlayers(startersRows, benchRows []PlayerRow) []PlayerRow {
 	return aging
 }
 
-// getTopRookies returns top rookie prospects for the 2025 NFL draft
+// getTopRookies returns top rookie prospects for the 2025 and 2026 NFL drafts
 func getTopRookies() []RookieProspect {
 	return []RookieProspect{
-		{Name: "Shedeur Sanders", Position: "QB", College: "Colorado", Value: 4500, Rank: 1},
-		{Name: "Travis Hunter", Position: "WR", College: "Colorado", Value: 7500, Rank: 2},
-		{Name: "Ashton Jeanty", Position: "RB", College: "Boise State", Value: 6800, Rank: 3},
-		{Name: "Abdul Carter", Position: "LB", College: "Penn State", Value: 0, Rank: 4},
-		{Name: "Tetairoa McMillan", Position: "WR", College: "Arizona", Value: 6500, Rank: 5},
-		{Name: "Will Johnson", Position: "CB", College: "Michigan", Value: 0, Rank: 6},
-		{Name: "Mason Graham", Position: "DT", College: "Michigan", Value: 0, Rank: 7},
-		{Name: "Cam Ward", Position: "QB", College: "Miami", Value: 4200, Rank: 8},
-		{Name: "Malaki Starks", Position: "S", College: "Georgia", Value: 0, Rank: 9},
-		{Name: "Luther Burden III", Position: "WR", College: "Missouri", Value: 6000, Rank: 10},
-		{Name: "Kelvin Banks Jr.", Position: "OT", College: "Texas", Value: 0, Rank: 11},
-		{Name: "Tyler Warren", Position: "TE", College: "Penn State", Value: 3800, Rank: 12},
-		{Name: "Will Campbell", Position: "OT", College: "LSU", Value: 0, Rank: 13},
-		{Name: "Omarion Hampton", Position: "RB", College: "North Carolina", Value: 5500, Rank: 14},
-		{Name: "Mykel Williams", Position: "DE", College: "Georgia", Value: 0, Rank: 15},
+		// 2025 NFL Draft
+		{Name: "Shedeur Sanders", Position: "QB", College: "Colorado", Value: 4500, Rank: 1, Year: 2025},
+		{Name: "Travis Hunter", Position: "WR", College: "Colorado", Value: 7500, Rank: 2, Year: 2025},
+		{Name: "Ashton Jeanty", Position: "RB", College: "Boise State", Value: 6800, Rank: 3, Year: 2025},
+		{Name: "Abdul Carter", Position: "LB", College: "Penn State", Value: 0, Rank: 4, Year: 2025},
+		{Name: "Tetairoa McMillan", Position: "WR", College: "Arizona", Value: 6500, Rank: 5, Year: 2025},
+		{Name: "Will Johnson", Position: "CB", College: "Michigan", Value: 0, Rank: 6, Year: 2025},
+		{Name: "Mason Graham", Position: "DT", College: "Michigan", Value: 0, Rank: 7, Year: 2025},
+		{Name: "Cam Ward", Position: "QB", College: "Miami", Value: 4200, Rank: 8, Year: 2025},
+		{Name: "Malaki Starks", Position: "S", College: "Georgia", Value: 0, Rank: 9, Year: 2025},
+		{Name: "Luther Burden III", Position: "WR", College: "Missouri", Value: 6000, Rank: 10, Year: 2025},
+		{Name: "Kelvin Banks Jr.", Position: "OT", College: "Texas", Value: 0, Rank: 11, Year: 2025},
+		{Name: "Tyler Warren", Position: "TE", College: "Penn State", Value: 3800, Rank: 12, Year: 2025},
+		{Name: "Will Campbell", Position: "OT", College: "LSU", Value: 0, Rank: 13, Year: 2025},
+		{Name: "Omarion Hampton", Position: "RB", College: "North Carolina", Value: 5500, Rank: 14, Year: 2025},
+		{Name: "Mykel Williams", Position: "DE", College: "Georgia", Value: 0, Rank: 15, Year: 2025},
+
+		// 2026 NFL Draft (Early projections)
+		{Name: "Quinn Ewers", Position: "QB", College: "Texas", Value: 4000, Rank: 1, Year: 2026},
+		{Name: "Jalen Milroe", Position: "QB", College: "Alabama", Value: 3500, Rank: 2, Year: 2026},
+		{Name: "Jeremiah Smith", Position: "WR", College: "Ohio State", Value: 6500, Rank: 3, Year: 2026},
+		{Name: "TreVeyon Henderson", Position: "RB", College: "Ohio State", Value: 5500, Rank: 4, Year: 2026},
+		{Name: "Kelvin Banks III", Position: "OT", College: "Texas", Value: 0, Rank: 5, Year: 2026},
+		{Name: "James Pearce Jr.", Position: "DE", College: "Tennessee", Value: 0, Rank: 6, Year: 2026},
+		{Name: "Colston Loveland", Position: "TE", College: "Michigan", Value: 3200, Rank: 7, Year: 2026},
+		{Name: "Jahdae Barron", Position: "CB", College: "Texas", Value: 0, Rank: 8, Year: 2026},
+		{Name: "Quinshon Judkins", Position: "RB", College: "Ohio State", Value: 5000, Rank: 9, Year: 2026},
+		{Name: "Emeka Egbuka", Position: "WR", College: "Ohio State", Value: 5800, Rank: 10, Year: 2026},
 	}
 }
 
