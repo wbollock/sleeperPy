@@ -2253,49 +2253,67 @@ func fetchRecentTransactions(leagueID string, currentWeek int, players map[strin
 
 			case "waiver":
 				// Waiver claim
-				adds, _ := t["adds"].(map[string]interface{})
-				drops, _ := t["drops"].(map[string]interface{})
+			adds, _ := t["adds"].(map[string]interface{})
+			drops, _ := t["drops"].(map[string]interface{})
 
-				for playerID, rosterIDVal := range adds {
-					if rosterID, ok := rosterIDVal.(float64); ok {
-						teamName := rosterIDToName[int(rosterID)]
-						if p, ok := players[playerID].(map[string]interface{}); ok {
-							playerName := getPlayerName(p)
-							playerNames = append(playerNames, playerName)
-							description = fmt.Sprintf("%s claimed %s", teamName, playerName)
-						}
-					}
-				}
+			addedPlayer := ""
+			droppedPlayer := ""
+			var teamName string
 
-				for playerID := range drops {
+			for playerID, rosterIDVal := range adds {
+				if rosterID, ok := rosterIDVal.(float64); ok {
+					teamName = rosterIDToName[int(rosterID)]
 					if p, ok := players[playerID].(map[string]interface{}); ok {
-						playerNames = append(playerNames, getPlayerName(p))
+						addedPlayer = getPlayerName(p)
+						playerNames = append(playerNames, addedPlayer)
 					}
 				}
+			}
+
+			for playerID := range drops {
+				if p, ok := players[playerID].(map[string]interface{}); ok {
+					droppedPlayer = getPlayerName(p)
+				}
+			}
+
+			if addedPlayer != "" && droppedPlayer != "" {
+				description = fmt.Sprintf("%s claimed %s (dropped %s)", teamName, addedPlayer, droppedPlayer)
+			} else if addedPlayer != "" {
+				description = fmt.Sprintf("%s claimed %s", teamName, addedPlayer)
+			}
 
 			case "free_agent":
 				// Free agent add/drop
-				adds, _ := t["adds"].(map[string]interface{})
-				drops, _ := t["drops"].(map[string]interface{})
+			adds, _ := t["adds"].(map[string]interface{})
+			drops, _ := t["drops"].(map[string]interface{})
 
-				for playerID, rosterIDVal := range adds {
-					if rosterID, ok := rosterIDVal.(float64); ok {
-						teamName := rosterIDToName[int(rosterID)]
-						if p, ok := players[playerID].(map[string]interface{}); ok {
-							playerName := getPlayerName(p)
-							playerNames = append(playerNames, playerName)
-							description = fmt.Sprintf("%s added %s", teamName, playerName)
-						}
+			addedPlayer := ""
+			droppedPlayer := ""
+			var teamName string
+
+			for playerID, rosterIDVal := range adds {
+				if rosterID, ok := rosterIDVal.(float64); ok {
+					teamName = rosterIDToName[int(rosterID)]
+					if p, ok := players[playerID].(map[string]interface{}); ok {
+						addedPlayer = getPlayerName(p)
+						playerNames = append(playerNames, addedPlayer)
 					}
 				}
+			}
 
-				for playerID, rosterIDVal := range drops {
-					if _, ok := rosterIDVal.(float64); ok {
-						if p, ok := players[playerID].(map[string]interface{}); ok {
-							playerNames = append(playerNames, getPlayerName(p))
-						}
+			for playerID, rosterIDVal := range drops {
+				if _, ok := rosterIDVal.(float64); ok {
+					if p, ok := players[playerID].(map[string]interface{}); ok {
+						droppedPlayer = getPlayerName(p)
 					}
 				}
+			}
+
+			if addedPlayer != "" && droppedPlayer != "" {
+				description = fmt.Sprintf("%s added %s (dropped %s)", teamName, addedPlayer, droppedPlayer)
+			} else if addedPlayer != "" {
+				description = fmt.Sprintf("%s added %s", teamName, addedPlayer)
+			}
 			}
 
 			if description != "" {
