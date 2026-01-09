@@ -528,16 +528,15 @@ function toggleSection(sectionId) {
 
                     {{if $l.TopRookies}}
                     <div class="toolkit-card collapseable">
-                        <div class="card-header" onclick="toggleSection('top-rookies-{{$i}}')">
-                            <span class="card-title">NFL Draft Prospects</span>
-                            <span class="collapse-icon" id="top-rookies-{{$i}}-icon">▼</span>
+                        <div class="card-header" onclick="toggleSection('rookies-2025-{{$i}}')">
+                            <span class="card-title">2025 NFL Draft Prospects</span>
+                            <span class="collapse-icon" id="rookies-2025-{{$i}}-icon">▼</span>
                         </div>
-                        <div class="card-content" id="top-rookies-{{$i}}-content">
-                            <div class="rookies-desc" style="font-size:0.85em;color:#9fb3d4;font-style:italic;margin-bottom:12px;">Top fantasy-relevant prospects for 2025 & 2026 rookie drafts</div>
+                        <div class="card-content" id="rookies-2025-{{$i}}-content">
+                            <div class="rookies-desc" style="font-size:0.85em;color:#9fb3d4;font-style:italic;margin-bottom:12px;">Top fantasy-relevant prospects for the 2025 rookie draft</div>
                             <table class="rookies-table">
                                 <thead>
                                     <tr>
-                                        <th style="text-align:center;">Year</th>
                                         <th style="text-align:center;">Rank</th>
                                         <th>Player</th>
                                         <th>Pos</th>
@@ -547,14 +546,49 @@ function toggleSection(sectionId) {
                                 </thead>
                                 <tbody>
                                     {{range $l.TopRookies}}
+                                    {{if eq .Year 2025}}
                                     <tr>
-                                        <td style="text-align:center;font-weight:600;color:#9fb3d4;">{{.Year}}</td>
                                         <td style="text-align:center;font-weight:700;color:#7bb0ff;">{{.Rank}}</td>
                                         <td style="font-weight:600;">{{.Name}}</td>
                                         <td>{{.Position}}</td>
                                         <td style="font-size:0.9em;color:#9fb3d4;">{{.College}}</td>
                                         <td style="text-align:right;font-weight:600;">{{.Value}}</td>
                                     </tr>
+                                    {{end}}
+                                    {{end}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="toolkit-card collapseable">
+                        <div class="card-header" onclick="toggleSection('rookies-2026-{{$i}}')">
+                            <span class="card-title">2026 NFL Draft Prospects</span>
+                            <span class="collapse-icon" id="rookies-2026-{{$i}}-icon">▼</span>
+                        </div>
+                        <div class="card-content" id="rookies-2026-{{$i}}-content">
+                            <div class="rookies-desc" style="font-size:0.85em;color:#9fb3d4;font-style:italic;margin-bottom:12px;">Early projections for the 2026 rookie draft</div>
+                            <table class="rookies-table">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center;">Rank</th>
+                                        <th>Player</th>
+                                        <th>Pos</th>
+                                        <th>College</th>
+                                        <th style="text-align:right;">Value</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{range $l.TopRookies}}
+                                    {{if eq .Year 2026}}
+                                    <tr>
+                                        <td style="text-align:center;font-weight:700;color:#7bb0ff;">{{.Rank}}</td>
+                                        <td style="font-weight:600;">{{.Name}}</td>
+                                        <td>{{.Position}}</td>
+                                        <td style="font-size:0.9em;color:#9fb3d4;">{{.College}}</td>
+                                        <td style="text-align:right;font-weight:600;">{{.Value}}</td>
+                                    </tr>
+                                    {{end}}
                                     {{end}}
                                 </tbody>
                             </table>
