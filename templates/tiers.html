@@ -27,13 +27,13 @@ function showLeagueTab(evt, tabId) {
     evt.currentTarget.classList.add('active');
 }
 
-function switchMode(leagueIndex, mode) {
+function switchMode(evt, leagueIndex, mode) {
     const league = document.getElementById('league' + leagueIndex);
 
     // Update button states
     const btns = league.querySelectorAll('.mode-btn');
     btns.forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
+    evt.currentTarget.classList.add('active');
 
     // Update description
     const inseasonDesc = league.querySelector('.inseason-desc');
@@ -81,8 +81,8 @@ function toggleSection(sectionId) {
             {{if $l.IsDynasty}}
             <div class="mode-toggle-container">
                 <div class="mode-toggle">
-                    <button class="mode-btn" onclick="switchMode({{$i}}, 'inseason')">In-Season</button>
-                    <button class="mode-btn active" onclick="switchMode({{$i}}, 'dynasty')">Dynasty</button>
+                    <button class="mode-btn" onclick="switchMode(event, {{$i}}, 'inseason')">In-Season</button>
+                    <button class="mode-btn active" onclick="switchMode(event, {{$i}}, 'dynasty')">Dynasty</button>
                 </div>
                 <div class="mode-description">
                     <span class="inseason-desc" style="display:none;">Weekly matchups & tier-based recommendations</span>
