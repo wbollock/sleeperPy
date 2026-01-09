@@ -263,6 +263,19 @@ type TeamAgeData struct {
 	RosterValue int // Total dynasty value of roster
 }
 
+type PowerRanking struct {
+	Rank         int
+	TeamName     string
+	RosterValue  int
+	Wins         int
+	Losses       int
+	AvgAge       float64
+	Strategy     string // "Win Now", "Contending", "Rebuilding"
+	IsUserTeam   bool
+	ValueRank    int // Rank by dynasty value
+	StandingRank int // Rank by wins
+}
+
 type DraftPick struct {
 	Round        int
 	Year         int
@@ -337,6 +350,7 @@ type LeagueData struct {
 	TotalRosterValue     int         // Sum of all dynasty values on roster
 	UserAvgAge           float64     // Average age of user's roster
 	TeamAges             []TeamAgeData // All teams' ages for dynasty chart
+	PowerRankings        []PowerRanking // League-wide power rankings (dynasty only)
 	DraftPicks           []DraftPick // User's draft picks (dynasty only)
 	TradeTargets         []TradeTarget // Potential trade partners (dynasty only)
 	PositionalBreakdown  PositionalKTC // User's positional value breakdown (dynasty only)
@@ -1544,6 +1558,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			TotalRosterValue:     totalRosterValue,
 			UserAvgAge:           userAvgAge,
 			TeamAges:             teamAges,
+			PowerRankings:        calculatePowerRankings(teamAges),
 			DraftPicks:           draftPicks,
 			TradeTargets:         tradeTargets,
 			PositionalBreakdown:  positionalBreakdown,
@@ -2436,6 +2451,56 @@ func getTopRookies() []RookieProspect {
 		{Name: "Quinshon Judkins", Position: "RB", College: "Ohio State", Value: 5000, Rank: 9, Year: 2026},
 		{Name: "Emeka Egbuka", Position: "WR", College: "Ohio State", Value: 5800, Rank: 10, Year: 2026},
 	}
+}
+
+// calculatePowerRankings creates league-wide power rankings based on dynasty value and record
+func calculatePowerRankings(teamAges []TeamAgeData) []PowerRanking {
+	rankings := []PowerRanking{}
+
+	// Create power rankings from team data
+	for _, team := range teamAges {
+		// Determine strategy based on age and record
+		strategy := "Contending"
+		if team.AvgAge > 27.0 {
+			strategy = "Win Now"
+		} else if team.AvgAge < 24.5 {
+			strategy = "Rebuilding"
+		}
+
+		// Get wins/losses from rank (Rank 1 = most wins)
+		// For now, use rank as wins estimate (will be replaced with actual W-L when available)
+		wins := 15 - team.Rank // Approximate
+		losses := team.Rank - 1
+
+		rankings = append(rankings, PowerRanking{
+			TeamName:     team.TeamName,
+			RosterValue:  team.RosterValue,
+			Wins:         wins,
+			Losses:       losses,
+			AvgAge:       team.AvgAge,
+			Strategy:     strategy,
+			IsUserTeam:   team.IsUserTeam,
+			StandingRank: team.Rank,
+		})
+	}
+
+	// Sort by roster value (highest first) and assign value ranks
+	sort.Slice(rankings, func(i, j int) bool {
+		return rankings[i].RosterValue > rankings[j].RosterValue
+	})
+
+	for i := range rankings {
+		rankings[i].ValueRank = i + 1
+		// Overall rank is average of value rank and standing rank
+		rankings[i].Rank = (rankings[i].ValueRank + rankings[i].StandingRank) / 2
+	}
+
+	// Re-sort by combined rank
+	sort.Slice(rankings, func(i, j int) bool {
+		return rankings[i].Rank < rankings[j].Rank
+	})
+
+	return rankings
 }
 
 // calculatePositionalKTC calculates total dynasty value by position

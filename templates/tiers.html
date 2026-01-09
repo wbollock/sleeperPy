@@ -443,6 +443,50 @@ function toggleSection(sectionId) {
                     </div>
                     {{end}}
 
+                    {{if $l.PowerRankings}}
+                    <div class="toolkit-card collapseable">
+                        <div class="card-header" onclick="toggleSection('power-rankings-{{$i}}')">
+                            <span class="card-title">League Power Rankings</span>
+                            <span class="collapse-icon" id="power-rankings-{{$i}}-icon">▼</span>
+                        </div>
+                        <div class="card-content" id="power-rankings-{{$i}}-content">
+                            <div class="age-chart-desc" style="margin-bottom:12px;">Combined ranking based on dynasty value and current record</div>
+                            <table class="age-chart-table">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center;">Rank</th>
+                                        <th style="text-align:left;">Team</th>
+                                        <th>Value</th>
+                                        <th>Record</th>
+                                        <th>Strategy</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {{range $l.PowerRankings}}
+                                    <tr{{if .IsUserTeam}} style="background:rgba(123,176,255,0.15);border-left:3px solid #7bb0ff;"{{end}}>
+                                        <td style="text-align:center;font-weight:700;color:#7bb0ff;">{{.Rank}}</td>
+                                        <td style="text-align:left;">
+                                            {{if .IsUserTeam}}<b>{{.TeamName}}</b> (You){{else}}{{.TeamName}}{{end}}
+                                        </td>
+                                        <td style="font-weight:600;">{{.RosterValue}}</td>
+                                        <td>{{.Wins}}-{{.Losses}}</td>
+                                        <td>
+                                            {{if eq .Strategy "Win Now"}}
+                                                <span style="color:#ff9d5c;">Win Now</span>
+                                            {{else if eq .Strategy "Rebuilding"}}
+                                                <span style="color:#7bb0ff;">Rebuilding</span>
+                                            {{else}}
+                                                <span style="color:#3ae87a;">Contending</span>
+                                            {{end}}
+                                        </td>
+                                    </tr>
+                                {{end}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {{end}}
+
                     <div class="toolkit-card collapseable">
                         <div class="card-header" onclick="toggleSection('trade-targets-{{$i}}')">
                             <span class="card-title">
