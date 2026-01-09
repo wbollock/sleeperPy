@@ -31,7 +31,7 @@
 	vertical-align: middle;
 	filter: drop-shadow(0 0 3px rgba(255, 215, 0, 0.5));
 }
-# Win Probability Bar
+/* Win Probability Bar */
 .winprob-row {
 	display: flex;
 	align-items: center;
@@ -98,7 +98,7 @@
 	margin-left: 10px;
 	filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
-# League tabs and pretty tables
+/* League tabs and pretty tables */
 .league-tabs {
 	display: flex;
 	gap: 10px;
