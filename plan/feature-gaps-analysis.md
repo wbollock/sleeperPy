@@ -850,9 +850,9 @@ Replace "Loading..." with context:
 | UX/UI design system | HIGH | MEDIUM | ⭐⭐⭐ HIGH | ✅ Yes |
 | Rebrand to TierCheck | MEDIUM | LOW | ⭐⭐ MEDIUM | ⚠️ Your call |
 | Better error handling | HIGH | LOW | ⭐⭐⭐ HIGH | ✅ Yes |
+| Loading states & spinners | HIGH | LOW | ⭐⭐⭐ HIGH | ✅ Yes |
 | Demo mode | HIGH | MEDIUM | ⭐⭐⭐ HIGH | ✅ Yes |
 | FAQ/Help section | HIGH | LOW | ⭐⭐ HIGH | ✅ Yes |
-| Loading states | MEDIUM | LOW | ⭐⭐ MEDIUM | ✅ Yes |
 | League settings display | MEDIUM | LOW | ⭐⭐ MEDIUM | ✅ Yes |
 | Player search | MEDIUM | MEDIUM | ⭐⭐ MEDIUM | ✅ Yes |
 | League dropdown (5+ leagues) | HIGH | MEDIUM | ⭐⭐⭐ HIGH | ✅ Yes |
@@ -895,7 +895,14 @@ Replace "Loading..." with context:
    - OR use Plausible (paid but simple)
    - NO Google Analytics
 
-4. ✅ **Better error messages**
+4. ✅ **Loading states & spinners** ⭐ BUMPED PRIORITY
+   - Proper loading spinner (not just "Loading...")
+   - Skeleton screens for league cards
+   - Progress indicators
+   - Context-aware messages ("Fetching leagues...", "Analyzing tiers...")
+   - Smooth transitions
+
+5. ✅ **Better error messages**
    - Actionable, friendly errors
    - Retry buttons
    - Toast notifications
@@ -903,23 +910,18 @@ Replace "Loading..." with context:
 ### Week 2: UX Improvements ⭐ UPDATED
 **Goal**: Intuitive for first-time users + Better for power users
 
-5. ✅ **Power user improvements** (NEW - Based on feedback)
+6. ✅ **Power user improvements** (NEW - Based on feedback)
    - League selector dropdown for 5+ leagues
    - Searchable league list
    - Favorite/star leagues
    - Better transaction display (gave/got clarity)
    - Transaction filters
 
-6. ✅ **Design system foundation**
+7. ✅ **Design system foundation**
    - Color palette variables
    - Typography scale
    - Spacing system
    - Component library start
-
-7. ✅ **Loading states**
-   - Skeleton screens
-   - Progress indicators
-   - Context-aware messages
 
 8. ✅ **Demo mode**
    - "See Example" button
