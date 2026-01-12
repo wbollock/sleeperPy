@@ -855,6 +855,9 @@ Replace "Loading..." with context:
 | Loading states | MEDIUM | LOW | ⭐⭐ MEDIUM | ✅ Yes |
 | League settings display | MEDIUM | LOW | ⭐⭐ MEDIUM | ✅ Yes |
 | Player search | MEDIUM | MEDIUM | ⭐⭐ MEDIUM | ✅ Yes |
+| League dropdown (5+ leagues) | HIGH | MEDIUM | ⭐⭐⭐ HIGH | ✅ Yes |
+| Better transaction display | HIGH | LOW | ⭐⭐⭐ HIGH | ✅ Yes |
+| League favorites/starring | MEDIUM | LOW | ⭐⭐ MEDIUM | ✅ Yes |
 | PWA manifest | MEDIUM | LOW | ⭐⭐ MEDIUM | ✅ Yes |
 | Basic caching | MEDIUM | MEDIUM | ⭐⭐ MEDIUM | ✅ Yes |
 | Analytics | MEDIUM | LOW | ⭐⭐ MEDIUM | ✅ Yes |
@@ -897,26 +900,33 @@ Replace "Loading..." with context:
    - Retry buttons
    - Toast notifications
 
-### Week 2: UX Improvements
-**Goal**: Intuitive for first-time users
+### Week 2: UX Improvements ⭐ UPDATED
+**Goal**: Intuitive for first-time users + Better for power users
 
-5. ✅ **Design system foundation**
+5. ✅ **Power user improvements** (NEW - Based on feedback)
+   - League selector dropdown for 5+ leagues
+   - Searchable league list
+   - Favorite/star leagues
+   - Better transaction display (gave/got clarity)
+   - Transaction filters
+
+6. ✅ **Design system foundation**
    - Color palette variables
    - Typography scale
    - Spacing system
    - Component library start
 
-6. ✅ **Loading states**
+7. ✅ **Loading states**
    - Skeleton screens
    - Progress indicators
    - Context-aware messages
 
-7. ✅ **Demo mode**
+8. ✅ **Demo mode**
    - "See Example" button
    - Mock data showcase
    - No username required
 
-8. ✅ **FAQ section**
+9. ✅ **FAQ section**
    - Answer common questions
    - Help tooltips
    - How-to guide
@@ -924,17 +934,17 @@ Replace "Loading..." with context:
 ### Week 3: Core Features
 **Goal**: More valuable, better experience
 
-9. ✅ **League settings display**
+10. ✅ **League settings display**
    - Show roster requirements
    - Display scoring format
    - League size and format
 
-10. ✅ **Team standings**
+11. ✅ **Team standings**
     - Current record
     - League standings table
     - Playoff positioning
 
-11. ✅ **Player search**
+12. ✅ **Player search**
     - Search within leagues
     - Filter by position
     - Quick find
@@ -942,18 +952,18 @@ Replace "Loading..." with context:
 ### Week 4: Mobile & Performance
 **Goal**: Fast, app-like experience
 
-12. ✅ **PWA setup**
+13. ✅ **PWA setup**
     - Web app manifest
     - Service worker
     - Add to home screen
     - Offline support
 
-13. ✅ **Caching layer**
+14. ✅ **Caching layer**
     - Cache API responses (1 hour)
     - In-memory cache
     - Service worker caching
 
-14. ✅ **Performance audit**
+15. ✅ **Performance audit**
     - Inline critical CSS
     - Lazy load images
     - Defer non-critical JS
@@ -967,9 +977,9 @@ Replace "Loading..." with context:
 - Your decision
 
 ### Long-term (2-3 Months)
-15. ⚠️ User accounts & authentication
-16. ⚠️ Premium tier launch
-17. ⚠️ AI features with Ollama
+16. ⚠️ User accounts & authentication
+17. ⚠️ Premium tier launch
+18. ⚠️ AI features with Ollama
 
 ---
 
