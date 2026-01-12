@@ -326,15 +326,54 @@ Analysis of missing features and gaps in the current product roadmap, organized 
 
 ## Category 5: Developer & Operations
 
-### 13. Admin & Monitoring
+### 13. Admin & Monitoring ⭐ REQUESTED
 **Current Gap**: No visibility into usage, errors, or user behavior
 
 **Missing Features**:
-- **Admin Dashboard**:
-  - User count and growth metrics
-  - Feature usage statistics
-  - Error logs and monitoring
-  - Subscription revenue tracking
+- **Admin Dashboard** ⭐ HIGH VALUE:
+  - Real-time metrics (users online, lookups today, leagues viewed)
+  - Growth metrics (daily/weekly/monthly active users)
+  - Feature usage statistics (dynasty mode %, free agents clicks)
+  - Error logs and debugging info
+  - Subscription revenue tracking (future)
+  - Geographic distribution
+  - Browser/device breakdown
+  - Most popular leagues/players
+
+**Implementation Options**:
+- **Option 1: Simple Secret URL** (Quick, can do now)
+  - `/admin?secret=YOUR_SECRET_KEY`
+  - No auth needed, just obscurity
+  - Environment variable for secret
+  - Read-only metrics page
+
+- **Option 2: Basic Auth** (Better security)
+  - HTTP Basic Auth with username/password
+  - No database needed
+  - Protected admin routes
+
+- **Option 3: Full Auth** (Future)
+  - Admin user accounts
+  - Multi-admin support
+  - Audit logs
+
+**Metrics to Track**:
+- Total lookups (all-time, today, this week)
+- Unique users (by cookie)
+- Active users (last 24h, 7d, 30d)
+- Leagues analyzed
+- Dynasty league percentage
+- Average leagues per user
+- Error rate and types
+- API response times
+- Top free agents searched
+- Most viewed leagues
+- Peak usage times
+
+**Tech Stack Options**:
+- **Simple**: In-memory counters (lost on restart)
+- **Better**: SQLite for persistence
+- **Best**: Prometheus metrics + Grafana dashboard
 
 - **Feature Flags**:
   - Enable/disable features without deploy
@@ -346,9 +385,9 @@ Analysis of missing features and gaps in the current product roadmap, organized 
   - Different limits for free vs premium
   - DDoS protection
 
-**Priority**: MEDIUM - Important for scaling
-**Complexity**: MEDIUM
-**Can Work On Now**: ✅ Yes (basic monitoring)
+**Priority**: HIGH - You want this, provides immediate value
+**Complexity**: LOW (basic) to MEDIUM (full featured)
+**Can Work On Now**: ✅ Yes - Can implement basic version immediately
 
 ---
 
@@ -804,6 +843,7 @@ Replace "Loading..." with context:
 
 | Feature | Impact | Complexity | Priority | Can Start Now? |
 |---------|--------|------------|----------|----------------|
+| Admin panel (basic) | HIGH | LOW | ⭐⭐⭐ HIGH | ✅ Yes |
 | Legal pages (ToS, Privacy) | HIGH | LOW | ⭐⭐⭐ CRITICAL | ✅ Yes |
 | SEO & Meta tags | HIGH | LOW | ⭐⭐⭐ HIGH | ✅ Yes |
 | Privacy analytics (Umami) | MEDIUM | LOW | ⭐⭐ MEDIUM | ✅ Yes |
@@ -830,6 +870,12 @@ Replace "Loading..." with context:
 
 ### Week 1: Foundation & Polish
 **Goal**: Professional, fast, privacy-focused
+
+0. ✅ **Admin Panel** (NEW - High priority for you)
+   - Simple secret URL dashboard
+   - Real-time metrics
+   - User activity tracking
+   - Error monitoring
 
 1. ✅ **Legal pages** (ToS, Privacy, Cookie consent)
    - Use templates, customize for SleeperPy
