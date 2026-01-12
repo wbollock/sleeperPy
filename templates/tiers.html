@@ -10,7 +10,15 @@
 </head>
 <body>
 <header class="app-header">
-    <h1><a href="/" style="color:inherit; text-decoration:none;">SleeperPy Fantasy Tiers</a></h1>
+    <div class="header-content">
+        <h1><a href="/" style="color:inherit; text-decoration:none;">SleeperPy Fantasy Tiers</a></h1>
+        {{if .Username}}
+        <div class="user-info">
+            <span class="username-display">{{.Username}}</span>
+            <a href="/signout" class="signout-btn">Sign Out</a>
+        </div>
+        {{end}}
+    </div>
 </header>
 <div class="main-content">
 {{if .Error}}
@@ -766,6 +774,14 @@ if (document.getElementById('defaultTab')) document.getElementById('defaultTab')
         box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
         border-bottom: 1px solid rgba(123, 176, 255, 0.2);
     }
+    .app-header .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 0 24px;
+    }
     .app-header h1 {
         color: #e8eef7;
         font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
@@ -774,6 +790,44 @@ if (document.getElementById('defaultTab')) document.getElementById('defaultTab')
         letter-spacing: -0.5px;
         margin: 0;
         text-shadow: 0 2px 16px rgba(58, 110, 232, 0.3);
+    }
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: #eaf0fa;
+    }
+    .username-display {
+        font-weight: 600;
+        font-size: 1.1em;
+        padding: 8px 12px;
+        background: rgba(255,255,255,0.15);
+        border-radius: 6px;
+    }
+    .signout-btn {
+        padding: 8px 16px;
+        background: rgba(255,255,255,0.2);
+        color: #eaf0fa;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: 600;
+        transition: background 0.2s ease;
+    }
+    .signout-btn:hover {
+        background: rgba(255,255,255,0.3);
+    }
+    @media (max-width: 768px) {
+        .app-header .header-content {
+            flex-direction: column;
+            gap: 16px;
+        }
+        .app-header h1 {
+            font-size: 1.8em;
+        }
+        .user-info {
+            flex-direction: column;
+            gap: 8px;
+        }
     }
     .main-content {
         max-width: 1400px;

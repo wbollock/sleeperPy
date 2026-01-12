@@ -9,16 +9,34 @@
 </head>
 <body>
         <header class="app-header">
-            <h1>SleeperPy</h1>
+            <div class="header-content">
+                <h1>SleeperPy</h1>
+                {{if .SavedUsername}}
+                <div class="user-info">
+                    <span class="username-display">{{.SavedUsername}}</span>
+                    <a href="/signout" class="signout-btn">Sign Out</a>
+                </div>
+                {{end}}
+            </div>
         </header>
             <div class="container">
                         <div class="app-description">
+                        {{if .SavedUsername}}
+                        <p class="welcome-back"><b>Welcome back!</b></p>
+                        <p>Ready to view your latest tiers and lineup suggestions?</p>
+                        {{else}}
                         <p><b>SleeperPy Fantasy Tiers</b> helps you set your best fantasy football lineup using <a href="https://www.borischen.co/" target="_blank" rel="noopener">Boris Chen's</a> weekly tiers.</p>
                         <p>Enter your <b>Sleeper username</b> (<a href="https://support.sleeper.com/en/articles/1876011-account-settings" target="_blank" rel="noopener">how to find it</a>) to see your team, top free agents, and upgrade suggestions.</p>
+                        {{end}}
                         </div>
         <form id="userform" method="get" action="/lookup">
-            <input id="inputButton" type="text" name="username" required placeholder="Sleeper Username">
+            <input id="inputButton" type="text" name="username" required placeholder="Sleeper Username" value="{{.SavedUsername}}">
+            {{if .SavedUsername}}
+            <button id="generateTiers" type="submit">View My Tiers</button>
+            <a href="/signout" class="secondary-btn">Use Different Username</a>
+            {{else}}
             <button id="generateTiers" type="submit">Show My Tiers</button>
+            {{end}}
         </form>
         <div id="loading" style="display:none;text-align:center;margin-top:1em;">Loading...</div>
         <div id="output"></div>
@@ -62,6 +80,14 @@
         margin-bottom: 18px;
         box-shadow: 0 2px 12px rgba(30,38,54,0.10);
     }
+    .app-header .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
     .app-header h1 {
         color: #eaf0fa;
         font-family: 'Raleway', Arial, sans-serif;
@@ -70,6 +96,66 @@
         letter-spacing: 1px;
         margin: 0;
         text-shadow: 0 2px 8px rgba(30,38,54,0.18);
+    }
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: #eaf0fa;
+    }
+    .username-display {
+        font-weight: 600;
+        font-size: 1.1em;
+        padding: 8px 12px;
+        background: rgba(255,255,255,0.15);
+        border-radius: 6px;
+    }
+    .signout-btn {
+        padding: 8px 16px;
+        background: rgba(255,255,255,0.2);
+        color: #eaf0fa;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: 600;
+        transition: background 0.2s ease;
+    }
+    .signout-btn:hover {
+        background: rgba(255,255,255,0.3);
+    }
+    .welcome-back {
+        font-size: 1.3em;
+        margin-bottom: 0.5em;
+    }
+    .secondary-btn {
+        display: inline-block;
+        padding: 12px 24px;
+        margin-left: 12px;
+        background: #555;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: 600;
+        transition: background 0.2s ease;
+    }
+    .secondary-btn:hover {
+        background: #666;
+    }
+    @media (max-width: 768px) {
+        .app-header .header-content {
+            flex-direction: column;
+            gap: 16px;
+        }
+        .app-header h1 {
+            font-size: 1.8em;
+        }
+        .user-info {
+            flex-direction: column;
+            gap: 8px;
+        }
+        .secondary-btn {
+            display: block;
+            margin: 12px auto 0;
+        }
     }
 </style>
 <footer style="margin-top:2em; text-align:center; font-size:1em; color:#888;">

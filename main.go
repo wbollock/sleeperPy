@@ -205,6 +205,7 @@ func main() {
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 	http.HandleFunc("/", visitorLogging(indexHandler))
 	http.HandleFunc("/lookup", lookupHandler)
+	http.HandleFunc("/signout", signoutHandler)
 	http.Handle("/metrics", promhttp.Handler())
 
 	if testMode {
@@ -233,7 +234,27 @@ func visitorLogging(next http.HandlerFunc) http.HandlerFunc {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	templates.ExecuteTemplate(w, "index.html", nil)
+	savedUsername := ""
+	if cookie, err := r.Cookie("sleeper_username"); err == nil {
+		savedUsername = cookie.Value
+	}
+	templates.ExecuteTemplate(w, "index.html", IndexPage{SavedUsername: savedUsername})
+}
+
+func signoutHandler(w http.ResponseWriter, r *http.Request) {
+	// Clear the username cookie
+	cookie := &http.Cookie{
+		Name:     "sleeper_username",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1, // Delete cookie
+		HttpOnly: false,
+		SameSite: http.SameSiteLaxMode,
+	}
+	http.SetCookie(w, cookie)
+
+	// Redirect to home page
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 // --- Data structures for rendering ---
@@ -365,6 +386,10 @@ type TiersPage struct {
 	Error    string
 	Leagues  []LeagueData
 	Username string
+}
+
+type IndexPage struct {
+	SavedUsername string
 }
 
 // Team mapping for DST/DEF
@@ -1579,6 +1604,18 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	username = r.FormValue("username")
+
+	// Set cookie to remember username for 30 days
+	cookie := &http.Cookie{
+		Name:     "sleeper_username",
+		Value:    username,
+		Path:     "/",
+		MaxAge:   30 * 24 * 60 * 60, // 30 days
+		HttpOnly: false,              // Allow JavaScript to read for UI logic
+		SameSite: http.SameSiteLaxMode,
+	}
+	http.SetCookie(w, cookie)
+
 	if err = templates.ExecuteTemplate(w, "tiers.html", TiersPage{Leagues: leagueResults, Username: username}); err != nil {
 		log.Printf("[ERROR] Template execution error: %v", err)
 	}
