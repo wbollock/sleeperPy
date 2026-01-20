@@ -179,6 +179,7 @@ var funcMap = template.FuncMap{
 		}
 		return t.Format("Jan 2, 2006")
 	},
+	"add": func(a, b int) int { return a + b },
 }
 
 var templates = template.Must(template.New("").Funcs(funcMap).ParseGlob("templates/*.html"))
@@ -341,6 +342,13 @@ type Transaction struct {
 	Description string
 	TeamNames   []string
 	PlayerNames []string
+	// For trades: better structure
+	Team1        string
+	Team2        string
+	Team1Gave    []string
+	Team2Gave    []string
+	AddedPlayer  string // For waivers/FA
+	DroppedPlayer string // For waivers/FA
 }
 
 type RookieProspect struct {
@@ -2313,83 +2321,156 @@ func fetchRecentTransactions(leagueID string, currentWeek int, players map[strin
 					}
 				}
 
-				// Get players involved
+				// Parse adds/drops to determine who gave what
 				adds, _ := t["adds"].(map[string]interface{})
-				for playerID := range adds {
-					if p, ok := players[playerID].(map[string]interface{}); ok {
-						playerNames = append(playerNames, getPlayerName(p))
+
+				// Map to track which roster got which players
+				team1Gave := []string{}
+				team2Gave := []string{}
+
+				if len(rosterIDs) >= 2 {
+					roster1ID := int(rosterIDs[0].(float64))
+					roster2ID := int(rosterIDs[1].(float64))
+
+					// Players in adds are who RECEIVED them
+					// So if roster1 received a player, roster2 gave it up
+					for playerID, rosterIDVal := range adds {
+						if rosterID, ok := rosterIDVal.(float64); ok {
+							if p, ok := players[playerID].(map[string]interface{}); ok {
+								playerName := getPlayerName(p)
+								playerNames = append(playerNames, playerName)
+
+								if int(rosterID) == roster1ID {
+									// Roster 1 got this player, so Roster 2 gave it
+									team2Gave = append(team2Gave, playerName)
+								} else if int(rosterID) == roster2ID {
+									// Roster 2 got this player, so Roster 1 gave it
+									team1Gave = append(team1Gave, playerName)
+								}
+							}
+						}
+					}
+				} else {
+					// Fallback for trades without clear roster IDs
+					for playerID := range adds {
+						if p, ok := players[playerID].(map[string]interface{}); ok {
+							playerNames = append(playerNames, getPlayerName(p))
+						}
 					}
 				}
 
 				if len(teamNames) >= 2 {
 					description = fmt.Sprintf("Trade between %s and %s", teamNames[0], teamNames[1])
+					// Store structured trade data
+					if len(teamNames) >= 2 {
+						transactions = append(transactions, Transaction{
+							Type:        transType,
+							Timestamp:   timestamp,
+							Description: description,
+							TeamNames:   teamNames,
+							PlayerNames: playerNames,
+							Team1:       teamNames[0],
+							Team2:       teamNames[1],
+							Team1Gave:   team1Gave,
+							Team2Gave:   team2Gave,
+						})
+						continue // Skip the generic append at the end
+					}
 				} else {
 					description = "Trade completed"
 				}
 
 			case "waiver":
 				// Waiver claim
-			adds, _ := t["adds"].(map[string]interface{})
-			drops, _ := t["drops"].(map[string]interface{})
+				adds, _ := t["adds"].(map[string]interface{})
+				drops, _ := t["drops"].(map[string]interface{})
 
-			addedPlayer := ""
-			droppedPlayer := ""
-			var teamName string
+				addedPlayer := ""
+				droppedPlayer := ""
+				var teamName string
 
-			for playerID, rosterIDVal := range adds {
-				if rosterID, ok := rosterIDVal.(float64); ok {
-					teamName = rosterIDToName[int(rosterID)]
-					if p, ok := players[playerID].(map[string]interface{}); ok {
-						addedPlayer = getPlayerName(p)
-						playerNames = append(playerNames, addedPlayer)
+				for playerID, rosterIDVal := range adds {
+					if rosterID, ok := rosterIDVal.(float64); ok {
+						teamName = rosterIDToName[int(rosterID)]
+						if p, ok := players[playerID].(map[string]interface{}); ok {
+							addedPlayer = getPlayerName(p)
+							playerNames = append(playerNames, addedPlayer)
+						}
 					}
 				}
-			}
 
-			for playerID := range drops {
-				if p, ok := players[playerID].(map[string]interface{}); ok {
-					droppedPlayer = getPlayerName(p)
-				}
-			}
-
-			if addedPlayer != "" && droppedPlayer != "" {
-				description = fmt.Sprintf("%s claimed %s (dropped %s)", teamName, addedPlayer, droppedPlayer)
-			} else if addedPlayer != "" {
-				description = fmt.Sprintf("%s claimed %s", teamName, addedPlayer)
-			}
-
-			case "free_agent":
-				// Free agent add/drop
-			adds, _ := t["adds"].(map[string]interface{})
-			drops, _ := t["drops"].(map[string]interface{})
-
-			addedPlayer := ""
-			droppedPlayer := ""
-			var teamName string
-
-			for playerID, rosterIDVal := range adds {
-				if rosterID, ok := rosterIDVal.(float64); ok {
-					teamName = rosterIDToName[int(rosterID)]
-					if p, ok := players[playerID].(map[string]interface{}); ok {
-						addedPlayer = getPlayerName(p)
-						playerNames = append(playerNames, addedPlayer)
-					}
-				}
-			}
-
-			for playerID, rosterIDVal := range drops {
-				if _, ok := rosterIDVal.(float64); ok {
+				for playerID := range drops {
 					if p, ok := players[playerID].(map[string]interface{}); ok {
 						droppedPlayer = getPlayerName(p)
 					}
 				}
-			}
 
-			if addedPlayer != "" && droppedPlayer != "" {
-				description = fmt.Sprintf("%s added %s (dropped %s)", teamName, addedPlayer, droppedPlayer)
-			} else if addedPlayer != "" {
-				description = fmt.Sprintf("%s added %s", teamName, addedPlayer)
-			}
+				if addedPlayer != "" && droppedPlayer != "" {
+					description = fmt.Sprintf("%s claimed %s (dropped %s)", teamName, addedPlayer, droppedPlayer)
+				} else if addedPlayer != "" {
+					description = fmt.Sprintf("%s claimed %s", teamName, addedPlayer)
+				}
+
+				// Store structured waiver data
+				if description != "" {
+					transactions = append(transactions, Transaction{
+						Type:          transType,
+						Timestamp:     timestamp,
+						Description:   description,
+						TeamNames:     []string{teamName},
+						PlayerNames:   playerNames,
+						AddedPlayer:   addedPlayer,
+						DroppedPlayer: droppedPlayer,
+					})
+					continue
+				}
+
+			case "free_agent":
+				// Free agent add/drop
+				adds, _ := t["adds"].(map[string]interface{})
+				drops, _ := t["drops"].(map[string]interface{})
+
+				addedPlayer := ""
+				droppedPlayer := ""
+				var teamName string
+
+				for playerID, rosterIDVal := range adds {
+					if rosterID, ok := rosterIDVal.(float64); ok {
+						teamName = rosterIDToName[int(rosterID)]
+						if p, ok := players[playerID].(map[string]interface{}); ok {
+							addedPlayer = getPlayerName(p)
+							playerNames = append(playerNames, addedPlayer)
+						}
+					}
+				}
+
+				for playerID, rosterIDVal := range drops {
+					if _, ok := rosterIDVal.(float64); ok {
+						if p, ok := players[playerID].(map[string]interface{}); ok {
+							droppedPlayer = getPlayerName(p)
+						}
+					}
+				}
+
+				if addedPlayer != "" && droppedPlayer != "" {
+					description = fmt.Sprintf("%s added %s (dropped %s)", teamName, addedPlayer, droppedPlayer)
+				} else if addedPlayer != "" {
+					description = fmt.Sprintf("%s added %s", teamName, addedPlayer)
+				}
+
+				// Store structured FA data
+				if description != "" {
+					transactions = append(transactions, Transaction{
+						Type:          transType,
+						Timestamp:     timestamp,
+						Description:   description,
+						TeamNames:     []string{teamName},
+						PlayerNames:   playerNames,
+						AddedPlayer:   addedPlayer,
+						DroppedPlayer: droppedPlayer,
+					})
+					continue
+				}
 			}
 
 			if description != "" {

@@ -77,13 +77,123 @@ function toggleSection(sectionId) {
         icon.textContent = '▶';
     }
 }
+
+function toggleLeagueDropdown() {
+    const dropdown = document.getElementById('leagueDropdown');
+    const searchInput = document.getElementById('leagueSearch');
+    if (dropdown.style.display === 'none') {
+        dropdown.style.display = 'block';
+        searchInput.focus();
+    } else {
+        dropdown.style.display = 'none';
+        searchInput.value = '';
+        filterLeagues(); // Reset filter
+    }
+}
+
+function selectLeague(evt, leagueId, leagueName) {
+    // Hide all league contents
+    document.querySelectorAll('.league-content').forEach(div => div.style.display = 'none');
+
+    // Show selected league
+    document.getElementById(leagueId).style.display = 'block';
+
+    // Update active state
+    document.querySelectorAll('.league-option').forEach(btn => btn.classList.remove('active'));
+    evt.currentTarget.classList.add('active');
+
+    // Update dropdown button text
+    document.getElementById('currentLeagueName').textContent = leagueName;
+
+    // Close dropdown
+    document.getElementById('leagueDropdown').style.display = 'none';
+    document.getElementById('leagueSearch').value = '';
+    filterLeagues(); // Reset filter
+}
+
+function filterLeagues() {
+    const searchTerm = document.getElementById('leagueSearch').value.toLowerCase();
+    const options = document.querySelectorAll('.league-option');
+    const groups = document.querySelectorAll('.league-group');
+
+    options.forEach(option => {
+        const leagueName = option.dataset.leagueName.toLowerCase();
+        if (leagueName.includes(searchTerm)) {
+            option.style.display = 'flex';
+        } else {
+            option.style.display = 'none';
+        }
+    });
+
+    // Hide groups if all options are hidden
+    groups.forEach(group => {
+        const visibleOptions = group.querySelectorAll('.league-option[style="display: flex"]');
+        if (visibleOptions.length === 0) {
+            group.style.display = 'none';
+        } else {
+            group.style.display = 'block';
+        }
+    });
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(event) {
+    const dropdown = document.getElementById('leagueDropdown');
+    const btn = document.querySelector('.league-dropdown-btn');
+    if (dropdown && btn && !dropdown.contains(event.target) && !btn.contains(event.target)) {
+        dropdown.style.display = 'none';
+    }
+});
 </script>
 
+{{$leagueCount := len .Leagues}}
+{{if lt $leagueCount 5}}
 <div class="league-tabs">
     {{range $i, $l := .Leagues}}
         <button class="league-tab" {{if eq $i 0}}id="defaultTab"{{end}} onclick="showLeagueTab(event, 'league{{$i}}')">{{if $l.IsDynasty}}⭐ {{end}}{{$l.LeagueName}} ({{$l.Scoring}})</button>
     {{end}}
 </div>
+{{else}}
+<div class="league-selector-container">
+    <div class="league-selector">
+        <button class="league-dropdown-btn" onclick="toggleLeagueDropdown()">
+            <span class="current-league-name" id="currentLeagueName">{{(index .Leagues 0).LeagueName}}</span>
+            <span class="league-count">({{$leagueCount}} leagues)</span>
+            <span class="dropdown-arrow">▼</span>
+        </button>
+        <div class="league-dropdown-menu" id="leagueDropdown" style="display:none;">
+            <input type="text" class="league-search" id="leagueSearch" placeholder="Search leagues..." onkeyup="filterLeagues()">
+            <div class="league-options" id="leagueOptions">
+                {{/* Group dynasty leagues */}}
+                <div class="league-group" id="dynasty-group">
+                    <div class="league-group-header">🏆 Dynasty Leagues</div>
+                    {{range $i, $l := .Leagues}}
+                        {{if $l.IsDynasty}}
+                        <button class="league-option {{if eq $i 0}}active{{end}}" data-league-id="league{{$i}}" data-league-name="{{$l.LeagueName}}" onclick="selectLeague(event, 'league{{$i}}', '{{$l.LeagueName}}')">
+                            <span class="league-option-name">{{$l.LeagueName}}</span>
+                            <span class="league-option-type">({{$l.Scoring}})</span>
+                        </button>
+                        {{end}}
+                    {{end}}
+                </div>
+
+                {{/* Group redraft leagues */}}
+                <div class="league-group" id="redraft-group">
+                    <div class="league-group-header">📊 Redraft Leagues</div>
+                    {{range $i, $l := .Leagues}}
+                        {{if not $l.IsDynasty}}
+                        <button class="league-option {{if eq $i 0}}active{{end}}" data-league-id="league{{$i}}" data-league-name="{{$l.LeagueName}}" onclick="selectLeague(event, 'league{{$i}}', '{{$l.LeagueName}}')">
+                            <span class="league-option-name">{{$l.LeagueName}}</span>
+                            <span class="league-option-type">({{$l.Scoring}})</span>
+                        </button>
+                        {{end}}
+                    {{end}}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{end}}
 <div class="league-contents">
     {{range $i, $l := .Leagues}}
         <div class="league-content" id="league{{$i}}" style="display:{{if eq $i 0}}block{{else}}none{{end}};">
@@ -366,11 +476,61 @@ function toggleSection(sectionId) {
                                         <span class="transaction-type">{{if eq .Type "trade"}}📊 Trade{{else if eq .Type "waiver"}}📋 Waiver{{else}}➕ Free Agent{{end}}</span>
                                         <span class="transaction-time">{{formatTime .Timestamp}}</span>
                                     </div>
-                                    <div class="transaction-desc">{{.Description}}</div>
-                                    {{if .PlayerNames}}
-                                    <div class="transaction-players">
-                                        {{range $idx, $name := .PlayerNames}}{{if $idx}}, {{end}}{{$name}}{{end}}
-                                    </div>
+
+                                    {{if eq .Type "trade"}}
+                                        {{if and .Team1 .Team2}}
+                                        <div class="trade-details">
+                                            <div class="trade-side">
+                                                <div class="trade-team">{{.Team1}}</div>
+                                                <div class="trade-gave">
+                                                    {{if .Team1Gave}}
+                                                        <span class="trade-label gave">Gave:</span>
+                                                        {{range $idx, $player := .Team1Gave}}{{if $idx}}, {{end}}{{$player}}{{end}}
+                                                    {{else}}
+                                                        <span class="trade-label got">Got:</span>
+                                                        {{range $idx, $player := .Team2Gave}}{{if $idx}}, {{end}}{{$player}}{{end}}
+                                                    {{end}}
+                                                </div>
+                                            </div>
+                                            <div class="trade-divider">⇄</div>
+                                            <div class="trade-side">
+                                                <div class="trade-team">{{.Team2}}</div>
+                                                <div class="trade-gave">
+                                                    {{if .Team2Gave}}
+                                                        <span class="trade-label gave">Gave:</span>
+                                                        {{range $idx, $player := .Team2Gave}}{{if $idx}}, {{end}}{{$player}}{{end}}
+                                                    {{else}}
+                                                        <span class="trade-label got">Got:</span>
+                                                        {{range $idx, $player := .Team1Gave}}{{if $idx}}, {{end}}{{$player}}{{end}}
+                                                    {{end}}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {{else}}
+                                        <div class="transaction-desc">{{.Description}}</div>
+                                        {{end}}
+                                    {{else if eq .Type "waiver"}}
+                                        <div class="waiver-details">
+                                            <div class="waiver-action">
+                                                <span class="waiver-label got">✅ Added:</span> {{.AddedPlayer}}
+                                            </div>
+                                            {{if .DroppedPlayer}}
+                                            <div class="waiver-action">
+                                                <span class="waiver-label gave">❌ Dropped:</span> {{.DroppedPlayer}}
+                                            </div>
+                                            {{end}}
+                                        </div>
+                                    {{else}}
+                                        <div class="waiver-details">
+                                            <div class="waiver-action">
+                                                <span class="waiver-label got">✅ Added:</span> {{.AddedPlayer}}
+                                            </div>
+                                            {{if .DroppedPlayer}}
+                                            <div class="waiver-action">
+                                                <span class="waiver-label gave">❌ Dropped:</span> {{.DroppedPlayer}}
+                                            </div>
+                                            {{end}}
+                                        </div>
                                     {{end}}
                                 </div>
                                 {{end}}
@@ -1402,6 +1562,70 @@ if (document.getElementById('defaultTab')) document.getElementById('defaultTab')
     color: #7bb0ff;
     font-style: italic;
 }
+.trade-details {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 12px;
+    padding: 12px;
+    background: rgba(123, 176, 255, 0.05);
+    border-radius: 6px;
+}
+.trade-side {
+    flex: 1;
+}
+.trade-team {
+    font-weight: 700;
+    color: #c5d5f0;
+    margin-bottom: 8px;
+    font-size: 0.95em;
+}
+.trade-gave {
+    font-size: 0.9em;
+    line-height: 1.6;
+}
+.trade-label {
+    font-weight: 600;
+    margin-right: 6px;
+}
+.trade-label.gave {
+    color: #ff9d5c;
+}
+.trade-label.got {
+    color: #3ae87a;
+}
+.trade-divider {
+    color: #7bb0ff;
+    font-size: 1.5em;
+    font-weight: 700;
+}
+.waiver-details {
+    margin-top: 8px;
+    padding: 8px 0;
+}
+.waiver-action {
+    padding: 4px 0;
+    font-size: 0.9em;
+}
+.waiver-label {
+    font-weight: 600;
+    margin-right: 6px;
+}
+.waiver-label.gave {
+    color: #ff9d5c;
+}
+.waiver-label.got {
+    color: #3ae87a;
+}
+@media (max-width: 768px) {
+    .trade-details {
+        flex-direction: column;
+        gap: 12px;
+    }
+    .trade-divider {
+        transform: rotate(90deg);
+    }
+}
 .rookies-table {
     width: 100%;
     border-collapse: collapse;
@@ -1425,6 +1649,155 @@ if (document.getElementById('defaultTab')) document.getElementById('defaultTab')
     padding: 12px 10px;
     font-size: 0.95em;
     color: #e8eef7;
+}
+.league-selector-container {
+    margin-bottom: 32px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+.league-selector {
+    position: relative;
+}
+.league-dropdown-btn {
+    width: 100%;
+    background: linear-gradient(135deg, rgba(123, 176, 255, 0.15) 0%, rgba(88, 86, 214, 0.15) 100%);
+    border: 2px solid rgba(123, 176, 255, 0.3);
+    border-radius: 12px;
+    padding: 16px 20px;
+    color: #e8eef7;
+    font-size: 1.05em;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+.league-dropdown-btn:hover {
+    background: linear-gradient(135deg, rgba(123, 176, 255, 0.25) 0%, rgba(88, 86, 214, 0.25) 100%);
+    border-color: rgba(123, 176, 255, 0.5);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px);
+}
+.current-league-name {
+    flex: 1;
+    text-align: left;
+    color: #7bb0ff;
+}
+.league-count {
+    font-size: 0.85em;
+    color: #9fb3d4;
+    margin: 0 12px;
+}
+.dropdown-arrow {
+    color: #7bb0ff;
+    font-size: 0.9em;
+    transition: transform 0.3s ease;
+}
+.league-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: rgba(30, 38, 54, 0.98);
+    backdrop-filter: blur(20px);
+    border: 2px solid rgba(123, 176, 255, 0.3);
+    border-radius: 12px;
+    max-height: 500px;
+    overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    z-index: 1000;
+}
+.league-search {
+    width: calc(100% - 24px);
+    margin: 12px;
+    padding: 12px 16px;
+    background: rgba(123, 176, 255, 0.08);
+    border: 1px solid rgba(123, 176, 255, 0.2);
+    border-radius: 8px;
+    color: #e8eef7;
+    font-size: 0.95em;
+    outline: none;
+    transition: all 0.2s ease;
+}
+.league-search::placeholder {
+    color: #9fb3d4;
+}
+.league-search:focus {
+    background: rgba(123, 176, 255, 0.12);
+    border-color: rgba(123, 176, 255, 0.4);
+    box-shadow: 0 0 0 3px rgba(123, 176, 255, 0.1);
+}
+.league-options {
+    padding: 0 8px 12px 8px;
+}
+.league-group {
+    margin-bottom: 16px;
+}
+.league-group:last-child {
+    margin-bottom: 0;
+}
+.league-group-header {
+    padding: 10px 12px;
+    font-size: 0.85em;
+    font-weight: 700;
+    color: #7bb0ff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: rgba(123, 176, 255, 0.08);
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+.league-option {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    padding: 12px 14px;
+    color: #c5d5f0;
+    font-size: 0.95em;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.2s ease;
+    text-align: left;
+    margin-bottom: 4px;
+}
+.league-option:hover {
+    background: rgba(123, 176, 255, 0.15);
+    color: #e8eef7;
+    transform: translateX(4px);
+}
+.league-option.active {
+    background: linear-gradient(90deg, rgba(123, 176, 255, 0.25) 0%, rgba(88, 86, 214, 0.25) 100%);
+    color: #7bb0ff;
+    font-weight: 600;
+}
+.league-option-name {
+    flex: 1;
+}
+.league-option-type {
+    font-size: 0.85em;
+    color: #9fb3d4;
+    margin-left: 8px;
+}
+@media (max-width: 768px) {
+    .league-selector-container {
+        max-width: 100%;
+    }
+    .league-dropdown-btn {
+        padding: 14px 16px;
+        font-size: 0.95em;
+    }
+    .current-league-name {
+        font-size: 0.9em;
+    }
+    .league-count {
+        font-size: 0.8em;
+    }
 }
 </style>
 </body>
