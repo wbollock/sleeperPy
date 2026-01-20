@@ -34,6 +34,9 @@ function showLeagueTab(evt, tabId) {
     document.getElementById(tabId).style.display = 'block';
     document.querySelectorAll('.league-tab').forEach(btn => btn.classList.remove('active'));
     evt.currentTarget.classList.add('active');
+
+    // Remember last viewed league
+    localStorage.setItem('sleeperpy_last_league', tabId);
 }
 
 function switchMode(evt, leagueIndex, mode) {
@@ -109,6 +112,9 @@ function selectLeague(evt, leagueId, leagueName) {
     document.getElementById('leagueDropdown').style.display = 'none';
     document.getElementById('leagueSearch').value = '';
     filterLeagues(); // Reset filter
+
+    // Remember last viewed league
+    localStorage.setItem('sleeperpy_last_league', leagueId);
 }
 
 function filterLeagues() {
@@ -144,6 +150,158 @@ document.addEventListener('click', function(event) {
         dropdown.style.display = 'none';
     }
 });
+
+// League favorites functionality
+function getFavorites() {
+    const stored = localStorage.getItem('sleeperpy_favorites');
+    return stored ? JSON.parse(stored) : [];
+}
+
+function saveFavorites(favorites) {
+    localStorage.setItem('sleeperpy_favorites', JSON.stringify(favorites));
+}
+
+function toggleFavorite(event, leagueId, leagueName) {
+    event.stopPropagation(); // Prevent league selection when clicking star
+
+    const favorites = getFavorites();
+    const index = favorites.findIndex(f => f.id === leagueId);
+    const starIcon = event.target;
+
+    if (index > -1) {
+        // Remove from favorites
+        favorites.splice(index, 1);
+        starIcon.textContent = '☆';
+        starIcon.title = 'Add to favorites';
+    } else {
+        // Add to favorites
+        favorites.push({ id: leagueId, name: leagueName });
+        starIcon.textContent = '★';
+        starIcon.title = 'Remove from favorites';
+    }
+
+    saveFavorites(favorites);
+    updateFavoritesGroup();
+}
+
+function updateFavoritesGroup() {
+    const favorites = getFavorites();
+    const favoritesGroup = document.getElementById('favorites-group');
+
+    if (favorites.length === 0) {
+        favoritesGroup.style.display = 'none';
+        return;
+    }
+
+    favoritesGroup.style.display = 'block';
+
+    // Clear existing favorites (keep header)
+    const existingOptions = favoritesGroup.querySelectorAll('.league-option');
+    existingOptions.forEach(opt => opt.remove());
+
+    // Add each favorite
+    favorites.forEach(fav => {
+        const originalOption = document.querySelector(`.league-option[data-league-id="${fav.id}"]`);
+        if (originalOption) {
+            const clone = originalOption.cloneNode(true);
+            // Update star to filled
+            const star = clone.querySelector('.favorite-star');
+            if (star) {
+                star.textContent = '★';
+                star.title = 'Remove from favorites';
+            }
+            favoritesGroup.appendChild(clone);
+        }
+    });
+}
+
+function initFavorites() {
+    const favorites = getFavorites();
+
+    // Update all star icons based on saved favorites
+    favorites.forEach(fav => {
+        const starIcon = document.querySelector(`.league-option[data-league-id="${fav.id}"] .favorite-star`);
+        if (starIcon) {
+            starIcon.textContent = '★';
+            starIcon.title = 'Remove from favorites';
+        }
+    });
+
+    // Populate favorites group
+    updateFavoritesGroup();
+}
+
+// Initialize favorites on page load
+if (document.getElementById('leagueDropdown')) {
+    initFavorites();
+}
+
+// Transaction filtering
+function filterTransactions(event, leagueIndex, filterType) {
+    const transactionsList = document.getElementById('transactions-list-' + leagueIndex);
+    const transactions = transactionsList.querySelectorAll('.transaction-item');
+    const filterBtns = event.currentTarget.parentElement.querySelectorAll('.filter-btn');
+
+    // Update active button state
+    filterBtns.forEach(btn => btn.classList.remove('active'));
+    event.currentTarget.classList.add('active');
+
+    // Show/hide transactions based on filter
+    transactions.forEach(transaction => {
+        if (filterType === 'all') {
+            transaction.style.display = '';
+        } else {
+            if (transaction.classList.contains('transaction-' + filterType)) {
+                transaction.style.display = '';
+            } else {
+                transaction.style.display = 'none';
+            }
+        }
+    });
+}
+
+// Restore last viewed league on page load
+function restoreLastLeague() {
+    const lastLeagueId = localStorage.getItem('sleeperpy_last_league');
+    if (!lastLeagueId) return;
+
+    // Check if the league exists on this page
+    const leagueElement = document.getElementById(lastLeagueId);
+    if (!leagueElement) return;
+
+    // For dropdown view (5+ leagues)
+    const dropdown = document.getElementById('leagueDropdown');
+    if (dropdown) {
+        const leagueOption = document.querySelector(`.league-option[data-league-id="${lastLeagueId}"]`);
+        if (leagueOption) {
+            const leagueName = leagueOption.dataset.leagueName;
+
+            // Hide all leagues
+            document.querySelectorAll('.league-content').forEach(div => div.style.display = 'none');
+
+            // Show the last viewed league
+            leagueElement.style.display = 'block';
+
+            // Update dropdown button text
+            document.getElementById('currentLeagueName').textContent = leagueName;
+
+            // Update active state in dropdown
+            document.querySelectorAll('.league-option').forEach(btn => btn.classList.remove('active'));
+            leagueOption.classList.add('active');
+        }
+    } else {
+        // For tab view (<5 leagues)
+        const tabButton = document.querySelector(`[onclick*="${lastLeagueId}"]`);
+        if (tabButton) {
+            tabButton.click();
+        }
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    restoreLastLeague();
+});
 </script>
 
 {{$leagueCount := len .Leagues}}
@@ -164,6 +322,11 @@ document.addEventListener('click', function(event) {
         <div class="league-dropdown-menu" id="leagueDropdown" style="display:none;">
             <input type="text" class="league-search" id="leagueSearch" placeholder="Search leagues..." onkeyup="filterLeagues()">
             <div class="league-options" id="leagueOptions">
+                {{/* Favorites group */}}
+                <div class="league-group" id="favorites-group" style="display:none;">
+                    <div class="league-group-header">⭐ Favorites</div>
+                </div>
+
                 {{/* Group dynasty leagues */}}
                 <div class="league-group" id="dynasty-group">
                     <div class="league-group-header">🏆 Dynasty Leagues</div>
@@ -171,7 +334,10 @@ document.addEventListener('click', function(event) {
                         {{if $l.IsDynasty}}
                         <button class="league-option {{if eq $i 0}}active{{end}}" data-league-id="league{{$i}}" data-league-name="{{$l.LeagueName}}" onclick="selectLeague(event, 'league{{$i}}', '{{$l.LeagueName}}')">
                             <span class="league-option-name">{{$l.LeagueName}}</span>
-                            <span class="league-option-type">({{$l.Scoring}})</span>
+                            <span class="league-option-actions">
+                                <span class="league-option-type">({{$l.Scoring}})</span>
+                                <span class="favorite-star" onclick="toggleFavorite(event, 'league{{$i}}', '{{$l.LeagueName}}')" title="Add to favorites">☆</span>
+                            </span>
                         </button>
                         {{end}}
                     {{end}}
@@ -184,7 +350,10 @@ document.addEventListener('click', function(event) {
                         {{if not $l.IsDynasty}}
                         <button class="league-option {{if eq $i 0}}active{{end}}" data-league-id="league{{$i}}" data-league-name="{{$l.LeagueName}}" onclick="selectLeague(event, 'league{{$i}}', '{{$l.LeagueName}}')">
                             <span class="league-option-name">{{$l.LeagueName}}</span>
-                            <span class="league-option-type">({{$l.Scoring}})</span>
+                            <span class="league-option-actions">
+                                <span class="league-option-type">({{$l.Scoring}})</span>
+                                <span class="favorite-star" onclick="toggleFavorite(event, 'league{{$i}}', '{{$l.LeagueName}}')" title="Add to favorites">☆</span>
+                            </span>
                         </button>
                         {{end}}
                     {{end}}
@@ -469,7 +638,13 @@ document.addEventListener('click', function(event) {
                         </div>
                         <div class="card-content" id="transactions-{{$i}}-content">
                             {{if $l.RecentTransactions}}
-                            <div class="transactions-list">
+                            <div class="transaction-filters">
+                                <button class="filter-btn active" onclick="filterTransactions(event, {{$i}}, 'all')">All</button>
+                                <button class="filter-btn" onclick="filterTransactions(event, {{$i}}, 'trade')">📊 Trades</button>
+                                <button class="filter-btn" onclick="filterTransactions(event, {{$i}}, 'waiver')">📋 Waivers</button>
+                                <button class="filter-btn" onclick="filterTransactions(event, {{$i}}, 'free_agent')">➕ Free Agents</button>
+                            </div>
+                            <div class="transactions-list" id="transactions-list-{{$i}}">
                                 {{range $l.RecentTransactions}}
                                 <div class="transaction-item transaction-{{.Type}}">
                                     <div class="transaction-header">
@@ -1485,6 +1660,34 @@ if (document.getElementById('defaultTab')) document.getElementById('defaultTab')
 .aging-count {
     background: rgba(255, 157, 92, 0.2);
 }
+.transaction-filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+.filter-btn {
+    background: rgba(123, 176, 255, 0.08);
+    border: 1px solid rgba(123, 176, 255, 0.2);
+    border-radius: 6px;
+    padding: 8px 16px;
+    color: #9fb3d4;
+    font-size: 0.9em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.filter-btn:hover {
+    background: rgba(123, 176, 255, 0.15);
+    border-color: rgba(123, 176, 255, 0.3);
+    color: #c5d5f0;
+}
+.filter-btn.active {
+    background: linear-gradient(90deg, rgba(123, 176, 255, 0.25) 0%, rgba(88, 86, 214, 0.25) 100%);
+    border-color: rgba(123, 176, 255, 0.4);
+    color: #7bb0ff;
+    box-shadow: 0 2px 8px rgba(123, 176, 255, 0.2);
+}
 .transactions-list {
     max-height: 500px;
     overflow-y: auto;
@@ -1779,10 +1982,27 @@ if (document.getElementById('defaultTab')) document.getElementById('defaultTab')
 .league-option-name {
     flex: 1;
 }
+.league-option-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
 .league-option-type {
     font-size: 0.85em;
     color: #9fb3d4;
-    margin-left: 8px;
+}
+.favorite-star {
+    font-size: 1.1em;
+    color: #ffc83a;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 4px;
+    line-height: 1;
+    user-select: none;
+}
+.favorite-star:hover {
+    transform: scale(1.2);
+    filter: drop-shadow(0 0 6px rgba(255, 200, 58, 0.6));
 }
 @media (max-width: 768px) {
     .league-selector-container {
