@@ -2557,17 +2557,14 @@ func getTopRookies() []RookieProspect {
 		{Name: "Omarion Hampton", Position: "RB", College: "North Carolina", Value: 5500, Rank: 14, Year: 2025},
 		{Name: "Mykel Williams", Position: "DE", College: "Georgia", Value: 0, Rank: 15, Year: 2025},
 
-		// 2026 NFL Draft (Early projections)
+		// 2026 NFL Draft (Very early projections - subject to change)
+		// Note: Players listed here returned to school for 2025 season and are projected for 2026 draft
+		// This data is speculative and will be updated as the season progresses
 		{Name: "Quinn Ewers", Position: "QB", College: "Texas", Value: 4000, Rank: 1, Year: 2026},
 		{Name: "Jalen Milroe", Position: "QB", College: "Alabama", Value: 3500, Rank: 2, Year: 2026},
 		{Name: "Jeremiah Smith", Position: "WR", College: "Ohio State", Value: 6500, Rank: 3, Year: 2026},
-		{Name: "TreVeyon Henderson", Position: "RB", College: "Ohio State", Value: 5500, Rank: 4, Year: 2026},
-		{Name: "Kelvin Banks III", Position: "OT", College: "Texas", Value: 0, Rank: 5, Year: 2026},
-		{Name: "James Pearce Jr.", Position: "DE", College: "Tennessee", Value: 0, Rank: 6, Year: 2026},
-		{Name: "Colston Loveland", Position: "TE", College: "Michigan", Value: 3200, Rank: 7, Year: 2026},
-		{Name: "Jahdae Barron", Position: "CB", College: "Texas", Value: 0, Rank: 8, Year: 2026},
-		{Name: "Quinshon Judkins", Position: "RB", College: "Ohio State", Value: 5000, Rank: 9, Year: 2026},
-		{Name: "Emeka Egbuka", Position: "WR", College: "Ohio State", Value: 5800, Rank: 10, Year: 2026},
+		{Name: "Colston Loveland", Position: "TE", College: "Michigan", Value: 3200, Rank: 4, Year: 2026},
+		{Name: "Quinshon Judkins", Position: "RB", College: "Ohio State", Value: 5000, Rank: 5, Year: 2026},
 	}
 }
 
