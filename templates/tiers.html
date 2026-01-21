@@ -686,6 +686,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                         {{end}}
                                     {{else if eq .Type "waiver"}}
                                         <div class="waiver-details">
+                                            {{if .TeamNames}}
+                                            <div class="waiver-team">{{index .TeamNames 0}}</div>
+                                            {{end}}
                                             <div class="waiver-action">
                                                 <span class="waiver-label got">✅ Added:</span> {{.AddedPlayer}}
                                             </div>
@@ -697,6 +700,9 @@ document.addEventListener('DOMContentLoaded', function() {
                                         </div>
                                     {{else}}
                                         <div class="waiver-details">
+                                            {{if .TeamNames}}
+                                            <div class="waiver-team">{{index .TeamNames 0}}</div>
+                                            {{end}}
                                             <div class="waiver-action">
                                                 <span class="waiver-label got">✅ Added:</span> {{.AddedPlayer}}
                                             </div>
@@ -1805,6 +1811,12 @@ if (document.getElementById('defaultTab')) document.getElementById('defaultTab')
 .waiver-details {
     margin-top: 8px;
     padding: 8px 0;
+}
+.waiver-team {
+    font-weight: 600;
+    color: #7bb0ff;
+    margin-bottom: 6px;
+    font-size: 0.95em;
 }
 .waiver-action {
     padding: 4px 0;
