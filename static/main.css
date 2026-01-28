@@ -57,68 +57,111 @@
 .winprob-row {
 	display: flex;
 	align-items: center;
-	gap: 12px;
+	gap: 16px;
 	justify-content: center;
-	margin: 20px auto;
-	padding: 18px 16px;
-	background: rgba(30, 38, 54, 0.5);
-	border-radius: 14px;
-	backdrop-filter: blur(10px);
-	border: 1px solid rgba(123, 176, 255, 0.15);
-	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-	max-width: 650px;
+	margin: 30px auto;
+	padding: 24px 20px;
+	background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+	border-radius: 16px;
+	backdrop-filter: blur(16px);
+	border: 2px solid rgba(14, 165, 233, 0.3);
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 60px rgba(14, 165, 233, 0.15);
+	max-width: 750px;
+	transition: all 0.3s ease;
+}
+.winprob-row:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 80px rgba(14, 165, 233, 0.25);
 }
 .winprob-label {
-	font-weight: 600;
-	color: #7bb0ff;
-	margin-right: 6px;
-	font-size: 0.85em;
+	font-weight: 700;
+	color: #7dd3fc;
+	margin-right: 8px;
+	font-size: 1em;
 	text-transform: uppercase;
-	letter-spacing: 0.8px;
+	letter-spacing: 1px;
 	white-space: nowrap;
-	min-width: 80px;
+	min-width: 100px;
+	text-shadow: 0 2px 8px rgba(125, 211, 252, 0.5);
 }
 .winprob-bar-wrap {
-	flex: 1 1 200px;
-	max-width: 280px;
-	min-width: 120px;
+	flex: 1 1 250px;
+	max-width: 350px;
+	min-width: 150px;
 }
 .winprob-bar-bg {
-	background: rgba(30, 38, 54, 0.8);
-	border-radius: 12px;
+	background: rgba(15, 23, 42, 0.9);
+	border-radius: 16px;
 	width: 100%;
-	height: 24px;
+	height: 32px;
 	overflow: hidden;
-	box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
-	border: 1px solid rgba(123, 176, 255, 0.1);
+	box-shadow: inset 0 3px 12px rgba(0, 0, 0, 0.5);
+	border: 2px solid rgba(125, 211, 252, 0.2);
+	position: relative;
+}
+.winprob-bar-bg::after {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 50%;
+	background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
+	pointer-events: none;
 }
 .winprob-bar {
 	display: block;
 	height: 100%;
-	border-radius: 12px;
-	transition: width 0.6s cubic-bezier(.4,2,.6,1), background 0.3s;
-	box-shadow: 0 0 12px currentColor;
-	opacity: 0.9;
+	border-radius: 14px;
+	transition: width 1s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
+	box-shadow: 0 0 20px currentColor, inset 0 2px 8px rgba(255, 255, 255, 0.2);
+	position: relative;
+	overflow: hidden;
+}
+.winprob-bar::after {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: -100%;
+	width: 100%;
+	height: 100%;
+	background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+	animation: shimmer 2s infinite;
+}
+@keyframes shimmer {
+	0% { left: -100%; }
+	100% { left: 200%; }
 }
 .winprob-badge {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	min-width: 52px;
+	min-width: 70px;
 	text-align: center;
-	font-weight: 700;
+	font-weight: 800;
 	color: #fff;
-	border-radius: 8px;
-	padding: 6px 14px;
-	font-size: 1.1em;
-	margin-left: 8px;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+	border-radius: 12px;
+	padding: 8px 18px;
+	font-size: 1.5em;
+	margin-left: 12px;
+	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.2);
+	text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+	letter-spacing: -0.5px;
+	animation: pulse-badge 2s ease-in-out infinite;
+}
+@keyframes pulse-badge {
+	0%, 100% { transform: scale(1); }
+	50% { transform: scale(1.05); }
 }
 .winprob-emoji {
-	font-size: 1.5em;
-	margin-left: 10px;
-	filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+	font-size: 2em;
+	margin-left: 12px;
+	filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+	animation: bounce-emoji 1.5s ease-in-out infinite;
+}
+@keyframes bounce-emoji {
+	0%, 100% { transform: translateY(0); }
+	50% { transform: translateY(-6px); }
 }
 /* League tabs and pretty tables */
 .league-tabs {
@@ -418,29 +461,34 @@ h1 { text-align: center; color: #f1f5f9; }
 
 	/* Compact win probability on mobile */
 	.winprob-row {
-		gap: 6px;
-		padding: 12px 8px;
+		gap: 10px;
+		padding: 16px 12px;
 		max-width: 100%;
+		margin: 20px auto;
 	}
 	.winprob-label {
-		font-size: 0.75em;
-		min-width: 60px;
-		margin-right: 2px;
+		font-size: 0.8em;
+		min-width: 70px;
+		margin-right: 4px;
+		letter-spacing: 0.5px;
 	}
 	.winprob-bar-wrap {
-		flex: 1 1 100px;
-		min-width: 80px;
-		max-width: 150px;
+		flex: 1 1 120px;
+		min-width: 90px;
+		max-width: 180px;
+	}
+	.winprob-bar-bg {
+		height: 28px;
 	}
 	.winprob-badge {
-		font-size: 0.9em;
-		padding: 4px 8px;
-		min-width: 42px;
-		margin-left: 4px;
+		font-size: 1.1em;
+		padding: 6px 12px;
+		min-width: 50px;
+		margin-left: 6px;
 	}
 	.winprob-emoji {
-		font-size: 1.1em;
-		margin-left: 4px;
+		font-size: 1.4em;
+		margin-left: 6px;
 	}
 
 	/* Smaller FA section */
