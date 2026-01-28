@@ -10,7 +10,14 @@
 <body>
         <header class="app-header">
             <div class="header-content">
-                <h1>SleeperPy</h1>
+                <div class="logo-section">
+                    <svg class="logo-icon" width="32" height="32" viewBox="0 0 32 32" fill="none">
+                        <rect width="32" height="32" rx="8" fill="#0ea5e9"/>
+                        <path d="M16 8L22 12V20L16 24L10 20V12L16 8Z" fill="white"/>
+                        <circle cx="16" cy="16" r="3" fill="#0ea5e9"/>
+                    </svg>
+                    <h1>SleeperPy</h1>
+                </div>
                 {{if .SavedUsername}}
                 <div class="user-info">
                     <span class="username-display">{{.SavedUsername}}</span>
@@ -19,30 +26,78 @@
                 {{end}}
             </div>
         </header>
-            <div class="container">
-                        <div class="app-description">
-                        {{if .SavedUsername}}
-                        <p class="welcome-back"><b>Welcome back!</b></p>
-                        <p>Ready to view your latest tiers and lineup suggestions?</p>
-                        {{else}}
-                        <p><b>SleeperPy Fantasy Tiers</b> helps you set your best fantasy football lineup using <a href="https://www.borischen.co/" target="_blank" rel="noopener">Boris Chen's</a> weekly tiers.</p>
-                        <p>Enter your <b>Sleeper username</b> (<a href="https://support.sleeper.com/en/articles/1876011-account-settings" target="_blank" rel="noopener">how to find it</a>) to see your team, top free agents, and upgrade suggestions.</p>
-                        {{end}}
-                        </div>
-        <form id="userform" method="get" action="/lookup">
-            <input id="inputButton" type="text" name="username" required placeholder="Sleeper Username" value="{{.SavedUsername}}">
+
+        <div class="container">
             {{if .SavedUsername}}
-            <button id="generateTiers" type="submit">View My Tiers</button>
-            <a href="/signout" class="secondary-btn">Use Different Username</a>
+            <!-- Returning User View -->
+            <div class="hero-section returning-user">
+                <h2 class="hero-title">Welcome back, {{.SavedUsername}}</h2>
+                <p class="hero-subtitle">View your tiers and lineup recommendations.</p>
+
+                <form id="userform" method="get" action="/lookup" class="hero-form">
+                    <input type="hidden" name="username" value="{{.SavedUsername}}">
+                    <button id="generateTiers" type="submit" class="cta-button primary">
+                        View My Tiers
+                    </button>
+                    <a href="/signout" class="cta-button secondary">Use Different Username</a>
+                </form>
+            </div>
             {{else}}
-            <button id="generateTiers" type="submit">Show My Tiers</button>
+            <!-- New User View -->
+            <div class="hero-section">
+                <h2 class="hero-title">Fantasy Football Tier Analysis for Sleeper</h2>
+                <p class="hero-subtitle">See how your players rank with Boris Chen's weekly consensus tiers. Get lineup suggestions and find top free agents.</p>
+
+                <form id="userform" method="get" action="/lookup" class="hero-form">
+                    <div class="input-group">
+                        <input id="inputButton" type="text" name="username" required placeholder="Enter your Sleeper username">
+                    </div>
+                    <button id="generateTiers" type="submit" class="cta-button primary">
+                        View My Tiers
+                    </button>
+                </form>
+
+                <p class="help-text">
+                    <a href="https://support.sleeper.com/en/articles/1876011-account-settings" target="_blank" rel="noopener">How to find your username</a>
+                </p>
+            </div>
+
+            <!-- Feature Cards -->
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3 class="feature-title">Tier Rankings</h3>
+                    <p class="feature-description">See your roster sorted by Boris Chen's expert consensus tiers, updated every week during the season.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3 class="feature-title">Lineup Suggestions</h3>
+                    <p class="feature-description">Spot better options on your bench with side-by-side tier comparisons for your starting lineup.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3 class="feature-title">Free Agent Rankings</h3>
+                    <p class="feature-description">Find the best available players in your league, sorted by tier ranking for smarter waiver claims.</p>
+                </div>
+
+                <div class="feature-card">
+                    <h3 class="feature-title">Dynasty Support</h3>
+                    <p class="feature-description">Track long-term player values with DynastyProcess rankings for keeper and dynasty leagues.</p>
+                </div>
+            </div>
+
+            <!-- Info Footer -->
+            <div class="info-footer">
+                <span>Free • No signup • Open source</span>
+            </div>
             {{end}}
-        </form>
-        <div id="loading" style="display:none;text-align:center;margin-top:2em;">
-            <div class="spinner"></div>
-            <p class="loading-message">Analyzing your team...</p>
+
+            <div id="loading" style="display:none;text-align:center;margin-top:2em;">
+                <div class="spinner"></div>
+                <p class="loading-message">Analyzing your team...</p>
+            </div>
+            <div id="output"></div>
         </div>
-        <div id="output"></div>
+
         <script>
         // Show loading spinner on form submit
         document.getElementById('userform').addEventListener('submit', function(evt) {
@@ -50,34 +105,14 @@
             document.getElementById('generateTiers').disabled = true;
         });
         </script>
-    </div>
 <style>
-    .app-description {
-        background: #232c41;
-        color: #eaf0fa;
-        border-radius: 10px;
-        box-shadow: 0 2px 12px rgba(30,38,54,0.10);
-        padding: 22px 18px 18px 18px;
-        margin-bottom: 24px;
-        font-size: 1.13em;
-        max-width: 700px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-    .app-description ul {
-        margin: 12px 0 0 0;
-        padding-left: 22px;
-    }
-    .app-description li {
-        margin-bottom: 6px;
-    }
+    /* Header Styles */
     .app-header {
         width: 100%;
-        background: linear-gradient(90deg, #232c41 0%, #3a6ee8 100%);
-        padding: 32px 0 18px 0;
-        text-align: center;
-        margin-bottom: 18px;
-        box-shadow: 0 2px 12px rgba(30,38,54,0.10);
+        background: linear-gradient(90deg, #1e293b 0%, #0ea5e9 100%);
+        padding: 20px 0;
+        border-bottom: 1px solid rgba(125, 211, 252, 0.1);
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
     }
     .app-header .header-content {
         display: flex;
@@ -85,80 +120,198 @@
         align-items: center;
         max-width: 1200px;
         margin: 0 auto;
-        padding: 0 20px;
+        padding: 0 24px;
+    }
+    .logo-section {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .logo-icon {
+        filter: drop-shadow(0 2px 8px rgba(14, 165, 233, 0.3));
     }
     .app-header h1 {
-        color: #eaf0fa;
-        font-family: 'Raleway', Arial, sans-serif;
-        font-size: 2.3em;
-        font-weight: 800;
-        letter-spacing: 1px;
+        color: #f1f5f9;
+        font-family: 'Inter', system-ui, sans-serif;
+        font-size: 1.75em;
+        font-weight: 700;
+        letter-spacing: -0.5px;
         margin: 0;
-        text-shadow: 0 2px 8px rgba(30,38,54,0.18);
     }
     .user-info {
         display: flex;
         align-items: center;
         gap: 12px;
-        color: #eaf0fa;
+        color: #f1f5f9;
     }
     .username-display {
         font-weight: 600;
-        font-size: 1.1em;
-        padding: 8px 12px;
+        font-size: 0.95em;
+        padding: 8px 14px;
         background: rgba(255,255,255,0.15);
-        border-radius: 6px;
+        border-radius: 8px;
+        backdrop-filter: blur(10px);
     }
     .signout-btn {
         padding: 8px 16px;
         background: rgba(255,255,255,0.2);
-        color: #eaf0fa;
+        color: #f1f5f9;
         text-decoration: none;
-        border-radius: 6px;
+        border-radius: 8px;
         font-weight: 600;
-        transition: background 0.2s ease;
+        font-size: 0.9em;
+        transition: all 0.2s ease;
+        border: 1px solid rgba(255,255,255,0.1);
     }
     .signout-btn:hover {
         background: rgba(255,255,255,0.3);
+        transform: translateY(-1px);
     }
-    .welcome-back {
-        font-size: 1.3em;
-        margin-bottom: 0.5em;
+
+    /* Hero Section */
+    .hero-section {
+        text-align: center;
+        padding: 60px 20px;
+        max-width: 800px;
+        margin: 0 auto;
     }
-    .secondary-btn {
-        display: inline-block;
-        padding: 12px 24px;
-        margin-left: 12px;
-        background: #555;
-        color: #fff;
-        text-decoration: none;
-        border-radius: 6px;
+    .hero-section.returning-user {
+        padding: 40px 20px;
+    }
+    .hero-title {
+        font-size: 2.5em;
+        font-weight: 700;
+        color: #f1f5f9;
+        line-height: 1.3;
+        margin: 0 0 16px 0;
+        letter-spacing: -0.5px;
+    }
+    .hero-section.returning-user .hero-title {
+        font-size: 2em;
+    }
+    .hero-subtitle {
+        font-size: 1.15em;
+        color: #94a3b8;
+        line-height: 1.5;
+        margin: 0 0 32px 0;
+        font-weight: 400;
+    }
+
+    /* Form Styles */
+    .hero-form {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+    .input-group {
+        width: 100%;
+        max-width: 420px;
+    }
+    #inputButton {
+        width: 100%;
+        font-size: 1em;
+        padding: 14px 16px;
+        border-radius: 8px;
+        border: 1px solid rgba(125, 211, 252, 0.3);
+        background: rgba(30, 41, 59, 0.5);
+        color: #f1f5f9;
+        transition: all 0.2s ease;
+    }
+    #inputButton:focus {
+        outline: none;
+        border-color: #0ea5e9;
+        background: rgba(30, 41, 59, 0.7);
+    }
+    #inputButton::placeholder {
+        color: #64748b;
+    }
+
+    /* CTA Buttons */
+    .cta-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 1em;
+        padding: 14px 28px;
+        border-radius: 8px;
+        border: none;
         font-weight: 600;
-        transition: background 0.2s ease;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        text-decoration: none;
     }
-    .secondary-btn:hover {
-        background: #666;
+    .cta-button.primary {
+        background: #0ea5e9;
+        color: #fff;
     }
-    @media (max-width: 768px) {
-        .app-header .header-content {
-            flex-direction: column;
-            gap: 16px;
-        }
-        .app-header h1 {
-            font-size: 1.8em;
-        }
-        .user-info {
-            flex-direction: column;
-            gap: 8px;
-        }
-        .secondary-btn {
-            display: block;
-            margin: 12px auto 0;
-        }
+    .cta-button.primary:hover {
+        background: #0284c7;
     }
+    .cta-button.secondary {
+        background: rgba(71, 85, 105, 0.6);
+        color: #f1f5f9;
+        border: 1px solid rgba(125, 211, 252, 0.2);
+    }
+    .cta-button.secondary:hover {
+        background: rgba(71, 85, 105, 0.8);
+    }
+    .help-text {
+        color: #64748b;
+        font-size: 0.9em;
+        margin-top: 12px;
+    }
+    .help-text a {
+        color: #94a3b8;
+        text-decoration: underline;
+    }
+    .help-text a:hover {
+        color: #cbd5e1;
+    }
+
+    /* Features Grid */
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 20px;
+        max-width: 1000px;
+        margin: 60px auto;
+        padding: 0 20px;
+    }
+    .feature-card {
+        background: rgba(30, 41, 59, 0.4);
+        border: 1px solid rgba(125, 211, 252, 0.15);
+        border-radius: 8px;
+        padding: 24px 20px;
+    }
+    .feature-title {
+        font-size: 1.1em;
+        font-weight: 600;
+        color: #f1f5f9;
+        margin: 0 0 8px 0;
+    }
+    .feature-description {
+        font-size: 0.9em;
+        color: #94a3b8;
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    /* Info Footer */
+    .info-footer {
+        text-align: center;
+        margin: 40px auto 20px;
+        padding: 0 20px;
+        color: #64748b;
+        font-size: 0.9em;
+    }
+
+    /* Loading Spinner */
     .spinner {
-        border: 4px solid rgba(123, 176, 255, 0.2);
-        border-top: 4px solid #7bb0ff;
+        border: 4px solid rgba(125, 211, 252, 0.2);
+        border-top: 4px solid #7dd3fc;
         border-radius: 50%;
         width: 48px;
         height: 48px;
@@ -170,7 +323,7 @@
         100% { transform: rotate(360deg); }
     }
     .loading-message {
-        color: #9fb3d4;
+        color: #94a3b8;
         font-size: 1.1em;
         margin: 0;
         animation: pulse 2s ease-in-out infinite;
@@ -179,14 +332,170 @@
         0%, 100% { opacity: 1; }
         50% { opacity: 0.6; }
     }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .app-header .header-content {
+            flex-direction: column;
+            gap: 16px;
+        }
+        .app-header h1 {
+            font-size: 1.4em;
+        }
+        .user-info {
+            flex-direction: column;
+            gap: 8px;
+        }
+        .hero-section {
+            padding: 40px 16px;
+        }
+        .hero-title {
+            font-size: 1.75em;
+        }
+        .hero-section.returning-user .hero-title {
+            font-size: 1.5em;
+        }
+        .hero-subtitle {
+            font-size: 1em;
+        }
+        .features-grid {
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin: 40px auto;
+        }
+        .cta-button {
+            width: 100%;
+            max-width: 420px;
+        }
+    }
 </style>
-<footer style="margin-top:2em; text-align:center; font-size:1em; color:#888;">
-    <div style="margin-bottom:0.5em;">
-        Tiers powered by <a href="https://www.borischen.co/" target="_blank" rel="noopener">Boris Chen</a> |
-        <a href="https://github.com/wbollock/sleeperPy" target="_blank" rel="noopener">GitHub Repo</a> |
-        <a href="https://buymeacoffee.com/wbollock" target="_blank" rel="noopener" style="color:#FFDD00;">☕ Buy Me a Coffee</a>
-        <span style="margin-left:1em; color:#666;">If you like this project, please <a href="https://github.com/wbollock/sleeperPy" target="_blank" rel="noopener">drop a ⭐ on GitHub</a>!</span>
+<footer class="site-footer">
+    <div class="footer-content">
+        <div class="footer-links">
+            <a href="https://www.borischen.co/" target="_blank" rel="noopener">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M8 0L10 6H16L11 10L13 16L8 12L3 16L5 10L0 6H6L8 0Z"/>
+                </svg>
+                Boris Chen Tiers
+            </a>
+            <a href="https://github.com/wbollock/sleeperPy" target="_blank" rel="noopener">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+                </svg>
+                GitHub
+            </a>
+            <a href="/privacy.html" rel="noopener">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M8 1L3 3v4c0 3.5 2 6 5 8 3-2 5-4.5 5-8V3l-5-2z"/>
+                </svg>
+                Privacy
+            </a>
+        </div>
+        <div class="footer-cta">
+            <a href="https://buymeacoffee.com/wbollock" target="_blank" rel="noopener" class="coffee-btn">
+                ☕ Buy Me a Coffee
+            </a>
+            <span class="footer-love">
+                If you like this project, <a href="https://github.com/wbollock/sleeperPy" target="_blank" rel="noopener">star it on GitHub</a>
+            </span>
+        </div>
+        <div class="footer-bottom">
+            <p>Made with data by <a href="https://github.com/wbollock" target="_blank" rel="noopener">@wbollock</a></p>
+        </div>
     </div>
 </footer>
+<style>
+    .site-footer {
+        margin-top: 80px;
+        padding: 40px 20px 30px;
+        border-top: 1px solid rgba(125, 211, 252, 0.1);
+        background: rgba(15, 23, 42, 0.5);
+    }
+    .footer-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        text-align: center;
+    }
+    .footer-links {
+        display: flex;
+        justify-content: center;
+        gap: 32px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+    }
+    .footer-links a {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: #94a3b8;
+        text-decoration: none;
+        font-size: 0.9em;
+        font-weight: 500;
+        transition: color 0.2s ease;
+    }
+    .footer-links a:hover {
+        color: #7dd3fc;
+    }
+    .footer-cta {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+    .coffee-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        background: linear-gradient(135deg, #FFDD00 0%, #FFC800 100%);
+        color: #1e293b;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 0.9em;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(255, 221, 0, 0.2);
+    }
+    .coffee-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(255, 221, 0, 0.3);
+    }
+    .footer-love {
+        color: #64748b;
+        font-size: 0.85em;
+    }
+    .footer-love a {
+        color: #7dd3fc;
+        text-decoration: none;
+        font-weight: 600;
+    }
+    .footer-love a:hover {
+        text-decoration: underline;
+    }
+    .footer-bottom {
+        padding-top: 20px;
+        border-top: 1px solid rgba(125, 211, 252, 0.05);
+        color: #64748b;
+        font-size: 0.85em;
+    }
+    .footer-bottom p {
+        margin: 0;
+    }
+    .footer-bottom a {
+        color: #7dd3fc;
+        text-decoration: none;
+        font-weight: 600;
+    }
+    .footer-bottom a:hover {
+        text-decoration: underline;
+    }
+    @media (max-width: 768px) {
+        .footer-links {
+            flex-direction: column;
+            gap: 16px;
+        }
+    }
+</style>
 </body>
 </html>
