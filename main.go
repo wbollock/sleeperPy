@@ -207,6 +207,9 @@ func main() {
 	http.HandleFunc("/", visitorLogging(indexHandler))
 	http.HandleFunc("/lookup", lookupHandler)
 	http.HandleFunc("/signout", signoutHandler)
+	http.HandleFunc("/privacy", privacyHandler)
+	http.HandleFunc("/terms", termsHandler)
+	http.HandleFunc("/pricing", pricingHandler)
 	http.Handle("/metrics", promhttp.Handler())
 
 	if testMode {
@@ -256,6 +259,30 @@ func signoutHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Redirect to home page
 	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func privacyHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl := template.Must(template.ParseFiles("templates/privacy.html"))
+	if err := tmpl.Execute(w, nil); err != nil {
+		http.Error(w, "Error rendering privacy policy", http.StatusInternalServerError)
+		log.Printf("Error rendering privacy.html: %v", err)
+	}
+}
+
+func termsHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl := template.Must(template.ParseFiles("templates/terms.html"))
+	if err := tmpl.Execute(w, nil); err != nil {
+		http.Error(w, "Error rendering terms of service", http.StatusInternalServerError)
+		log.Printf("Error rendering terms.html: %v", err)
+	}
+}
+
+func pricingHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl := template.Must(template.ParseFiles("templates/pricing.html"))
+	if err := tmpl.Execute(w, nil); err != nil {
+		http.Error(w, "Error rendering pricing page", http.StatusInternalServerError)
+		log.Printf("Error rendering pricing.html: %v", err)
+	}
 }
 
 // --- Data structures for rendering ---
