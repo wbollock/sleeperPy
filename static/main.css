@@ -487,7 +487,7 @@ h1 { text-align: center; color: #f1f5f9; }
 	}
 	.app-header .header-content {
 		flex-direction: column;
-		gap: 16px;
+		gap: 12px;
 		padding: 0 16px;
 	}
 	.app-header h1 {
@@ -497,6 +497,22 @@ h1 { text-align: center; color: #f1f5f9; }
 	.user-info {
 		flex-direction: row;
 		gap: 8px;
+		flex-wrap: wrap;
+		justify-content: center;
+	}
+
+	/* Improve touch targets on mobile */
+	.signout-btn, .username-display {
+		min-height: 44px;
+		display: flex;
+		align-items: center;
+	}
+
+	/* Center theme toggle and user info on mobile */
+	.app-header .header-content > div:last-child {
+		width: 100%;
+		justify-content: center;
+		flex-wrap: wrap;
 	}
 
 	/* Reduce padding on main content */
@@ -530,6 +546,21 @@ h1 { text-align: center; color: #f1f5f9; }
 	.pretty-table td:nth-child(2) {
 		font-size: 1.05em;
 		font-weight: 500;
+	}
+
+	/* Horizontal scroll for tables on small screens */
+	.pretty-table {
+		display: block;
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	.pretty-table thead,
+	.pretty-table tbody,
+	.pretty-table tr {
+		display: table;
+		width: 100%;
+		table-layout: fixed;
 	}
 
 	/* Smaller summary rows */
@@ -688,6 +719,27 @@ h1 { text-align: center; color: #f1f5f9; }
 
 	.mode-description {
 		font-size: 0.85em;
+	}
+
+	/* Improve button touch targets */
+	#generateTiers,
+	.cta-button,
+	.plan-button,
+	.league-tab,
+	.filter-btn {
+		min-height: 44px;
+		padding: 12px 20px;
+	}
+
+	/* Better spacing for form elements */
+	#inputButton {
+		min-height: 48px;
+		font-size: 1em;
+	}
+
+	/* Improve container padding on mobile */
+	.container {
+		padding: 20px 16px 10px 16px;
 	}
 }
 
