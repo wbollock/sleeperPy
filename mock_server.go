@@ -26,8 +26,8 @@ func mockAPIHandler(w http.ResponseWriter, r *http.Request) {
 	if strings.HasPrefix(path, "/api/mock/user/") && !strings.Contains(path, "/leagues/") {
 		username := strings.TrimPrefix(path, "/api/mock/user/")
 		json.NewEncoder(w).Encode(map[string]interface{}{
-			"user_id":  "test_user_" + username,
-			"username": username,
+			"user_id":      "test_user_" + username,
+			"username":     username,
 			"display_name": "Test User",
 		})
 		return
@@ -266,7 +266,7 @@ func initTestMode() {
 	// Override HTTP client to intercept requests
 	originalClient := httpClient
 	httpClient = &http.Client{
-		Timeout: originalClient.Timeout,
+		Timeout:   originalClient.Timeout,
 		Transport: &mockTransport{},
 	}
 }

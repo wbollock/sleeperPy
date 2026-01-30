@@ -111,7 +111,7 @@ type PlayerNews struct {
 }
 
 type Transaction struct {
-	Type          string    // "trade", "waiver", "free_agent"
+	Type          string // "trade", "waiver", "free_agent"
 	Timestamp     time.Time
 	Description   string
 	TeamNames     []string

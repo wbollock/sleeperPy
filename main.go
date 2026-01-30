@@ -82,7 +82,12 @@ var funcMap = template.FuncMap{
 	"safe":    func(s string) template.HTML { return template.HTML(s) },
 	"float64": func(i int) float64 { return float64(i) },
 	"mul":     func(a, b float64) float64 { return a * b },
-	"div":     func(a, b float64) float64 { if b == 0 { return 0 }; return a / b },
+	"div": func(a, b float64) float64 {
+		if b == 0 {
+			return 0
+		}
+		return a / b
+	},
 	"parseWinProb": func(s string) int {
 		// s is like "62% You 🏆" or "38% Opponent 💀"
 		parts := strings.Fields(s)

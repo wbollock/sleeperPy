@@ -1042,8 +1042,8 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 				for i, trade := range tradedPicks {
 					season, _ := trade["season"].(string)
 					round, _ := trade["round"].(float64)
-					rosterID, _ := trade["roster_id"].(float64)          // Current owner
-					originalRosterID, _ := trade["owner_id"].(float64)   // Original owner (who the pick belonged to)
+					rosterID, _ := trade["roster_id"].(float64)        // Current owner
+					originalRosterID, _ := trade["owner_id"].(float64) // Original owner (who the pick belonged to)
 					previousOwnerID, _ := trade["previous_owner_id"].(float64)
 
 					year, _ := strconv.Atoi(season)
@@ -1266,7 +1266,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		Value:    username,
 		Path:     "/",
 		MaxAge:   30 * 24 * 60 * 60, // 30 days
-		HttpOnly: false,              // Allow JavaScript to read for UI logic
+		HttpOnly: false,             // Allow JavaScript to read for UI logic
 		SameSite: http.SameSiteLaxMode,
 	}
 	http.SetCookie(w, cookie)

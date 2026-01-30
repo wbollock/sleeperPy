@@ -337,8 +337,8 @@ func fetchRecentTransactions(leagueID string, currentWeek int, players map[strin
 			// Draft picks
 			for _, pickData := range draftPicks {
 				pick, _ := pickData.(map[string]interface{})
-				ownerID, _ := pick["owner_id"].(float64)      // Who originally owned this pick
-				rosterID, _ := pick["roster_id"].(float64)    // Who now owns this pick
+				ownerID, _ := pick["owner_id"].(float64)   // Who originally owned this pick
+				rosterID, _ := pick["roster_id"].(float64) // Who now owns this pick
 				season, _ := pick["season"].(string)
 				round, _ := pick["round"].(float64)
 
