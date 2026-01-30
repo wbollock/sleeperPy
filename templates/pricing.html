@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pricing - SleeperPy</title>
     <link rel="stylesheet" href="/static/main.css">
+    <link rel="stylesheet" href="/static/theme.css">
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
 </head>
 <body>
@@ -19,6 +20,11 @@
                     </svg>
                     <h1 style="color:#f1f5f9; margin:0;">SleeperPy</h1>
                 </a>
+            </div>
+            <div class="theme-toggle">
+                <button class="theme-option active" data-theme="" onclick="switchTheme('')" title="Default">🌙</button>
+                <button class="theme-option" data-theme="dark" onclick="switchTheme('dark')" title="Dark">🌑</button>
+                <button class="theme-option" data-theme="light" onclick="switchTheme('light')" title="Light">☀️</button>
             </div>
         </div>
     </header>
@@ -378,5 +384,6 @@
             }
         }
     </style>
+    <script src="/static/theme.js"></script>
 </body>
 </html>

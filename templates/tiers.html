@@ -6,6 +6,7 @@
     <title>SleeperPy Tiers</title>
     <link rel="stylesheet" href="/static/main.css">
     <link rel="stylesheet" href="/static/dynasty.css">
+    <link rel="stylesheet" href="/static/theme.css">
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
 </head>
 <body>
@@ -21,12 +22,19 @@
                 <h1 style="color:#f1f5f9; margin:0;">SleeperPy</h1>
             </a>
         </div>
-        {{if .Username}}
-        <div class="user-info">
-            <span class="username-display">{{.Username}}</span>
-            <a href="/signout" class="signout-btn">Sign Out</a>
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <div class="theme-toggle">
+                <button class="theme-option active" data-theme="" onclick="switchTheme('')" title="Default">🌙</button>
+                <button class="theme-option" data-theme="dark" onclick="switchTheme('dark')" title="Dark">🌑</button>
+                <button class="theme-option" data-theme="light" onclick="switchTheme('light')" title="Light">☀️</button>
+            </div>
+            {{if .Username}}
+            <div class="user-info">
+                <span class="username-display">{{.Username}}</span>
+                <a href="/signout" class="signout-btn">Sign Out</a>
+            </div>
+            {{end}}
         </div>
-        {{end}}
     </div>
 </header>
 <div class="main-content">
@@ -811,6 +819,7 @@ if (document.getElementById('defaultTab')) document.getElementById('defaultTab')
 {{end}}
 </script>
 <script src="/static/sortable.js"></script>
+<script src="/static/theme.js"></script>
 
 <footer style="margin-top:3em; padding:2.5em 1.5em; text-align:center; border-top:1px solid rgba(123,176,255,0.15); background:rgba(30,38,54,0.3); backdrop-filter:blur(10px);">
     <div style="margin-bottom:1.4em; font-size:0.95em; color:#c5d5f0;">
