@@ -33,35 +33,11 @@ var httpClient = &http.Client{
 	},
 }
 
-// Cache for Boris Chen tiers with TTL
-type tiersCache struct {
-	sync.RWMutex
-	data      map[string]map[string][][]string
-	timestamp map[string]time.Time
-	ttl       time.Duration
-}
-
+// Cache instances (types defined in types.go)
 var borisTiersCache = &tiersCache{
 	data:      make(map[string]map[string][][]string),
 	timestamp: make(map[string]time.Time),
 	ttl:       15 * time.Minute, // Cache tiers for 15 minutes
-}
-
-// Dynasty value data structure
-type DynastyValue struct {
-	Name         string
-	Position     string
-	Value1QB     int
-	Value2QB     int
-	ScrapeDate   string
-}
-
-// Cache for dynasty values
-type dynastyCache struct {
-	sync.RWMutex
-	data      map[string]DynastyValue // key: normalized player name
-	timestamp time.Time
-	ttl       time.Duration
 }
 
 var dynastyValuesCache = &dynastyCache{
@@ -285,147 +261,7 @@ func pricingHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// --- Data structures for rendering ---
-type PlayerRow struct {
-	Pos                  string
-	Name                 string
-	Tier                 interface{}
-	IsTierWorseThanBench bool
-	ShouldSwapIn         bool
-	IsFreeAgent          bool
-	IsUpgrade            bool
-	UpgradeFor           string // Name of player this FA is better than
-	UpgradeType          string // "Starter" or "Bench" or ""
-	IsFlex               bool   // Heuristic FLEX indicator
-	IsSuperflex          bool   // Heuristic SUPERFLEX indicator
-	DynastyValue         int    // Dynasty value from DynastyProcess (0-10000 scale)
-	Age                  int    // Player age from Sleeper API
-}
-
-type TeamAgeData struct {
-	TeamName    string
-	OwnerName   string
-	AvgAge      float64
-	Rank        int // Standings rank (wins)
-	RosterID    int
-	IsUserTeam  bool
-	RosterValue int // Total dynasty value of roster
-}
-
-type PowerRanking struct {
-	Rank         int
-	TeamName     string
-	RosterValue  int
-	Wins         int
-	Losses       int
-	AvgAge       float64
-	Strategy     string // "Win Now", "Contending", "Rebuilding"
-	IsUserTeam   bool
-	ValueRank    int // Rank by dynasty value
-	StandingRank int // Rank by wins
-}
-
-type DraftPick struct {
-	Round        int
-	Year         int
-	OwnerName    string // "You" or team name
-	OriginalName string // Original owner if traded, empty if not traded
-	RosterID     int
-	IsYours      bool
-}
-
-type PositionalKTC struct {
-	QB int
-	RB int
-	WR int
-	TE int
-}
-
-type TradeTarget struct {
-	TeamName        string
-	Reason          string
-	YourSurplus     string
-	TheirSurplus    string
-	YourSurplusKTC  int
-	TheirSurplusKTC int
-}
-
-type PlayerNews struct {
-	PlayerName       string
-	Position         string
-	NewsText         string
-	Source           string
-	Timestamp        time.Time
-	InjuryStatus     string
-	InjuryBodyPart   string
-	InjuryNotes      string
-	IsStarter        bool
-	DynastyValue     int
-}
-
-type Transaction struct {
-	Type        string    // "trade", "waiver", "free_agent"
-	Timestamp   time.Time
-	Description string
-	TeamNames   []string
-	PlayerNames []string
-	// For trades: better structure
-	Team1        string
-	Team2        string
-	Team1Gave    []string
-	Team2Gave    []string
-	AddedPlayer  string // For waivers/FA
-	DroppedPlayer string // For waivers/FA
-}
-
-type RookieProspect struct {
-	Name     string
-	Position string
-	College  string
-	Value    int
-	Rank     int
-	Year     int // Draft year
-}
-
-type LeagueData struct {
-	LeagueName           string
-	Scoring              string
-	IsDynasty            bool
-	HasMatchups          bool
-	DynastyValueDate     string // Date dynasty values were last updated
-	Starters             []PlayerRow
-	Unranked             []PlayerRow
-	AvgTier              string
-	AvgOppTier           string
-	WinProb              string
-	Bench                []PlayerRow
-	BenchUnranked        []PlayerRow
-	FreeAgentsByPos      map[string][]PlayerRow
-	TopFreeAgents        []PlayerRow // Combined prioritized list (tier-based)
-	TopFreeAgentsByValue []PlayerRow // Dynasty mode: value-based recommendations
-	TotalRosterValue     int         // Sum of all dynasty values on roster
-	UserAvgAge           float64     // Average age of user's roster
-	TeamAges             []TeamAgeData // All teams' ages for dynasty chart
-	PowerRankings        []PowerRanking // League-wide power rankings (dynasty only)
-	DraftPicks           []DraftPick // User's draft picks (dynasty only)
-	TradeTargets         []TradeTarget // Potential trade partners (dynasty only)
-	PositionalBreakdown  PositionalKTC // User's positional value breakdown (dynasty only)
-	PlayerNewsFeed       []PlayerNews      // Player news for all roster players (dynasty only)
-	BreakoutCandidates   []PlayerRow       // Young players with upside (dynasty only)
-	AgingPlayers         []PlayerRow       // Players approaching decline (dynasty only)
-	RecentTransactions   []Transaction     // Recent league transactions (dynasty only)
-	TopRookies           []RookieProspect  // Top rookie prospects for upcoming draft (dynasty only)
-}
-
-type TiersPage struct {
-	Error    string
-	Leagues  []LeagueData
-	Username string
-}
-
-type IndexPage struct {
-	SavedUsername string
-}
+// Type definitions moved to types.go
 
 // Team mapping for DST/DEF
 var TEAM_MAP = map[string]string{
@@ -1687,64 +1523,7 @@ func fetchJSONArray(url string) ([]map[string]interface{}, error) {
 	return out, err
 }
 
-func toStringSlice(val interface{}) []string {
-	arr := []string{}
-	if val == nil {
-		return arr
-	}
-	switch v := val.(type) {
-	case []interface{}:
-		for _, x := range v {
-			if s, ok := x.(string); ok {
-				arr = append(arr, s)
-			}
-		}
-	}
-	return arr
-}
-
-func diff(a, b []string) []string {
-	m := make(map[string]bool)
-	for _, x := range b {
-		m[x] = true
-	}
-	out := []string{}
-	for _, x := range a {
-		if !m[x] {
-			out = append(out, x)
-		}
-	}
-	return out
-}
-
-func isDynastyLeague(league map[string]interface{}) bool {
-	// Check type field - type 2 indicates dynasty league
-	if settings, ok := league["settings"].(map[string]interface{}); ok {
-		if leagueType, ok := settings["type"].(float64); ok && leagueType == 2 {
-			debugLog("[DEBUG] League detected as dynasty via type: %v", leagueType)
-			return true
-		}
-	}
-
-	// Check for taxi squad (dynasty-specific feature)
-	if settings, ok := league["settings"].(map[string]interface{}); ok {
-		if taxiSlots, ok := settings["taxi_slots"].(float64); ok && taxiSlots > 0 {
-			debugLog("[DEBUG] League detected as dynasty via taxi_slots: %v", taxiSlots)
-			return true
-		}
-	}
-
-	// Fallback: check league name for "dynasty" keyword
-	if name, ok := league["name"].(string); ok {
-		nameLower := strings.ToLower(name)
-		if strings.Contains(nameLower, "dynasty") {
-			debugLog("[DEBUG] League detected as dynasty via name: %s", name)
-			return true
-		}
-	}
-
-	return false
-}
+// Utility functions moved to utils.go
 
 // --- Dynasty Values fetching ---
 func fetchDynastyValues() (map[string]DynastyValue, string) {
@@ -1822,31 +1601,6 @@ func fetchDynastyValues() (map[string]DynastyValue, string) {
 
 	debugLog("[DEBUG] Loaded %d dynasty values (last updated: %s)", len(values), scrapeDate)
 	return values, scrapeDate
-}
-
-func parseCSVLine(line string) []string {
-	var fields []string
-	var current strings.Builder
-	inQuotes := false
-
-	for _, char := range line {
-		switch char {
-		case '"':
-			inQuotes = !inQuotes
-			current.WriteRune(char)
-		case ',':
-			if inQuotes {
-				current.WriteRune(char)
-			} else {
-				fields = append(fields, current.String())
-				current.Reset()
-			}
-		default:
-			current.WriteRune(char)
-		}
-	}
-	fields = append(fields, current.String())
-	return fields
 }
 
 // --- Boris Chen tier fetching ---
@@ -2072,44 +1826,6 @@ func getPos(p map[string]interface{}, idx int, isStarter bool, userRoster map[st
 		return pos
 	}
 	return "?"
-}
-
-func findTier(tiers [][]string, name string) int {
-	norm := normalizeName(name)
-	for i, names := range tiers {
-		for _, n := range names {
-			if normalizeName(n) == norm {
-				return i + 1
-			}
-		}
-	}
-	return 0
-}
-
-func normalizeName(name string) string {
-	name = strings.ToLower(name)
-	name = strings.ReplaceAll(name, ".", "")
-	name = strings.ReplaceAll(name, ",", "")
-	for _, suf := range []string{" jr", " sr", " ii", " iii", " iv", " v"} {
-		name = strings.TrimSuffix(name, suf)
-	}
-	// Remove non-alphanumeric except spaces
-	var result strings.Builder
-	for _, r := range name {
-		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == ' ' {
-			result.WriteRune(r)
-		}
-	}
-	name = strings.Join(strings.Fields(result.String()), " ")
-	return name
-}
-
-func stripHTML(s string) string {
-	// Strip HTML tags like <span...>...</span>
-	if idx := strings.Index(s, "<span"); idx >= 0 {
-		return strings.TrimSpace(s[:idx])
-	}
-	return s
 }
 
 // enrichRowsWithDynastyValues adds dynasty values to player rows
