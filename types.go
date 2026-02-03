@@ -133,6 +133,29 @@ type RookieProspect struct {
 	Year     int // Draft year
 }
 
+type LeagueTrends struct {
+	MostActiveTeams  []TeamActivity
+	HotWaiverPlayers []WaiverActivity
+	TradeVolume      int
+	WaiverVolume     int
+	PositionScarcity map[string]int // Position -> number of available players
+}
+
+type TeamActivity struct {
+	TeamName      string
+	Transactions  int
+	Trades        int
+	WaiverClaims  int
+	ActivityLevel string // "Very Active", "Active", "Quiet"
+}
+
+type WaiverActivity struct {
+	PlayerName  string
+	Position    string
+	ClaimCount  int
+	LastClaimed string // Time ago
+}
+
 type LeagueData struct {
 	LeagueName           string
 	Scoring              string
@@ -161,6 +184,7 @@ type LeagueData struct {
 	AgingPlayers         []PlayerRow
 	RecentTransactions   []Transaction
 	TopRookies           []RookieProspect
+	LeagueTrends         LeagueTrends
 }
 
 type TiersPage struct {

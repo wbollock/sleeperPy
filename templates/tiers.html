@@ -471,6 +471,105 @@
                         </div>
                     </div>
 
+                    {{if or (gt (len $l.LeagueTrends.MostActiveTeams) 0) (gt (len $l.LeagueTrends.HotWaiverPlayers) 0)}}
+                    <div class="toolkit-card collapseable">
+                        <div class="card-header" onclick="toggleSection('league-trends-{{$i}}')">
+                            <span class="card-title">League Trends</span>
+                            <span class="collapse-icon" id="league-trends-{{$i}}-icon">▼</span>
+                        </div>
+                        <div class="card-content" id="league-trends-{{$i}}-content">
+                            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-bottom:20px;">
+                                <div style="background:rgba(123,176,255,0.08);border:1px solid rgba(123,176,255,0.2);border-radius:8px;padding:16px;text-align:center;">
+                                    <div style="font-size:2em;font-weight:700;color:#7bb0ff;">{{$l.LeagueTrends.TradeVolume}}</div>
+                                    <div style="font-size:0.9em;color:#9fb3d4;margin-top:4px;">Trades (4 weeks)</div>
+                                </div>
+                                <div style="background:rgba(255,157,92,0.08);border:1px solid rgba(255,157,92,0.2);border-radius:8px;padding:16px;text-align:center;">
+                                    <div style="font-size:2em;font-weight:700;color:#ff9d5c;">{{$l.LeagueTrends.WaiverVolume}}</div>
+                                    <div style="font-size:0.9em;color:#9fb3d4;margin-top:4px;">Waiver Claims (4 weeks)</div>
+                                </div>
+                            </div>
+
+                            {{if gt (len $l.LeagueTrends.MostActiveTeams) 0}}
+                            <div style="margin-bottom:24px;">
+                                <div style="font-weight:600;color:#c5d5f0;margin-bottom:12px;font-size:0.95em;">Most Active Teams</div>
+                                <table class="age-chart-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="text-align:left;">Team</th>
+                                            <th>Transactions</th>
+                                            <th>Trades</th>
+                                            <th>Waivers</th>
+                                            <th>Activity</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    {{range $l.LeagueTrends.MostActiveTeams}}
+                                        <tr>
+                                            <td style="text-align:left;">{{.TeamName}}</td>
+                                            <td>{{.Transactions}}</td>
+                                            <td>{{.Trades}}</td>
+                                            <td>{{.WaiverClaims}}</td>
+                                            <td>
+                                                {{if eq .ActivityLevel "Very Active"}}
+                                                    <span style="color:#3ae87a;font-weight:600;">Very Active</span>
+                                                {{else if eq .ActivityLevel "Active"}}
+                                                    <span style="color:#7bb0ff;font-weight:600;">Active</span>
+                                                {{else}}
+                                                    <span style="color:#9fb3d4;">Quiet</span>
+                                                {{end}}
+                                            </td>
+                                        </tr>
+                                    {{end}}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {{end}}
+
+                            {{if gt (len $l.LeagueTrends.HotWaiverPlayers) 0}}
+                            <div style="margin-bottom:24px;">
+                                <div style="font-weight:600;color:#c5d5f0;margin-bottom:12px;font-size:0.95em;">Hot Waiver Players</div>
+                                <div style="font-size:0.85em;color:#9fb3d4;font-style:italic;margin-bottom:12px;">Players claimed multiple times in the past 4 weeks</div>
+                                <table class="age-chart-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="text-align:left;">Player</th>
+                                            <th>Pos</th>
+                                            <th>Claims</th>
+                                            <th>Last Claimed</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    {{range $l.LeagueTrends.HotWaiverPlayers}}
+                                        <tr>
+                                            <td style="text-align:left;">{{.PlayerName}}</td>
+                                            <td>{{.Position}}</td>
+                                            <td style="font-weight:600;color:#ff9d5c;">{{.ClaimCount}}</td>
+                                            <td style="color:#9fb3d4;font-size:0.9em;">{{.LastClaimed}}</td>
+                                        </tr>
+                                    {{end}}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {{end}}
+
+                            {{if $l.LeagueTrends.PositionScarcity}}
+                            <div>
+                                <div style="font-weight:600;color:#c5d5f0;margin-bottom:12px;font-size:0.95em;">Position Scarcity</div>
+                                <div style="font-size:0.85em;color:#9fb3d4;font-style:italic;margin-bottom:12px;">Available players by position on waivers</div>
+                                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:12px;">
+                                    {{range $pos, $count := $l.LeagueTrends.PositionScarcity}}
+                                    <div style="background:rgba(30,38,54,0.5);border:1px solid rgba(123,176,255,0.15);border-radius:6px;padding:12px;text-align:center;">
+                                        <div style="font-size:1.5em;font-weight:700;color:#7bb0ff;">{{$count}}</div>
+                                        <div style="font-size:0.85em;color:#9fb3d4;margin-top:4px;">{{$pos}}</div>
+                                    </div>
+                                    {{end}}
+                                </div>
+                            </div>
+                            {{end}}
+                        </div>
+                    </div>
+                    {{end}}
+
                     {{if $l.DraftPicks}}
                     <div class="toolkit-card collapseable">
                         <div class="card-header" onclick="toggleSection('draft-picks-{{$i}}')">

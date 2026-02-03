@@ -1162,6 +1162,13 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			debugLog("[DEBUG] Loaded %d top rookie prospects", len(topRookies))
 		}
 
+		// Calculate league trends for dynasty leagues
+		var leagueTrends LeagueTrends
+		if isDynasty {
+			leagueTrends = calculateLeagueTrends(recentTransactions, freeAgentsByPos, players)
+			debugLog("[DEBUG] Calculated league trends: %d active teams, %d hot waiver players", len(leagueTrends.MostActiveTeams), len(leagueTrends.HotWaiverPlayers))
+		}
+
 		// Calculate trade targets for dynasty leagues
 		var tradeTargets []TradeTarget
 		var positionalBreakdown PositionalKTC
@@ -1247,6 +1254,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			AgingPlayers:         agingPlayers,
 			RecentTransactions:   recentTransactions,
 			TopRookies:           topRookies,
+			LeagueTrends:         leagueTrends,
 		}
 
 		leagueResults = append(leagueResults, leagueData)

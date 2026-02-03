@@ -471,3 +471,138 @@ func findTradeTargets(userRows []PlayerRow, allRosters map[int][]PlayerRow, team
 
 	return targets
 }
+
+func calculateLeagueTrends(transactions []Transaction, freeAgentsByPos map[string][]PlayerRow, players map[string]interface{}) LeagueTrends {
+	trends := LeagueTrends{
+		PositionScarcity: make(map[string]int),
+	}
+
+	// Count transactions per team
+	teamActivity := make(map[string]*TeamActivity)
+
+	// Count waiver claims per player
+	waiverClaims := make(map[string]int) // player name -> claim count
+	playerPositions := make(map[string]string)
+	lastClaimed := make(map[string]time.Time)
+
+	for _, txn := range transactions {
+		// Count transactions for teams
+		for _, teamName := range txn.TeamNames {
+			if _, exists := teamActivity[teamName]; !exists {
+				teamActivity[teamName] = &TeamActivity{
+					TeamName: teamName,
+				}
+			}
+
+			teamActivity[teamName].Transactions++
+
+			if txn.Type == "trade" {
+				teamActivity[teamName].Trades++
+				trends.TradeVolume++
+			} else if txn.Type == "waiver" {
+				teamActivity[teamName].WaiverClaims++
+				trends.WaiverVolume++
+
+				// Track waiver claims per player
+				if txn.AddedPlayer != "" {
+					waiverClaims[txn.AddedPlayer]++
+					if txn.Timestamp.After(lastClaimed[txn.AddedPlayer]) {
+						lastClaimed[txn.AddedPlayer] = txn.Timestamp
+					}
+
+					// Try to find player position
+					for _, p := range players {
+						pMap, ok := p.(map[string]interface{})
+						if !ok {
+							continue
+						}
+						playerName := getPlayerName(pMap)
+						if playerName == txn.AddedPlayer {
+							if pos, ok := pMap["position"].(string); ok {
+								playerPositions[txn.AddedPlayer] = pos
+							}
+							break
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// Determine activity levels for teams
+	for _, activity := range teamActivity {
+		if activity.Transactions >= 5 {
+			activity.ActivityLevel = "Very Active"
+		} else if activity.Transactions >= 2 {
+			activity.ActivityLevel = "Active"
+		} else {
+			activity.ActivityLevel = "Quiet"
+		}
+
+		trends.MostActiveTeams = append(trends.MostActiveTeams, *activity)
+	}
+
+	// Sort teams by transaction count
+	sort.Slice(trends.MostActiveTeams, func(i, j int) bool {
+		return trends.MostActiveTeams[i].Transactions > trends.MostActiveTeams[j].Transactions
+	})
+
+	// Create hot waiver players list
+	for playerName, count := range waiverClaims {
+		if count < 2 {
+			continue // Only show players claimed multiple times
+		}
+
+		lastClaimedTime := lastClaimed[playerName]
+		timeAgo := formatTimeAgo(lastClaimedTime)
+
+		trends.HotWaiverPlayers = append(trends.HotWaiverPlayers, WaiverActivity{
+			PlayerName:  playerName,
+			Position:    playerPositions[playerName],
+			ClaimCount:  count,
+			LastClaimed: timeAgo,
+		})
+	}
+
+	// Sort by claim count
+	sort.Slice(trends.HotWaiverPlayers, func(i, j int) bool {
+		return trends.HotWaiverPlayers[i].ClaimCount > trends.HotWaiverPlayers[j].ClaimCount
+	})
+
+	// Calculate position scarcity (number of available players per position)
+	for pos, players := range freeAgentsByPos {
+		trends.PositionScarcity[pos] = len(players)
+	}
+
+	return trends
+}
+
+func formatTimeAgo(t time.Time) string {
+	if t.IsZero() {
+		return "Unknown"
+	}
+
+	now := time.Now()
+	diff := now.Sub(t)
+
+	if diff < time.Hour {
+		mins := int(diff.Minutes())
+		if mins <= 1 {
+			return "just now"
+		}
+		return fmt.Sprintf("%d mins ago", mins)
+	} else if diff < 24*time.Hour {
+		hours := int(diff.Hours())
+		if hours == 1 {
+			return "1 hour ago"
+		}
+		return fmt.Sprintf("%d hours ago", hours)
+	} else if diff < 7*24*time.Hour {
+		days := int(diff.Hours() / 24)
+		if days == 1 {
+			return "1 day ago"
+		}
+		return fmt.Sprintf("%d days ago", days)
+	}
+	return fmt.Sprintf("%d days ago", int(diff.Hours()/24))
+}
