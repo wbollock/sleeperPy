@@ -73,9 +73,11 @@ function selectLeague(evt, leagueId, leagueName) {
     // Show selected league
     document.getElementById(leagueId).style.display = 'block';
 
-    // Update active state
+    // Update active state for ALL instances of this league (favorites + main groups)
     document.querySelectorAll('.league-option').forEach(btn => btn.classList.remove('active'));
-    evt.currentTarget.classList.add('active');
+    document.querySelectorAll(`.league-option[data-league-id="${leagueId}"]`).forEach(btn => {
+        btn.classList.add('active');
+    });
 
     // Update dropdown button text
     document.getElementById('currentLeagueName').textContent = leagueName;
@@ -241,7 +243,7 @@ function restoreLastLeague() {
     const leagueElement = document.getElementById(lastLeagueId);
     if (!leagueElement) return;
 
-    // For dropdown view (5+ leagues)
+    // For dropdown view
     const dropdown = document.getElementById('leagueDropdown');
     if (dropdown) {
         const leagueOption = document.querySelector(`.league-option[data-league-id="${lastLeagueId}"]`);
@@ -257,9 +259,11 @@ function restoreLastLeague() {
             // Update dropdown button text
             document.getElementById('currentLeagueName').textContent = leagueName;
 
-            // Update active state in dropdown
+            // Update active state for ALL instances (favorites + main groups)
             document.querySelectorAll('.league-option').forEach(btn => btn.classList.remove('active'));
-            leagueOption.classList.add('active');
+            document.querySelectorAll(`.league-option[data-league-id="${lastLeagueId}"]`).forEach(btn => {
+                btn.classList.add('active');
+            });
         }
     } else {
         // For tab view (<5 leagues)
