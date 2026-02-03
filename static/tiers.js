@@ -107,8 +107,9 @@ function filterLeagues() {
 
     // Hide groups if all options are hidden
     groups.forEach(group => {
-        const visibleOptions = group.querySelectorAll('.league-option[style="display: flex"]');
-        if (visibleOptions.length === 0) {
+        const groupOptions = group.querySelectorAll('.league-option');
+        const visibleCount = Array.from(groupOptions).filter(opt => opt.style.display !== 'none').length;
+        if (visibleCount === 0) {
             group.style.display = 'none';
         } else {
             group.style.display = 'block';
