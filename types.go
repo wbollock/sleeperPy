@@ -81,6 +81,18 @@ type DraftPick struct {
 	IsYours      bool
 }
 
+type ProjectedDraftPick struct {
+	Year              int
+	Round             int
+	OverallPick       int    // Projected overall pick number (e.g., 1.01 = 1, 1.12 = 12, 2.01 = 13)
+	ProjectedPosition int    // Projected position within round (1-12)
+	OwnerName         string // Team that currently owns this pick
+	OriginalOwner     string // Original owner if traded
+	CurrentStanding   int    // Current standing of the team (1 = worst record, 12 = best)
+	TeamRecord        string // e.g., "3-11"
+	IsYours           bool
+}
+
 type PositionalKTC struct {
 	QB int
 	RB int
@@ -177,6 +189,7 @@ type LeagueData struct {
 	TeamAges             []TeamAgeData
 	PowerRankings        []PowerRanking
 	DraftPicks           []DraftPick
+	ProjectedDraftPicks  []ProjectedDraftPick
 	TradeTargets         []TradeTarget
 	PositionalBreakdown  PositionalKTC
 	PlayerNewsFeed       []PlayerNews

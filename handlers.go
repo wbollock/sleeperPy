@@ -959,6 +959,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Fetch draft picks for dynasty leagues
 		var draftPicks []DraftPick
+		var projectedDraftPicks []ProjectedDraftPick
 		if isDynasty {
 			// Fetch traded picks from Sleeper API
 			tradedPicks, err := fetchJSONArray(fmt.Sprintf("https://api.sleeper.app/v1/league/%s/traded_picks", leagueID))
@@ -1121,6 +1122,15 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 					debugLog("[DEBUG]   - %d Round %d (original)", pick.Year, pick.Round)
 				}
 			}
+
+			// Calculate projected draft order for 2026
+			if len(draftPicks) > 0 && len(teamAges) > 0 {
+				currentYear := time.Now().Year()
+				// Project for next year's draft (2026 in February 2026)
+				targetYear := currentYear
+				projectedDraftPicks = calculateProjectedDraftPicks(draftPicks, teamAges, targetYear)
+				debugLog("[DEBUG] Calculated %d projected draft picks for %d", len(projectedDraftPicks), targetYear)
+			}
 		}
 
 		// Aggregate player news for dynasty leagues
@@ -1247,6 +1257,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			TeamAges:             teamAges,
 			PowerRankings:        calculatePowerRankings(teamAges),
 			DraftPicks:           draftPicks,
+			ProjectedDraftPicks:  projectedDraftPicks,
 			TradeTargets:         tradeTargets,
 			PositionalBreakdown:  positionalBreakdown,
 			PlayerNewsFeed:       playerNewsFeed,

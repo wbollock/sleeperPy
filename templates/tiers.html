@@ -584,6 +584,50 @@
                     </div>
                     {{end}}
 
+                    {{if $l.ProjectedDraftPicks}}
+                    <div class="toolkit-card collapseable">
+                        <div class="card-header" onclick="toggleSection('projected-picks-{{$i}}')">
+                            <span class="card-title">2026 Rookie Draft Projections</span>
+                            <span class="collapse-icon" id="projected-picks-{{$i}}-icon">▼</span>
+                        </div>
+                        <div class="card-content" id="projected-picks-{{$i}}-content">
+                            <div class="rookies-desc" style="font-size:0.85em;color:#9fb3d4;font-style:italic;margin-bottom:12px;">
+                                Projected draft positions based on current standings. Worst record gets pick 1.01.
+                            </div>
+                            <table class="age-chart-table">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:center;">Year</th>
+                                        <th style="text-align:center;">Round</th>
+                                        <th style="text-align:center;">Projected Pick</th>
+                                        <th style="text-align:left;">Owner</th>
+                                        <th style="text-align:center;">Current Standing</th>
+                                        <th style="text-align:center;">Record</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {{range $l.ProjectedDraftPicks}}
+                                    <tr{{if .IsYours}} style="background:rgba(123,176,255,0.15);border-left:3px solid #7bb0ff;"{{end}}>
+                                        <td style="text-align:center;font-weight:700;color:#7bb0ff;">{{.Year}}</td>
+                                        <td style="text-align:center;">{{.Round}}</td>
+                                        <td style="text-align:center;font-weight:700;color:#3ae87a;">{{.Round}}.{{printf "%02d" .ProjectedPosition}}</td>
+                                        <td style="text-align:left;">
+                                            {{if .OriginalOwner}}
+                                                {{.OwnerName}} <span style="color:#3ae87a;font-size:0.85em;font-style:italic;">(from {{.OriginalOwner}})</span>
+                                            {{else}}
+                                                {{.OwnerName}}
+                                            {{end}}
+                                        </td>
+                                        <td style="text-align:center;">{{.CurrentStanding}}</td>
+                                        <td style="text-align:center;color:#9fb3d4;">{{.TeamRecord}}</td>
+                                    </tr>
+                                {{end}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {{end}}
+
                     {{if $l.TeamAges}}
                     <div class="toolkit-card collapseable">
                         <div class="card-header" onclick="toggleSection('league-age-{{$i}}')">

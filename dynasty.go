@@ -606,3 +606,86 @@ func formatTimeAgo(t time.Time) string {
 	}
 	return fmt.Sprintf("%d days ago", int(diff.Hours()/24))
 }
+
+func calculateProjectedDraftPicks(draftPicks []DraftPick, teamAges []TeamAgeData, targetYear int) []ProjectedDraftPick {
+	projectedPicks := []ProjectedDraftPick{}
+
+	// Create a map of roster ID to team standing/data
+	rosterToStanding := make(map[int]TeamAgeData)
+	for _, team := range teamAges {
+		rosterToStanding[team.RosterID] = team
+	}
+
+	// Get league size from team count
+	leagueSize := len(teamAges)
+
+	debugLog("[DEBUG] Calculating projected draft picks for year %d with %d teams", targetYear, leagueSize)
+
+	// Process each draft pick
+	for _, pick := range draftPicks {
+		// Only process picks for the target year
+		if pick.Year != targetYear {
+			continue
+		}
+
+		// Find the current owner's standing
+		// Note: If the pick is owned by user but came from another team, we use the original owner's standing
+		teamForStanding := rosterToStanding[pick.RosterID]
+
+		// Find the actual team whose standing determines the pick position
+		// If there's an original name, this pick was traded, so we need to find that team's standing
+		var pickPositionTeam TeamAgeData
+		if pick.OriginalName != "" && pick.OriginalName != "You" {
+			// Find the original owner's roster ID and standing
+			for _, team := range teamAges {
+				if team.TeamName == pick.OriginalName {
+					pickPositionTeam = team
+					break
+				}
+			}
+			if pickPositionTeam.RosterID == 0 {
+				// Couldn't find original team, use current owner
+				pickPositionTeam = teamForStanding
+			}
+		} else {
+			pickPositionTeam = teamForStanding
+		}
+
+		// Calculate projected position
+		// In dynasty drafts, worst team (highest rank) gets pick 1.01
+		// Rank 1 = best team (most wins) -> last pick
+		// Rank 12 = worst team (fewest wins) -> first pick
+		projectedPosition := leagueSize - pickPositionTeam.Rank + 1
+
+		// Calculate overall pick number
+		overallPick := (pick.Round-1)*leagueSize + projectedPosition
+
+		// Format team record
+		// Rank 1 = most wins, so approximate wins/losses
+		wins := leagueSize - pickPositionTeam.Rank
+		losses := pickPositionTeam.Rank - 1
+		teamRecord := fmt.Sprintf("%d-%d", wins, losses)
+
+		projectedPicks = append(projectedPicks, ProjectedDraftPick{
+			Year:              pick.Year,
+			Round:             pick.Round,
+			OverallPick:       overallPick,
+			ProjectedPosition: projectedPosition,
+			OwnerName:         pick.OwnerName,
+			OriginalOwner:     pick.OriginalName,
+			CurrentStanding:   pickPositionTeam.Rank,
+			TeamRecord:        teamRecord,
+			IsYours:           pick.IsYours,
+		})
+
+		debugLog("[DEBUG] Projected pick: Round %d, Position %d (Overall %d), Owner: %s, Original: %s, Current Standing: %d (%s)",
+			pick.Round, projectedPosition, overallPick, pick.OwnerName, pick.OriginalName, pickPositionTeam.Rank, teamRecord)
+	}
+
+	// Sort by overall pick number
+	sort.Slice(projectedPicks, func(i, j int) bool {
+		return projectedPicks[i].OverallPick < projectedPicks[j].OverallPick
+	})
+
+	return projectedPicks
+}
