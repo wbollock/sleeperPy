@@ -48,13 +48,6 @@
 <script src="/static/tiers.js"></script>
 
 {{$leagueCount := len .Leagues}}
-{{if lt $leagueCount 5}}
-<div class="league-tabs">
-    {{range $i, $l := .Leagues}}
-        <button class="league-tab" {{if eq $i 0}}id="defaultTab"{{end}} onclick="showLeagueTab(event, 'league{{$i}}')">{{if $l.IsDynasty}}⭐ {{end}}{{$l.LeagueName}} ({{$l.Scoring}})</button>
-    {{end}}
-</div>
-{{else}}
 <div class="league-selector-container">
     <div class="league-selector">
         <button class="league-dropdown-btn" onclick="toggleLeagueDropdown()">
@@ -105,7 +98,6 @@
         </div>
     </div>
 </div>
-{{end}}
 <div class="league-contents">
     {{range $i, $l := .Leagues}}
         <div class="league-content" id="league{{$i}}" style="display:{{if eq $i 0}}block{{else}}none{{end}};">
