@@ -201,34 +201,34 @@ func findAgingPlayers(startersRows, benchRows []PlayerRow) []PlayerRow {
 
 func getTopRookies() []RookieProspect {
 	return []RookieProspect{
-		// 2025 NFL Draft
-		{Name: "Shedeur Sanders", Position: "QB", College: "Colorado", Value: 4500, Rank: 1, Year: 2025},
-		{Name: "Travis Hunter", Position: "WR", College: "Colorado", Value: 7500, Rank: 2, Year: 2025},
-		{Name: "Ashton Jeanty", Position: "RB", College: "Boise State", Value: 6800, Rank: 3, Year: 2025},
-		{Name: "Abdul Carter", Position: "LB", College: "Penn State", Value: 0, Rank: 4, Year: 2025},
-		{Name: "Tetairoa McMillan", Position: "WR", College: "Arizona", Value: 6500, Rank: 5, Year: 2025},
-		{Name: "Will Johnson", Position: "CB", College: "Michigan", Value: 0, Rank: 6, Year: 2025},
-		{Name: "Mason Graham", Position: "DT", College: "Michigan", Value: 0, Rank: 7, Year: 2025},
-		{Name: "Cam Ward", Position: "QB", College: "Miami", Value: 4200, Rank: 8, Year: 2025},
-		{Name: "Malaki Starks", Position: "S", College: "Georgia", Value: 0, Rank: 9, Year: 2025},
+		// 2025 NFL Draft Results (actual draft picks with NFL teams)
+		{Name: "Cam Ward", Position: "QB", College: "Miami (TEN)", Value: 4500, Rank: 1, Year: 2025},
+		{Name: "Travis Hunter", Position: "WR", College: "Colorado (JAX)", Value: 7500, Rank: 2, Year: 2025},
+		{Name: "Ashton Jeanty", Position: "RB", College: "Boise State (LV)", Value: 6800, Rank: 3, Year: 2025},
+		{Name: "Tetairoa McMillan", Position: "WR", College: "Arizona (CAR)", Value: 6500, Rank: 4, Year: 2025},
+		{Name: "Colston Loveland", Position: "TE", College: "Michigan (CHI)", Value: 3800, Rank: 5, Year: 2025},
+		{Name: "Emeka Egbuka", Position: "WR", College: "Ohio State (TB)", Value: 5500, Rank: 6, Year: 2025},
+		{Name: "Omarion Hampton", Position: "RB", College: "North Carolina (LAC)", Value: 5500, Rank: 7, Year: 2025},
+		{Name: "Matthew Golden", Position: "WR", College: "Texas (GB)", Value: 5000, Rank: 8, Year: 2025},
+		{Name: "Jaxson Dart", Position: "QB", College: "Ole Miss (NYG)", Value: 4200, Rank: 9, Year: 2025},
 		{Name: "Luther Burden III", Position: "WR", College: "Missouri", Value: 6000, Rank: 10, Year: 2025},
-		{Name: "Kelvin Banks Jr.", Position: "OT", College: "Texas", Value: 0, Rank: 11, Year: 2025},
-		{Name: "Tyler Warren", Position: "TE", College: "Penn State", Value: 3800, Rank: 12, Year: 2025},
-		{Name: "Will Campbell", Position: "OT", College: "LSU", Value: 0, Rank: 13, Year: 2025},
-		{Name: "Omarion Hampton", Position: "RB", College: "North Carolina", Value: 5500, Rank: 14, Year: 2025},
-		{Name: "Mykel Williams", Position: "DE", College: "Georgia", Value: 0, Rank: 15, Year: 2025},
 
-		// 2026 NFL Draft (Early projections - subject to change)
-		{Name: "Fernando Mendoza", Position: "QB", College: "Indiana", Value: 4500, Rank: 1, Year: 2026},
-		{Name: "Ty Simpson", Position: "QB", College: "Alabama", Value: 3800, Rank: 2, Year: 2026},
-		{Name: "Jeremiyah Love", Position: "RB", College: "Notre Dame", Value: 6500, Rank: 3, Year: 2026},
-		{Name: "Jordyn Tyson", Position: "WR", College: "Arizona State", Value: 6200, Rank: 4, Year: 2026},
-		{Name: "Carnell Tate", Position: "WR", College: "Ohio State", Value: 5800, Rank: 5, Year: 2026},
-		{Name: "Chris Brazzell II", Position: "WR", College: "Tennessee", Value: 5500, Rank: 6, Year: 2026},
-		{Name: "Dante Johnson", Position: "RB", College: "Nebraska", Value: 5200, Rank: 7, Year: 2026},
-		{Name: "Eli Stowers", Position: "TE", College: "Vanderbilt", Value: 3500, Rank: 8, Year: 2026},
-		{Name: "KC Concepcion", Position: "WR", College: "NC State", Value: 5000, Rank: 9, Year: 2026},
-		{Name: "Zachariah Branch", Position: "WR", College: "Georgia", Value: 4800, Rank: 10, Year: 2026},
+		// 2026 NFL Draft Prospects (projections - subject to change)
+		{Name: "Dante Moore", Position: "QB", College: "Oregon", Value: 4500, Rank: 1, Year: 2026},
+		{Name: "Ty Simpson", Position: "QB", College: "Alabama", Value: 4200, Rank: 2, Year: 2026},
+		{Name: "Jordyn Tyson", Position: "WR", College: "Arizona State", Value: 6500, Rank: 3, Year: 2026},
+		{Name: "Carnell Tate", Position: "WR", College: "Ohio State", Value: 6200, Rank: 4, Year: 2026},
+		{Name: "Makai Lemon", Position: "WR", College: "USC", Value: 6000, Rank: 5, Year: 2026},
+		{Name: "Fernando Mendoza", Position: "QB", College: "Indiana", Value: 4000, Rank: 6, Year: 2026},
+		{Name: "Jeremiyah Love", Position: "RB", College: "Notre Dame", Value: 6800, Rank: 7, Year: 2026},
+		{Name: "Denzel Boston", Position: "WR", College: "Washington", Value: 5800, Rank: 8, Year: 2026},
+		{Name: "Justice Haynes", Position: "RB", College: "Michigan", Value: 5500, Rank: 9, Year: 2026},
+		{Name: "Chris Brazzell II", Position: "WR", College: "Tennessee", Value: 5500, Rank: 10, Year: 2026},
+		{Name: "Jonah Coleman", Position: "RB", College: "Washington", Value: 5200, Rank: 11, Year: 2026},
+		{Name: "KC Concepcion", Position: "WR", College: "Texas A&M", Value: 5000, Rank: 12, Year: 2026},
+		{Name: "Kenyon Sadiq", Position: "TE", College: "Oregon", Value: 3800, Rank: 13, Year: 2026},
+		{Name: "Nick Singleton", Position: "RB", College: "Penn State", Value: 4800, Rank: 14, Year: 2026},
+		{Name: "Eli Stowers", Position: "TE", College: "Vanderbilt", Value: 3500, Rank: 15, Year: 2026},
 	}
 }
 
