@@ -28,6 +28,21 @@
     gap: 20px;
     grid-auto-rows: min-content;
 }
+.dynasty-source-info {
+    grid-column: 1 / -1;
+    font-size: 0.85em;
+    color: #9fb3d4;
+    text-align: center;
+    padding: 4px 0;
+}
+.dynasty-source-info a {
+    color: #7bb0ff;
+    text-decoration: none;
+    font-weight: 600;
+}
+.dynasty-source-info a:hover {
+    text-decoration: underline;
+}
 
 @media (min-width: 768px) {
     .dynasty-toolkit {

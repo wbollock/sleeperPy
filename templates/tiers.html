@@ -254,6 +254,9 @@
                 </div>
 
                 <div class="dynasty-toolkit dynasty-only">
+                    {{if $l.DynastyValueDate}}
+                    <div class="dynasty-source-info">Dynasty values from <a href="https://github.com/dynastyprocess/data" target="_blank" rel="noopener">DynastyProcess</a> · Updated {{$l.DynastyValueDate}}</div>
+                    {{end}}
                     {{if $l.PlayerNewsFeed}}
                     <div class="toolkit-card collapseable">
                         <div class="card-header" onclick="toggleSection('player-news-{{$i}}')">
