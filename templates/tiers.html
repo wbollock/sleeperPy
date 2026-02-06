@@ -675,6 +675,7 @@
                                     <tr>
                                         <th style="text-align:left;">Team</th>
                                         <th>Avg Age</th>
+                                        <th>Roster Value</th>
                                         <th>Wins</th>
                                         <th>Strategy</th>
                                     </tr>
@@ -686,6 +687,7 @@
                                             {{if .IsUserTeam}}<b>{{.TeamName}}</b> (You){{else}}{{.TeamName}}{{end}}
                                         </td>
                                         <td>{{printf "%.1f" .AvgAge}}</td>
+                                        <td>{{if .RosterValue}}{{.RosterValue}}{{else}}-{{end}}</td>
                                         <td>{{.Rank}}</td>
                                         <td style="white-space:nowrap;">
                                             {{if gt .AvgAge 27.0}}
