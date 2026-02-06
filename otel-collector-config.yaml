@@ -1,0 +1,45 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 10s
+
+  attributes:
+    actions:
+      - key: service.name
+        value: sleeperpy
+        action: upsert
+
+exporters:
+  # Jaeger for traces
+  otlp/jaeger:
+    endpoint: jaeger:4317
+    tls:
+      insecure: true
+
+  # Prometheus for metrics
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+    namespace: sleeperpy
+
+  # Debug logging
+  logging:
+    loglevel: info
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch, attributes]
+      exporters: [otlp/jaeger, logging]
+
+    metrics:
+      receivers: [otlp]
+      processors: [batch, attributes]
+      exporters: [prometheus, logging]
