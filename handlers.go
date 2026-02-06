@@ -122,6 +122,10 @@ func sitemapHandler(w http.ResponseWriter, r *http.Request) {
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://sleeperpy.com/demo</loc>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://sleeperpy.com/privacy</loc>
     <priority>0.3</priority>
   </url>
