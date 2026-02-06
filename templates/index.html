@@ -119,16 +119,35 @@
 
             <div id="loading" style="display:none;text-align:center;margin-top:2em;">
                 <div class="spinner"></div>
-                <p class="loading-message">Analyzing your team...</p>
+                <p class="loading-message" id="loadingMsg">Analyzing your team...</p>
             </div>
             <div id="output"></div>
         </div>
 
         <script>
-        // Show loading spinner on form submit
+        // Show loading spinner on form submit with rotating messages
         document.getElementById('userform').addEventListener('submit', function(evt) {
             document.getElementById('loading').style.display = 'block';
             document.getElementById('generateTiers').disabled = true;
+
+            var messages = [
+                "Fetching your leagues from Sleeper...",
+                "Loading player data...",
+                "Calculating tier rankings...",
+                "Checking for lineup improvements...",
+                "Scanning the waiver wire...",
+                "Almost there..."
+            ];
+            var msgEl = document.getElementById('loadingMsg');
+            var idx = 0;
+            var interval = setInterval(function() {
+                idx++;
+                if (idx < messages.length) {
+                    msgEl.textContent = messages[idx];
+                } else {
+                    clearInterval(interval);
+                }
+            }, 3000);
         });
         </script>
 <script src="/static/theme.js"></script>

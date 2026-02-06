@@ -142,7 +142,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 	if username == "" {
 		debugLog("[DEBUG] No username provided")
 		totalErrors.Inc()
-		renderError(w, "No username provided")
+		renderError(w, "No username provided. Please enter your Sleeper username on the homepage and try again.")
 		return
 	}
 
@@ -151,7 +151,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil || user["user_id"] == nil {
 		log.Printf("[ERROR] User not found or error: %v", err)
 		totalErrors.Inc()
-		renderError(w, "User not found")
+		renderError(w, fmt.Sprintf("User \"%s\" not found on Sleeper. Double-check your username (it's case-sensitive) — you can find it in the Sleeper app under Settings.", username))
 		return
 	}
 	userID := user["user_id"].(string)
@@ -176,7 +176,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 	if len(leagues) == 0 {
 		log.Printf("[ERROR] No leagues found for user %s", userID)
 		totalErrors.Inc()
-		renderError(w, "No leagues found for this user")
+		renderError(w, fmt.Sprintf("No leagues found for \"%s\". Make sure you've joined a Sleeper league for the current or previous NFL season. Dynasty leagues from last season are also checked.", username))
 		return
 	}
 
@@ -185,7 +185,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("[ERROR] Could not get current NFL week: %v", err)
 		totalErrors.Inc()
-		renderError(w, "Could not get current NFL week")
+		renderError(w, "The Sleeper API is temporarily unavailable. Please try again in a few minutes.")
 		return
 	}
 	week := int(state["week"].(float64))
@@ -195,7 +195,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("[ERROR] Could not fetch players data: %v", err)
 		totalErrors.Inc()
-		renderError(w, "Could not fetch players data")
+		renderError(w, "Could not fetch player data from Sleeper. This usually means the Sleeper API is under heavy load — please try again in a few minutes.")
 		return
 	}
 
@@ -1333,7 +1333,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 
 	if len(leagueResults) == 0 {
 		debugLog("[DEBUG] No valid leagues found with matchups for user %s", username)
-		renderError(w, "No valid leagues found with matchups")
+		renderError(w, "No active matchups found for your leagues. During the offseason, only dynasty leagues are available. If you have dynasty leagues, they should appear automatically — if not, please report this on GitHub.")
 		return
 	}
 

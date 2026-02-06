@@ -50,7 +50,14 @@
 </header>
 <div class="main-content">
 {{if .Error}}
-<span style="color:red">{{.Error}}</span>
+<div style="max-width:600px; margin:3em auto; padding:2em; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.25); border-radius:12px; text-align:center;">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" style="margin-bottom:12px;">
+        <circle cx="12" cy="12" r="10" stroke="#ef4444" stroke-width="2"/>
+        <path d="M12 8v4M12 16h.01" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <p style="color:#fca5a5; font-size:1.1em; margin:0 0 1em 0; line-height:1.5;">{{.Error}}</p>
+    <a href="/" style="display:inline-block; padding:10px 24px; background:#0ea5e9; color:#fff; border-radius:8px; text-decoration:none; font-weight:600; transition:background 0.2s;">Try Again</a>
+</div>
 {{else}}
 {{with .Leagues}}
     {{/* Shareable link box removed as the URL is self-evident */}}
