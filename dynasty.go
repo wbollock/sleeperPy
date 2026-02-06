@@ -218,12 +218,17 @@ func getTopRookies() []RookieProspect {
 		{Name: "Omarion Hampton", Position: "RB", College: "North Carolina", Value: 5500, Rank: 14, Year: 2025},
 		{Name: "Mykel Williams", Position: "DE", College: "Georgia", Value: 0, Rank: 15, Year: 2025},
 
-		// 2026 NFL Draft (Very early projections - subject to change)
-		{Name: "Quinn Ewers", Position: "QB", College: "Texas", Value: 4000, Rank: 1, Year: 2026},
-		{Name: "Jalen Milroe", Position: "QB", College: "Alabama", Value: 3500, Rank: 2, Year: 2026},
-		{Name: "Jeremiah Smith", Position: "WR", College: "Ohio State", Value: 6500, Rank: 3, Year: 2026},
-		{Name: "Colston Loveland", Position: "TE", College: "Michigan", Value: 3200, Rank: 4, Year: 2026},
-		{Name: "Quinshon Judkins", Position: "RB", College: "Ohio State", Value: 5000, Rank: 5, Year: 2026},
+		// 2026 NFL Draft (Early projections - subject to change)
+		{Name: "Fernando Mendoza", Position: "QB", College: "Indiana", Value: 4500, Rank: 1, Year: 2026},
+		{Name: "Ty Simpson", Position: "QB", College: "Alabama", Value: 3800, Rank: 2, Year: 2026},
+		{Name: "Jeremiyah Love", Position: "RB", College: "Notre Dame", Value: 6500, Rank: 3, Year: 2026},
+		{Name: "Jordyn Tyson", Position: "WR", College: "Arizona State", Value: 6200, Rank: 4, Year: 2026},
+		{Name: "Carnell Tate", Position: "WR", College: "Ohio State", Value: 5800, Rank: 5, Year: 2026},
+		{Name: "Chris Brazzell II", Position: "WR", College: "Tennessee", Value: 5500, Rank: 6, Year: 2026},
+		{Name: "Dante Johnson", Position: "RB", College: "Nebraska", Value: 5200, Rank: 7, Year: 2026},
+		{Name: "Eli Stowers", Position: "TE", College: "Vanderbilt", Value: 3500, Rank: 8, Year: 2026},
+		{Name: "KC Concepcion", Position: "WR", College: "NC State", Value: 5000, Rank: 9, Year: 2026},
+		{Name: "Zachariah Branch", Position: "WR", College: "Georgia", Value: 4800, Rank: 10, Year: 2026},
 	}
 }
 

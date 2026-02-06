@@ -186,6 +186,10 @@ func main() {
 	http.HandleFunc("/privacy", privacyHandler)
 	http.HandleFunc("/terms", termsHandler)
 	http.HandleFunc("/pricing", pricingHandler)
+	http.HandleFunc("/about", aboutHandler)
+	http.HandleFunc("/faq", faqHandler)
+	http.HandleFunc("/robots.txt", robotsHandler)
+	http.HandleFunc("/sitemap.xml", sitemapHandler)
 	http.Handle("/metrics", promhttp.Handler())
 
 	if testMode {

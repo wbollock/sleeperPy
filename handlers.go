@@ -73,6 +73,66 @@ func pricingHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func aboutHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl := template.Must(template.ParseFiles("templates/about.html"))
+	if err := tmpl.Execute(w, nil); err != nil {
+		http.Error(w, "Error rendering about page", http.StatusInternalServerError)
+		log.Printf("Error rendering about.html: %v", err)
+	}
+}
+
+func faqHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl := template.Must(template.ParseFiles("templates/faq.html"))
+	if err := tmpl.Execute(w, nil); err != nil {
+		http.Error(w, "Error rendering FAQ page", http.StatusInternalServerError)
+		log.Printf("Error rendering faq.html: %v", err)
+	}
+}
+
+func robotsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/plain")
+	fmt.Fprint(w, `User-agent: *
+Allow: /
+Disallow: /lookup
+Disallow: /metrics
+Disallow: /signout
+
+Sitemap: https://sleeperpy.com/sitemap.xml
+`)
+}
+
+func sitemapHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/xml")
+	fmt.Fprint(w, `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://sleeperpy.com/</loc>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://sleeperpy.com/about</loc>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://sleeperpy.com/faq</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://sleeperpy.com/pricing</loc>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://sleeperpy.com/privacy</loc>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://sleeperpy.com/terms</loc>
+    <priority>0.3</priority>
+  </url>
+</urlset>
+`)
+}
+
 func lookupHandler(w http.ResponseWriter, r *http.Request) {
 	totalLookups.Inc()
 	debugLog("[DEBUG] /lookup handler called")

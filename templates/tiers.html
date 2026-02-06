@@ -1,9 +1,20 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SleeperPy Tiers</title>
+    <title>{{if .Username}}{{.Username}}'s Tiers - SleeperPy{{else}}SleeperPy Tiers{{end}}</title>
+    <meta name="description" content="Fantasy football tier analysis and lineup recommendations for Sleeper leagues. Expert consensus rankings by Boris Chen.">
+    <meta name="robots" content="noindex">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="SleeperPy - Fantasy Football Tier Analysis">
+    <meta property="og:description" content="Tier-based lineup recommendations for your Sleeper fantasy football leagues.">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="SleeperPy">
+
+    <meta name="theme-color" content="#1e293b">
+
     <link rel="stylesheet" href="/static/main.css">
     <link rel="stylesheet" href="/static/dynasty.css">
     <link rel="stylesheet" href="/static/theme.css">
@@ -973,6 +984,12 @@ if (document.getElementById('defaultTab')) document.getElementById('defaultTab')
         {{end}}
         <span style="display:inline-block; margin:0.5em 1em;">
             <a href="https://github.com/wbollock/sleeperPy" target="_blank" rel="noopener" style="color:#7bb0ff; text-decoration:none; font-weight:600; transition:color 0.2s;">GitHub</a>
+        </span>
+        <span style="display:inline-block; margin:0.5em 1em;">
+            <a href="/about" style="color:#7bb0ff; text-decoration:none; font-weight:600; transition:color 0.2s;">About</a>
+        </span>
+        <span style="display:inline-block; margin:0.5em 1em;">
+            <a href="/faq" style="color:#7bb0ff; text-decoration:none; font-weight:600; transition:color 0.2s;">FAQ</a>
         </span>
         <span style="display:inline-block; margin:0.5em 1em;">
             <a href="https://buymeacoffee.com/wbollock" target="_blank" rel="noopener" style="color:#FFDD00; text-decoration:none; font-weight:600; transition:all 0.2s; text-shadow:0 0 8px rgba(255,221,0,0.3);">☕ Buy Me a Coffee</a>

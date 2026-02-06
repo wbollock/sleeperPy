@@ -12,3 +12,5 @@ testdata/
 TESTING.md
 TEST_MODE.md
 main_test.go
+claude-auto-resume
+.claude-auto-resume/
