@@ -15,6 +15,32 @@ import (
 	"time"
 )
 
+func fetchPlayers() (map[string]interface{}, error) {
+	// Check cache first
+	sleeperPlayersCache.RLock()
+	if time.Since(sleeperPlayersCache.timestamp) < sleeperPlayersCache.ttl && sleeperPlayersCache.data != nil {
+		debugLog("[DEBUG] Using cached Sleeper players data")
+		sleeperPlayersCache.RUnlock()
+		return sleeperPlayersCache.data, nil
+	}
+	sleeperPlayersCache.RUnlock()
+
+	debugLog("[DEBUG] Fetching fresh Sleeper players data")
+	players, err := fetchJSON("https://api.sleeper.app/v1/players/nfl")
+	if err != nil {
+		return nil, err
+	}
+
+	// Update cache
+	sleeperPlayersCache.Lock()
+	sleeperPlayersCache.data = players
+	sleeperPlayersCache.timestamp = time.Now()
+	sleeperPlayersCache.Unlock()
+
+	debugLog("[DEBUG] Cached %d Sleeper players", len(players))
+	return players, nil
+}
+
 func fetchJSON(url string) (map[string]interface{}, error) {
 	resp, err := httpClient.Get(url)
 	if err != nil {

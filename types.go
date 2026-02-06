@@ -33,6 +33,14 @@ type dynastyCache struct {
 	ttl       time.Duration
 }
 
+// Cache for Sleeper players API response
+type playersCache struct {
+	sync.RWMutex
+	data      map[string]interface{}
+	timestamp time.Time
+	ttl       time.Duration
+}
+
 type PlayerRow struct {
 	Pos                  string
 	Name                 string

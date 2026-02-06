@@ -40,6 +40,10 @@ var dynastyValuesCache = &dynastyCache{
 	ttl:  24 * time.Hour, // Cache for 24 hours (values don't change frequently)
 }
 
+var sleeperPlayersCache = &playersCache{
+	ttl: 1 * time.Hour, // Cache players data for 1 hour
+}
+
 func debugLog(format string, v ...interface{}) {
 	if logLevel == "debug" {
 		log.Printf(format, v...)

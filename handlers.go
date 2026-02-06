@@ -235,8 +235,8 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	week := int(state["week"].(float64))
 
-	// 4. Get players data
-	players, err := fetchJSON("https://api.sleeper.app/v1/players/nfl")
+	// 4. Get players data (cached for 1 hour)
+	players, err := fetchPlayers()
 	if err != nil {
 		log.Printf("[ERROR] Could not fetch players data: %v", err)
 		totalErrors.Inc()
