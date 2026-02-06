@@ -275,6 +275,28 @@ function restoreLastLeague() {
     }
 }
 
+// Player search within a league
+function searchPlayers(leagueIndex) {
+    const searchInput = document.getElementById('playerSearch' + leagueIndex);
+    const term = searchInput.value.toLowerCase().trim();
+    const league = document.getElementById('league' + leagueIndex);
+    const rows = league.querySelectorAll('.pretty-table tbody tr');
+
+    rows.forEach(function(row) {
+        // Find the player name cell (second column typically)
+        const cells = row.querySelectorAll('td');
+        if (cells.length < 2) return;
+
+        const playerName = cells[1].textContent.toLowerCase();
+        if (term === '' || playerName.includes(term)) {
+            row.style.display = '';
+            row.classList.remove('search-dimmed');
+        } else {
+            row.classList.add('search-dimmed');
+        }
+    });
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     restoreLastLeague();
