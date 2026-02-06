@@ -996,42 +996,67 @@ if (document.getElementById('defaultTab')) document.getElementById('defaultTab')
 <script src="/static/theme.js"></script>
 <script src="/static/cookie-consent.js"></script>
 
-<footer style="margin-top:3em; padding:2.5em 1.5em; text-align:center; border-top:1px solid rgba(123,176,255,0.15); background:rgba(30,38,54,0.3); backdrop-filter:blur(10px);">
-    <div style="margin-bottom:1.4em; font-size:0.95em; color:#c5d5f0;">
-        <span style="display:inline-block; margin:0.5em 1em;">
-            Tiers powered by <a href="https://www.borischen.co/" target="_blank" rel="noopener" style="color:#7bb0ff; text-decoration:none; font-weight:600; transition:color 0.2s;">Boris Chen</a>
-        </span>
-        {{with .Leagues}}
-            {{range .}}
-                {{if .IsDynasty}}
-                    <span style="display:inline-block; margin:0.5em 1em;">
-                        Dynasty values by <a href="https://github.com/dynastyprocess/data" target="_blank" rel="noopener" style="color:#7bb0ff; text-decoration:none; font-weight:600; transition:color 0.2s;">DynastyProcess</a>{{if .DynastyValueDate}} (updated {{.DynastyValueDate}}){{end}}
-                    </span>
-                    {{break}}
-                {{end}}
-            {{end}}
-        {{end}}
-        <span style="display:inline-block; margin:0.5em 1em;">
-            <a href="https://github.com/wbollock/sleeperPy" target="_blank" rel="noopener" style="color:#7bb0ff; text-decoration:none; font-weight:600; transition:color 0.2s;">GitHub</a>
-        </span>
-        <span style="display:inline-block; margin:0.5em 1em;">
-            <a href="/about" style="color:#7bb0ff; text-decoration:none; font-weight:600; transition:color 0.2s;">About</a>
-        </span>
-        <span style="display:inline-block; margin:0.5em 1em;">
-            <a href="/faq" style="color:#7bb0ff; text-decoration:none; font-weight:600; transition:color 0.2s;">FAQ</a>
-        </span>
-        <span style="display:inline-block; margin:0.5em 1em;">
-            <a href="/privacy" style="color:#7bb0ff; text-decoration:none; font-weight:600; transition:color 0.2s;">Privacy Policy</a>
-        </span>
-        <span style="display:inline-block; margin:0.5em 1em;">
-            <a href="/terms" style="color:#7bb0ff; text-decoration:none; font-weight:600; transition:color 0.2s;">Terms of Service</a>
-        </span>
-        <span style="display:inline-block; margin:0.5em 1em;">
-            <a href="https://buymeacoffee.com/wbollock" target="_blank" rel="noopener" style="color:#FFDD00; text-decoration:none; font-weight:600; transition:all 0.2s; text-shadow:0 0 8px rgba(255,221,0,0.3);">☕ Buy Me a Coffee</a>
-        </span>
-    </div>
-    <div style="font-size:0.88em; color:#8a9ab8;">
-        If you like this project, please <a href="https://github.com/wbollock/sleeperPy" target="_blank" rel="noopener" style="color:#9aa8c0; text-decoration:none; transition:color 0.2s;">drop a ⭐ on GitHub</a>
+<footer class="site-footer">
+    <div class="footer-content">
+        <div class="footer-links">
+            <a href="https://www.borischen.co/" target="_blank" rel="noopener">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M8 0L10 6H16L11 10L13 16L8 12L3 16L5 10L0 6H6L8 0Z"/>
+                </svg>
+                Boris Chen Tiers
+            </a>
+            <a href="https://github.com/wbollock/sleeperPy" target="_blank" rel="noopener">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+                </svg>
+                GitHub
+            </a>
+            <a href="/pricing" rel="noopener">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M2 4a1 1 0 011-1h10a1 1 0 011 1v8a1 1 0 01-1 1H3a1 1 0 01-1-1V4z"/>
+                    <path d="M8 7a1 1 0 100 2 1 1 0 000-2z"/>
+                </svg>
+                Pricing
+            </a>
+            <a href="/privacy" rel="noopener">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M8 1L3 3v4c0 3.5 2 6 5 8 3-2 5-4.5 5-8V3l-5-2z"/>
+                </svg>
+                Privacy
+            </a>
+            <a href="/terms" rel="noopener">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M4 2a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2V4a2 2 0 00-2-2H4zm0 2h8v8H4V4z"/>
+                    <path d="M6 6h4v1H6V6zm0 2h4v1H6V8zm0 2h2v1H6v-1z"/>
+                </svg>
+                Terms
+            </a>
+            <a href="/about" rel="noopener">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                    <path d="M8 4.5a1 1 0 110 2 1 1 0 010-2zM7 8h2v4H7V8z"/>
+                </svg>
+                About
+            </a>
+            <a href="/faq" rel="noopener">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                    <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                    <path d="M6 6a2 2 0 114 0c0 1-1 1.5-1.5 2H7.5c.5-1 1.5-1 1.5-2a1 1 0 10-2 0H6zm2 4.5a.75.75 0 110 1.5.75.75 0 010-1.5z"/>
+                </svg>
+                FAQ
+            </a>
+        </div>
+        <div class="footer-cta">
+            <a href="https://buymeacoffee.com/wbollock" target="_blank" rel="noopener" class="coffee-btn">
+                ☕ Buy Me a Coffee
+            </a>
+            <span class="footer-love">
+                If you like this project, <a href="https://github.com/wbollock/sleeperPy" target="_blank" rel="noopener">star it on GitHub</a>
+            </span>
+        </div>
+        <div class="footer-bottom">
+            <p>Built by <a href="https://github.com/wbollock" target="_blank" rel="noopener">@wbollock</a> • Data from <a href="https://www.borischen.co" target="_blank" rel="noopener">Boris Chen</a> & <a href="https://dynastyprocess.com" target="_blank" rel="noopener">DynastyProcess</a></p>
+        </div>
     </div>
 </footer>
 {{end}}
