@@ -420,28 +420,34 @@
                                         <div class="trade-details">
                                             <div class="trade-side">
                                                 <div class="trade-team">{{.Team1}}</div>
-                                                <div class="trade-gave">
-                                                    {{if .Team1Gave}}
-                                                        <span class="trade-label gave">Gave:</span>
-                                                        {{range $idx, $player := .Team1Gave}}{{if $idx}}, {{end}}{{$player}}{{end}}
-                                                    {{else}}
-                                                        <span class="trade-label got">Got:</span>
-                                                        {{range $idx, $player := .Team2Gave}}{{if $idx}}, {{end}}{{$player}}{{end}}
-                                                    {{end}}
+                                                {{if .Team1Gave}}
+                                                <div class="trade-action">
+                                                    <span class="trade-label gave">Gave:</span>
+                                                    {{range .Team1Gave}}<div class="trade-player">{{.}}</div>{{end}}
                                                 </div>
+                                                {{end}}
+                                                {{if .Team2Gave}}
+                                                <div class="trade-action">
+                                                    <span class="trade-label got">Got:</span>
+                                                    {{range .Team2Gave}}<div class="trade-player">{{.}}</div>{{end}}
+                                                </div>
+                                                {{end}}
                                             </div>
                                             <div class="trade-divider">⇄</div>
                                             <div class="trade-side">
                                                 <div class="trade-team">{{.Team2}}</div>
-                                                <div class="trade-gave">
-                                                    {{if .Team2Gave}}
-                                                        <span class="trade-label gave">Gave:</span>
-                                                        {{range $idx, $player := .Team2Gave}}{{if $idx}}, {{end}}{{$player}}{{end}}
-                                                    {{else}}
-                                                        <span class="trade-label got">Got:</span>
-                                                        {{range $idx, $player := .Team1Gave}}{{if $idx}}, {{end}}{{$player}}{{end}}
-                                                    {{end}}
+                                                {{if .Team2Gave}}
+                                                <div class="trade-action">
+                                                    <span class="trade-label gave">Gave:</span>
+                                                    {{range .Team2Gave}}<div class="trade-player">{{.}}</div>{{end}}
                                                 </div>
+                                                {{end}}
+                                                {{if .Team1Gave}}
+                                                <div class="trade-action">
+                                                    <span class="trade-label got">Got:</span>
+                                                    {{range .Team1Gave}}<div class="trade-player">{{.}}</div>{{end}}
+                                                </div>
+                                                {{end}}
                                             </div>
                                         </div>
                                         {{else}}
@@ -1725,13 +1731,21 @@ if (document.getElementById('defaultTab')) document.getElementById('defaultTab')
     margin-bottom: 8px;
     font-size: 0.95em;
 }
-.trade-gave {
+.trade-action {
     font-size: 0.9em;
-    line-height: 1.6;
+    margin-bottom: 6px;
+}
+.trade-action:last-child {
+    margin-bottom: 0;
+}
+.trade-player {
+    padding: 2px 0 2px 12px;
+    color: #e0e7f1;
 }
 .trade-label {
     font-weight: 600;
-    margin-right: 6px;
+    display: block;
+    margin-bottom: 2px;
 }
 .trade-label.gave {
     color: #ff9d5c;
