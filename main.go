@@ -13,6 +13,8 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+
+	"sleeperpy/goapp/cli"
 )
 
 var logLevel string
@@ -169,6 +171,14 @@ func main() {
 	flag.BoolVar(&testMode, "test", false, "Run in test mode with mock data")
 	flag.Parse()
 
+	// Check if CLI mode
+	args := flag.Args()
+	if len(args) > 0 && args[0] == "cli" {
+		// Run CLI mode
+		os.Exit(cli.Run(args[1:]))
+	}
+
+	// Otherwise run web server
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
