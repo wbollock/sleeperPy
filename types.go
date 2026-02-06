@@ -174,6 +174,8 @@ type LeagueData struct {
 	IsDynasty            bool
 	HasMatchups          bool
 	DynastyValueDate     string
+	LeagueSize           int
+	RosterSlots          string
 	Starters             []PlayerRow
 	Unranked             []PlayerRow
 	AvgTier              string

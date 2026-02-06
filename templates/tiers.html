@@ -14,6 +14,7 @@
     <meta property="og:site_name" content="SleeperPy">
 
     <meta name="theme-color" content="#1e293b">
+    <link rel="manifest" href="/static/manifest.json">
 
     <link rel="stylesheet" href="/static/main.css">
     <link rel="stylesheet" href="/static/dynasty.css">
@@ -119,6 +120,13 @@
 <div class="league-contents">
     {{range $i, $l := .Leagues}}
         <div class="league-content" id="league{{$i}}" style="display:{{if eq $i 0}}block{{else}}none{{end}};">
+            <div class="league-info-bar">
+                <span>{{$l.LeagueSize}}-team</span>
+                <span class="league-info-sep">·</span>
+                <span>{{$l.Scoring}}</span>
+                {{if $l.IsDynasty}}<span class="league-info-sep">·</span><span class="dynasty-badge">Dynasty</span>{{end}}
+                {{if $l.RosterSlots}}<span class="league-info-sep">·</span><span class="league-info-slots">{{$l.RosterSlots}}</span>{{end}}
+            </div>
             {{if $l.IsDynasty}}
             <div class="mode-toggle-container">
                 <div class="mode-toggle">
@@ -1768,6 +1776,23 @@ if (document.getElementById('defaultTab')) document.getElementById('defaultTab')
     font-size: 0.95em;
     color: #e8eef7;
 }
+.league-info-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 8px 16px;
+    margin-bottom: 16px;
+    font-size: 0.85em;
+    color: #9fb3d4;
+    background: rgba(123, 176, 255, 0.06);
+    border-radius: 8px;
+    border: 1px solid rgba(123, 176, 255, 0.1);
+}
+.league-info-sep { color: rgba(123, 176, 255, 0.3); margin: 0 4px; }
+.dynasty-badge { color: #ffc83a; font-weight: 600; }
+.league-info-slots { color: #7a8ba8; font-size: 0.95em; }
 .league-selector-container {
     margin-bottom: 32px;
     max-width: 600px;

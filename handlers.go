@@ -1296,12 +1296,43 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		avgOppTier := avg(oppTiers)
 		winProb, emoji := winProbability(avgTier, avgOppTier)
 
+		// Build roster slots summary
+		rosterSlots := ""
+		if len(leagueRosterPositions) > 0 {
+			posCounts := make(map[string]int)
+			posOrder := []string{}
+			for _, pos := range leagueRosterPositions {
+				if posCounts[pos] == 0 {
+					posOrder = append(posOrder, pos)
+				}
+				posCounts[pos]++
+			}
+			parts := []string{}
+			for _, pos := range posOrder {
+				displayName := pos
+				switch pos {
+				case "SUPER_FLEX":
+					displayName = "SF"
+				case "REC_FLEX":
+					displayName = "RF"
+				case "IDP_FLEX":
+					displayName = "IDP"
+				case "BN":
+					displayName = "BN"
+				}
+				parts = append(parts, fmt.Sprintf("%d %s", posCounts[pos], displayName))
+			}
+			rosterSlots = strings.Join(parts, ", ")
+		}
+
 		leagueData := LeagueData{
 			LeagueName:           leagueName,
 			Scoring:              scoring,
 			IsDynasty:            isDynasty,
 			HasMatchups:          hasMatchups,
 			DynastyValueDate:     dynastyValueDate,
+			LeagueSize:           len(rosters),
+			RosterSlots:          rosterSlots,
 			Starters:             startersRows,
 			Unranked:             unrankedRows,
 			AvgTier:              avgTier,

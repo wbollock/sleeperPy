@@ -1,0 +1,17 @@
+{
+  "name": "SleeperPy - Fantasy Football Tiers",
+  "short_name": "SleeperPy",
+  "description": "Tier-based lineup recommendations for your Sleeper fantasy football leagues",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#1e293b",
+  "icons": [
+    {
+      "src": "/static/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
