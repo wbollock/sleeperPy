@@ -676,3 +676,176 @@
         gap: 12px;
     }
 }
+
+/* Transaction Trade Styles - Detailed gave/got display */
+.trade-details {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    margin-top: 12px;
+}
+
+.trade-side {
+    flex: 1;
+    background: rgba(21, 27, 46, 0.4);
+    border-radius: 10px;
+    padding: 14px;
+    border: 1px solid rgba(123, 176, 255, 0.15);
+}
+
+.trade-team {
+    font-weight: 700;
+    color: #7bb0ff;
+    font-size: 0.95em;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(123, 176, 255, 0.2);
+}
+
+.trade-action {
+    margin-top: 10px;
+}
+
+.trade-label {
+    display: inline-block;
+    font-size: 0.85em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+
+.trade-label.gave {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.trade-label.got {
+    background: rgba(34, 197, 94, 0.2);
+    color: #86efac;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.trade-player {
+    padding: 6px 12px;
+    margin: 4px 0;
+    background: rgba(30, 38, 54, 0.5);
+    border-radius: 6px;
+    font-size: 0.9em;
+    color: #d4dde8;
+    border-left: 2px solid rgba(123, 176, 255, 0.3);
+}
+
+.trade-divider {
+    font-size: 1.5em;
+    color: #7bb0ff;
+    font-weight: 700;
+    filter: drop-shadow(0 0 8px rgba(123, 176, 255, 0.6));
+    animation: pulse-divider 2s ease-in-out infinite;
+}
+
+@keyframes pulse-divider {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(1.1); }
+}
+
+/* Waiver Details */
+.waiver-details {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+    font-size: 0.95em;
+}
+
+.waiver-team {
+    font-weight: 600;
+    color: #7bb0ff;
+    margin-bottom: 8px;
+}
+
+.waiver-action {
+    flex: 1;
+}
+
+.waiver-added {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.waiver-dropped {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.waiver-label {
+    display: block;
+    font-size: 0.8em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+
+.waiver-added .waiver-label {
+    color: #86efac;
+}
+
+.waiver-dropped .waiver-label {
+    color: #fca5a5;
+}
+
+.waiver-player {
+    color: #e8eef7;
+    font-weight: 600;
+}
+
+/* Transaction Filters */
+.transaction-filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 8px 16px;
+    background: rgba(30, 38, 54, 0.5);
+    border: 1px solid rgba(123, 176, 255, 0.2);
+    border-radius: 8px;
+    color: #9fb3d4;
+    font-size: 0.9em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-btn:hover {
+    background: rgba(58, 110, 232, 0.2);
+    border-color: rgba(123, 176, 255, 0.4);
+    color: #e8eef7;
+}
+
+.filter-btn.active {
+    background: linear-gradient(135deg, #3a6ee8 0%, #5856d6 100%);
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(58, 110, 232, 0.3);
+}
+
+.transactions-count, .breakout-count, .aging-count, .news-count {
+    display: inline-block;
+    padding: 3px 10px;
+    margin-left: 8px;
+    background: rgba(123, 176, 255, 0.2);
+    border-radius: 12px;
+    font-size: 0.85em;
+    font-weight: 600;
+    color: #7bb0ff;
+}
