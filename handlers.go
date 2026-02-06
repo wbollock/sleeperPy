@@ -133,6 +133,51 @@ func sitemapHandler(w http.ResponseWriter, r *http.Request) {
 `)
 }
 
+func demoHandler(w http.ResponseWriter, r *http.Request) {
+	demoLeague := LeagueData{
+		LeagueName: "Example League (Demo)",
+		Scoring:    "PPR",
+		IsDynasty:  false,
+		HasMatchups: true,
+		LeagueSize: 12,
+		RosterSlots: "1 QB, 2 RB, 3 WR, 1 TE, 1 FLEX, 1 K, 1 DEF, 5 BN",
+		Starters: []PlayerRow{
+			{Pos: "QB", Name: "Patrick Mahomes", Tier: 1},
+			{Pos: "RB", Name: "Saquon Barkley", Tier: 2},
+			{Pos: "RB", Name: "Derrick Henry", Tier: 5, IsTierWorseThanBench: true},
+			{Pos: "WR", Name: "CeeDee Lamb", Tier: 1},
+			{Pos: "WR", Name: "Garrett Wilson", Tier: 4},
+			{Pos: "WR", Name: "Terry McLaurin", Tier: 5},
+			{Pos: "TE", Name: "Travis Kelce", Tier: 1},
+			{Pos: "FLEX", Name: "Josh Jacobs", Tier: 6, IsFlex: true},
+		},
+		Bench: []PlayerRow{
+			{Pos: "QB", Name: "Justin Herbert", Tier: 3},
+			{Pos: "RB", Name: "Aaron Jones", Tier: 4, ShouldSwapIn: true},
+			{Pos: "WR", Name: "Brandon Aiyuk", Tier: 3},
+			{Pos: "WR", Name: "Amari Cooper", Tier: 6},
+			{Pos: "TE", Name: "Sam LaPorta", Tier: 2},
+		},
+		TopFreeAgents: []PlayerRow{
+			{Pos: "RB", Name: "Brian Robinson", Tier: 5, IsFreeAgent: true, IsUpgrade: true, UpgradeFor: "Josh Jacobs", UpgradeType: "Starter"},
+			{Pos: "WR", Name: "Zay Flowers", Tier: 4, IsFreeAgent: true, IsUpgrade: true, UpgradeFor: "Amari Cooper", UpgradeType: "Bench"},
+		},
+		AvgTier:    "3.1",
+		AvgOppTier: "2.5",
+		WinProb:    "38%",
+	}
+
+	page := TiersPage{
+		Leagues:  []LeagueData{demoLeague},
+		Username: "demo",
+	}
+
+	if err := templates.ExecuteTemplate(w, "tiers.html", page); err != nil {
+		log.Printf("[ERROR] Demo template error: %v", err)
+		http.Error(w, "Error rendering demo", http.StatusInternalServerError)
+	}
+}
+
 func lookupHandler(w http.ResponseWriter, r *http.Request) {
 	totalLookups.Inc()
 	debugLog("[DEBUG] /lookup handler called")

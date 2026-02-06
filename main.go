@@ -188,6 +188,7 @@ func main() {
 	http.HandleFunc("/pricing", pricingHandler)
 	http.HandleFunc("/about", aboutHandler)
 	http.HandleFunc("/faq", faqHandler)
+	http.HandleFunc("/demo", demoHandler)
 	http.HandleFunc("/robots.txt", robotsHandler)
 	http.HandleFunc("/sitemap.xml", sitemapHandler)
 	http.Handle("/metrics", promhttp.Handler())

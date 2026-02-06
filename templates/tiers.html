@@ -22,7 +22,8 @@
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
 </head>
 <body>
-<header class="app-header">
+<a href="#main-content" class="skip-link">Skip to main content</a>
+<header class="app-header" role="banner">
     <div class="header-content">
         <div class="logo-section">
             <a href="/" style="display:flex; align-items:center; gap:12px; text-decoration:none;">
@@ -49,7 +50,7 @@
         </div>
     </div>
 </header>
-<div class="main-content">
+<main id="main-content" class="main-content" role="main">
 {{if .Error}}
 <div style="max-width:600px; margin:3em auto; padding:2em; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.25); border-radius:12px; text-align:center;">
     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" style="margin-bottom:12px;">
@@ -1007,6 +1008,12 @@ if (document.getElementById('defaultTab')) document.getElementById('defaultTab')
             <a href="/faq" style="color:#7bb0ff; text-decoration:none; font-weight:600; transition:color 0.2s;">FAQ</a>
         </span>
         <span style="display:inline-block; margin:0.5em 1em;">
+            <a href="/privacy" style="color:#7bb0ff; text-decoration:none; font-weight:600; transition:color 0.2s;">Privacy Policy</a>
+        </span>
+        <span style="display:inline-block; margin:0.5em 1em;">
+            <a href="/terms" style="color:#7bb0ff; text-decoration:none; font-weight:600; transition:color 0.2s;">Terms of Service</a>
+        </span>
+        <span style="display:inline-block; margin:0.5em 1em;">
             <a href="https://buymeacoffee.com/wbollock" target="_blank" rel="noopener" style="color:#FFDD00; text-decoration:none; font-weight:600; transition:all 0.2s; text-shadow:0 0 8px rgba(255,221,0,0.3);">☕ Buy Me a Coffee</a>
         </span>
     </div>
@@ -1015,7 +1022,23 @@ if (document.getElementById('defaultTab')) document.getElementById('defaultTab')
     </div>
 </footer>
 {{end}}
+</main>
 <style>
+    .skip-link {
+        position: absolute;
+        top: -100%;
+        left: 16px;
+        background: #0ea5e9;
+        color: #fff;
+        padding: 8px 16px;
+        border-radius: 0 0 8px 8px;
+        z-index: 1000;
+        font-weight: 600;
+        text-decoration: none;
+    }
+    .skip-link:focus {
+        top: 0;
+    }
     .app-header {
         width: 100%;
         background: linear-gradient(135deg, rgba(58, 110, 232, 0.15) 0%, rgba(88, 86, 214, 0.15) 100%);

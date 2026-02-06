@@ -28,7 +28,8 @@
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
 </head>
 <body>
-        <header class="app-header">
+        <a href="#main-content" class="skip-link">Skip to main content</a>
+        <header class="app-header" role="banner">
             <div class="header-content">
                 <div class="logo-section">
                     <svg class="logo-icon" width="32" height="32" viewBox="0 0 32 32" fill="none">
@@ -54,7 +55,7 @@
             </div>
         </header>
 
-        <div class="container">
+        <main id="main-content" class="container" role="main">
             {{if .SavedUsername}}
             <!-- Returning User View -->
             <div class="hero-section returning-user">
@@ -77,7 +78,7 @@
 
                 <form id="userform" method="get" action="/lookup" class="hero-form">
                     <div class="input-group">
-                        <input id="inputButton" type="text" name="username" required placeholder="Enter your Sleeper username">
+                        <input id="inputButton" type="text" name="username" required placeholder="Enter your Sleeper username" aria-label="Sleeper username">
                     </div>
                     <button id="generateTiers" type="submit" class="cta-button primary">
                         View My Tiers
@@ -86,6 +87,8 @@
 
                 <p class="help-text">
                     <a href="https://support.sleeper.com/en/articles/1876011-account-settings" target="_blank" rel="noopener">How to find your username</a>
+                    &nbsp;&middot;&nbsp;
+                    <a href="/demo">See an example</a>
                 </p>
             </div>
 
@@ -123,7 +126,7 @@
                 <p class="loading-message" id="loadingMsg">Analyzing your team...</p>
             </div>
             <div id="output"></div>
-        </div>
+        </main>
 
         <script>
         // Show loading spinner on form submit with rotating messages
@@ -154,6 +157,23 @@
 <script src="/static/theme.js"></script>
 <script src="/static/cookie-consent.js"></script>
 <style>
+    /* Skip Link */
+    .skip-link {
+        position: absolute;
+        top: -100%;
+        left: 16px;
+        background: #0ea5e9;
+        color: #fff;
+        padding: 8px 16px;
+        border-radius: 0 0 8px 8px;
+        z-index: 1000;
+        font-weight: 600;
+        text-decoration: none;
+    }
+    .skip-link:focus {
+        top: 0;
+    }
+
     /* Header Styles */
     .app-header {
         width: 100%;
