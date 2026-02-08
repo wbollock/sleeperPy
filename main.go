@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"html/template"
@@ -13,8 +14,10 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	"sleeperpy/goapp/cli"
+	"sleeperpy/goapp/otel"
 )
 
 var logLevel string
@@ -180,6 +183,15 @@ func main() {
 		os.Exit(cli.Run(args[1:]))
 	}
 
+	// Initialize OpenTelemetry (only if OTEL_EXPORTER_OTLP_ENDPOINT is set)
+	ctx := context.Background()
+	if os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT") != "" {
+		cleanup := otel.Init(ctx)
+		defer cleanup()
+		otel.InitMetrics()
+		log.Println("[OTEL] OpenTelemetry initialized")
+	}
+
 	// Otherwise run web server
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -196,20 +208,29 @@ func main() {
 
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
-	http.HandleFunc("/", visitorLogging(indexHandler))
-	http.HandleFunc("/lookup", lookupHandler)
-	http.HandleFunc("/signout", signoutHandler)
-	http.HandleFunc("/privacy", privacyHandler)
-	http.HandleFunc("/terms", termsHandler)
-	http.HandleFunc("/pricing", pricingHandler)
-	http.HandleFunc("/about", aboutHandler)
-	http.HandleFunc("/faq", faqHandler)
-	http.HandleFunc("/demo", demoHandler)
-	http.HandleFunc("/robots.txt", robotsHandler)
-	http.HandleFunc("/sitemap.xml", sitemapHandler)
+
+	// Wrap handlers with OTEL instrumentation if enabled
+	wrapHandler := func(name string, handler http.HandlerFunc) http.Handler {
+		if os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT") != "" {
+			return otelhttp.NewHandler(http.HandlerFunc(handler), name)
+		}
+		return http.HandlerFunc(handler)
+	}
+
+	http.Handle("/", wrapHandler("index", visitorLogging(indexHandler)))
+	http.Handle("/lookup", wrapHandler("lookup", lookupHandler))
+	http.Handle("/signout", wrapHandler("signout", signoutHandler))
+	http.Handle("/privacy", wrapHandler("privacy", privacyHandler))
+	http.Handle("/terms", wrapHandler("terms", termsHandler))
+	http.Handle("/pricing", wrapHandler("pricing", pricingHandler))
+	http.Handle("/about", wrapHandler("about", aboutHandler))
+	http.Handle("/faq", wrapHandler("faq", faqHandler))
+	http.Handle("/demo", wrapHandler("demo", demoHandler))
+	http.Handle("/robots.txt", wrapHandler("robots", robotsHandler))
+	http.Handle("/sitemap.xml", wrapHandler("sitemap", sitemapHandler))
 	http.Handle("/metrics", promhttp.Handler())
-	http.HandleFunc("/admin", adminHandler)
-	http.HandleFunc("/admin/api", adminAPIHandler)
+	http.Handle("/admin", wrapHandler("admin", adminHandler))
+	http.Handle("/admin/api", wrapHandler("admin_api", adminAPIHandler))
 
 	if testMode {
 		log.Printf("Server running on http://localhost:%s (log level: %s, TEST MODE ENABLED)", port, logLevel)
