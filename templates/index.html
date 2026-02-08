@@ -504,5 +504,24 @@
 <script src="/static/loading.js"></script>
 <script src="/static/theme.js"></script>
 <script src="/static/cookie-consent.js"></script>
+<script>
+// Register service worker for PWA offline support
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/static/sw.js')
+            .then((registration) => {
+                console.log('[PWA] Service Worker registered:', registration.scope);
+
+                // Check for updates periodically
+                setInterval(() => {
+                    registration.update();
+                }, 60000); // Check every minute
+            })
+            .catch((error) => {
+                console.log('[PWA] Service Worker registration failed:', error);
+            });
+    });
+}
+</script>
 </body>
 </html>
