@@ -174,6 +174,8 @@ func main() {
 	// Check if CLI mode
 	args := flag.Args()
 	if len(args) > 0 && args[0] == "cli" {
+		// Initialize API client for CLI
+		cli.API = NewAPIClient()
 		// Run CLI mode
 		os.Exit(cli.Run(args[1:]))
 	}
