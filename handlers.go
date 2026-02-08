@@ -29,6 +29,9 @@ func visitorLogging(next http.HandlerFunc) http.HandlerFunc {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
+	trackPageView(r.URL.Path)
+	trackUserAgent(r.UserAgent())
+
 	savedUsername := ""
 	if cookie, err := r.Cookie("sleeper_username"); err == nil {
 		savedUsername = cookie.Value
@@ -50,6 +53,7 @@ func signoutHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func privacyHandler(w http.ResponseWriter, r *http.Request) {
+	trackPageView(r.URL.Path)
 	tmpl := template.Must(template.ParseFiles("templates/privacy.html"))
 	if err := tmpl.Execute(w, nil); err != nil {
 		http.Error(w, "Error rendering privacy policy", http.StatusInternalServerError)
@@ -138,6 +142,7 @@ func sitemapHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func demoHandler(w http.ResponseWriter, r *http.Request) {
+	trackPageView(r.URL.Path)
 	demoLeague := LeagueData{
 		LeagueName: "Example League (Demo)",
 		Scoring:    "PPR",

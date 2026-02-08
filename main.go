@@ -206,6 +206,8 @@ func main() {
 	http.HandleFunc("/robots.txt", robotsHandler)
 	http.HandleFunc("/sitemap.xml", sitemapHandler)
 	http.Handle("/metrics", promhttp.Handler())
+	http.HandleFunc("/admin", adminHandler)
+	http.HandleFunc("/admin/api", adminAPIHandler)
 
 	if testMode {
 		log.Printf("Server running on http://localhost:%s (log level: %s, TEST MODE ENABLED)", port, logLevel)
