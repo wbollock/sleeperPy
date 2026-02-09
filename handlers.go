@@ -1153,71 +1153,108 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 
 			// Apply traded picks
 			if tradedPicks != nil {
+				debugLog("[DEBUG] ===== APPLYING TRADED PICKS =====")
 				debugLog("[DEBUG] Processing %d traded picks", len(tradedPicks))
 				for i, trade := range tradedPicks {
 					season, _ := trade["season"].(string)
 					round, _ := trade["round"].(float64)
-					rosterID, _ := trade["roster_id"].(float64)        // Current owner
-					originalRosterID, _ := trade["owner_id"].(float64) // Original owner (who the pick belonged to)
+					rosterID, _ := trade["roster_id"].(float64)        // Current owner after trade
+					originalRosterID, _ := trade["owner_id"].(float64) // Original owner (default owner)
 					previousOwnerID, _ := trade["previous_owner_id"].(float64)
+
+					// Validate data
+					if season == "" || round == 0 || originalRosterID == 0 {
+						debugLog("[DEBUG] Trade %d: SKIPPING invalid trade data", i)
+						continue
+					}
 
 					year, _ := strconv.Atoi(season)
 					key := fmt.Sprintf("%d-%d-%d", year, int(round), int(originalRosterID))
 
-					debugLog("[DEBUG] Trade %d: %d Round %d (originally from roster %.0f)", i, year, int(round), originalRosterID)
-					debugLog("[DEBUG]   Current owner (roster_id): %.0f", rosterID)
-					debugLog("[DEBUG]   Previous owner: %.0f", previousOwnerID)
+					debugLog("[DEBUG] Trade %d: %s Round %.0f (originally roster %.0f's pick)", i, season, round, originalRosterID)
+					debugLog("[DEBUG]   roster_id (current owner): %.0f", rosterID)
+					debugLog("[DEBUG]   previous_owner_id: %.0f", previousOwnerID)
 					debugLog("[DEBUG]   Key: %s", key)
 
+					// Defensive check: Verify pick exists in ownership map
+					oldOwner, pickExists := pickOwnership[key]
+					if !pickExists {
+						debugLog("[DEBUG]   ⚠️  WARNING: Pick not found in ownership map, skipping")
+						continue
+					}
+
 					// Update ownership
-					oldOwner := pickOwnership[key]
 					if rosterID > 0 {
 						pickOwnership[key] = int(rosterID)
-						debugLog("[DEBUG]   ✓ Updated ownership from roster %d to roster %.0f", oldOwner, rosterID)
-					} else if previousOwnerID > 0 {
-						// If roster_id is 0, the pick was traded away from previous owner
+						debugLog("[DEBUG]   ✓ Updated: roster %d → roster %.0f", oldOwner, rosterID)
+
+						// Extra logging for user's picks
+						if int(rosterID) == int(userRosterID) {
+							debugLog("[DEBUG]   📥 USER ACQUIRED this pick")
+						} else if oldOwner == int(userRosterID) {
+							debugLog("[DEBUG]   📤 USER TRADED AWAY this pick to roster %.0f", rosterID)
+						}
+					} else {
+						// roster_id is 0 or invalid - pick might be in limbo or deleted
 						delete(pickOwnership, key)
-						debugLog("[DEBUG]   ✗ Deleted pick (roster_id is 0, pick traded away)")
+						debugLog("[DEBUG]   ✗ Deleted pick (roster_id is 0 or invalid)")
 					}
 				}
+				debugLog("[DEBUG] ===================================")
 			}
 
 			// Extract user's picks
 			debugLog("[DEBUG] ===== EXTRACTING USER PICKS =====")
 			debugLog("[DEBUG] Searching for picks owned by roster %.0f", userRosterID)
+			debugLog("[DEBUG] Total picks in ownership map: %d", len(pickOwnership))
+
 			for key, ownerRosterID := range pickOwnership {
-				if ownerRosterID == int(userRosterID) {
-					parts := strings.Split(key, "-")
-					if len(parts) != 3 {
-						continue
-					}
-					year, _ := strconv.Atoi(parts[0])
-					round, _ := strconv.Atoi(parts[1])
-					originalRosterID, _ := strconv.Atoi(parts[2])
-
-					ownerName := "You"
-					originalName := ""
-
-					// If this pick was traded (original owner != current owner)
-					if originalRosterID != int(userRosterID) {
-						if origOwner, exists := rosterOwners[originalRosterID]; exists {
-							originalName = origOwner
-						}
-						debugLog("[DEBUG] Pick %d Round %d: ACQUIRED from roster %d (%s)", year, round, originalRosterID, originalName)
-					} else {
-						debugLog("[DEBUG] Pick %d Round %d: YOUR ORIGINAL pick", year, round)
-					}
-
-					draftPicks = append(draftPicks, DraftPick{
-						Round:        round,
-						Year:         year,
-						OwnerName:    ownerName,
-						OriginalName: originalName,
-						RosterID:     int(userRosterID),
-						IsYours:      true,
-					})
+				// CRITICAL FIX: Only include picks where current owner IS the user
+				if ownerRosterID != int(userRosterID) {
+					debugLog("[DEBUG] Skipping pick %s: owned by roster %d (not user)", key, ownerRosterID)
+					continue
 				}
+
+				parts := strings.Split(key, "-")
+				if len(parts) != 3 {
+					debugLog("[DEBUG] Invalid pick key format: %s", key)
+					continue
+				}
+				year, _ := strconv.Atoi(parts[0])
+				round, _ := strconv.Atoi(parts[1])
+				originalRosterID, _ := strconv.Atoi(parts[2])
+
+				ownerName := "You"
+				originalName := ""
+
+				// Defensive check: Verify this pick truly belongs to user
+				// If original owner is user, this is their own pick
+				// If original owner is different, they acquired it via trade
+				if originalRosterID != int(userRosterID) {
+					// User acquired this pick from another team
+					if origOwner, exists := rosterOwners[originalRosterID]; exists {
+						originalName = origOwner
+					} else {
+						originalName = fmt.Sprintf("Team %d", originalRosterID)
+					}
+					debugLog("[DEBUG] ✓ Pick %d Round %d: ACQUIRED from roster %d (%s)", year, round, originalRosterID, originalName)
+				} else {
+					// User's original pick (not traded)
+					debugLog("[DEBUG] ✓ Pick %d Round %d: YOUR ORIGINAL pick", year, round)
+				}
+
+				draftPicks = append(draftPicks, DraftPick{
+					Round:        round,
+					Year:         year,
+					OwnerName:    ownerName,
+					OriginalName: originalName,
+					RosterID:     int(userRosterID),
+					IsYours:      true,
+				})
 			}
+
+			debugLog("[DEBUG] ===================================")
+			debugLog("[DEBUG] FINAL RESULT: User has %d draft picks total", len(draftPicks))
 
 			// Sort picks by year, then by round
 			sort.Slice(draftPicks, func(i, j int) bool {
