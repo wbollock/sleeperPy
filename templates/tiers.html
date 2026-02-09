@@ -431,12 +431,23 @@
                                                 <div class="trade-action">
                                                     <span class="trade-label gave">Gave:</span>
                                                     {{range .Team1Gave}}<div class="trade-player">{{.}}</div>{{end}}
+                                                    {{if gt .Team1GaveValue 0}}
+                                                    <div class="trade-value gave-value">Total Value: {{.Team1GaveValue}}</div>
+                                                    {{end}}
                                                 </div>
                                                 {{end}}
                                                 {{if .Team2Gave}}
                                                 <div class="trade-action">
                                                     <span class="trade-label got">Got:</span>
                                                     {{range .Team2Gave}}<div class="trade-player">{{.}}</div>{{end}}
+                                                    {{if gt .Team2GaveValue 0}}
+                                                    <div class="trade-value got-value">Total Value: {{.Team2GaveValue}}</div>
+                                                    {{end}}
+                                                </div>
+                                                {{end}}
+                                                {{if and (gt .Team1GaveValue 0) (gt .Team2GaveValue 0)}}
+                                                <div class="trade-net-value {{if gt .NetValue 0}}positive{{else if lt .NetValue 0}}negative{{else}}neutral{{end}}">
+                                                    {{if gt .NetValue 0}}✅ Gained {{.NetValue}} value{{else if lt .NetValue 0}}❌ Lost {{absInt .NetValue}} value{{else}}➡️ Even trade{{end}}
                                                 </div>
                                                 {{end}}
                                             </div>
@@ -447,12 +458,23 @@
                                                 <div class="trade-action">
                                                     <span class="trade-label gave">Gave:</span>
                                                     {{range .Team2Gave}}<div class="trade-player">{{.}}</div>{{end}}
+                                                    {{if gt .Team2GaveValue 0}}
+                                                    <div class="trade-value gave-value">Total Value: {{.Team2GaveValue}}</div>
+                                                    {{end}}
                                                 </div>
                                                 {{end}}
                                                 {{if .Team1Gave}}
                                                 <div class="trade-action">
                                                     <span class="trade-label got">Got:</span>
                                                     {{range .Team1Gave}}<div class="trade-player">{{.}}</div>{{end}}
+                                                    {{if gt .Team1GaveValue 0}}
+                                                    <div class="trade-value got-value">Total Value: {{.Team1GaveValue}}</div>
+                                                    {{end}}
+                                                </div>
+                                                {{end}}
+                                                {{if and (gt .Team1GaveValue 0) (gt .Team2GaveValue 0)}}
+                                                <div class="trade-net-value {{if lt .NetValue 0}}positive{{else if gt .NetValue 0}}negative{{else}}neutral{{end}}">
+                                                    {{if lt .NetValue 0}}✅ Gained {{absInt .NetValue}} value{{else if gt .NetValue 0}}❌ Lost {{.NetValue}} value{{else}}➡️ Even trade{{end}}
                                                 </div>
                                                 {{end}}
                                             </div>
@@ -1775,6 +1797,44 @@ if (document.getElementById('defaultTab')) document.getElementById('defaultTab')
 .trade-player {
     padding: 2px 0 2px 12px;
     color: #e0e7f1;
+}
+.trade-value {
+    font-size: 0.85em;
+    margin-top: 6px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+}
+.gave-value {
+    background: rgba(239, 68, 68, 0.15);
+    color: #fca5a5;
+}
+.got-value {
+    background: rgba(34, 197, 94, 0.15);
+    color: #86efac;
+}
+.trade-net-value {
+    margin-top: 10px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.95em;
+    text-align: center;
+}
+.trade-net-value.positive {
+    background: rgba(34, 197, 94, 0.2);
+    color: #86efac;
+    border: 1px solid rgba(34, 197, 94, 0.4);
+}
+.trade-net-value.negative {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+}
+.trade-net-value.neutral {
+    background: rgba(148, 163, 184, 0.2);
+    color: #cbd5e1;
+    border: 1px solid rgba(148, 163, 184, 0.4);
 }
 .trade-label {
     font-weight: 600;

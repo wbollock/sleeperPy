@@ -131,17 +131,20 @@ type PlayerNews struct {
 }
 
 type Transaction struct {
-	Type          string // "trade", "waiver", "free_agent"
-	Timestamp     time.Time
-	Description   string
-	TeamNames     []string
-	PlayerNames   []string
-	Team1         string
-	Team2         string
-	Team1Gave     []string
-	Team2Gave     []string
-	AddedPlayer   string
-	DroppedPlayer string
+	Type           string // "trade", "waiver", "free_agent"
+	Timestamp      time.Time
+	Description    string
+	TeamNames      []string
+	PlayerNames    []string
+	Team1          string
+	Team2          string
+	Team1Gave      []string
+	Team2Gave      []string
+	Team1GaveValue int   // Total dynasty value of Team1's players
+	Team2GaveValue int   // Total dynasty value of Team2's players
+	NetValue       int   // Net value difference (positive = Team1 gained value)
+	AddedPlayer    string
+	DroppedPlayer  string
 }
 
 type RookieProspect struct {

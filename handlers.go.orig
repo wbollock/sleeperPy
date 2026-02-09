@@ -1267,7 +1267,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			}
 
 			// Fetch recent league transactions
-			recentTransactions = fetchRecentTransactions(leagueID, week, players, rosters, userNames, dynastyValues, isSuperFlex)
+			recentTransactions = fetchRecentTransactions(leagueID, week, players, rosters, userNames)
 			debugLog("[DEBUG] Found %d recent transactions", len(recentTransactions))
 		}
 

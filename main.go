@@ -133,6 +133,12 @@ var funcMap = template.FuncMap{
 		}
 		return "🤝"
 	},
+	"absInt": func(n int) int {
+		if n < 0 {
+			return -n
+		}
+		return n
+	},
 	"formatTime": func(t time.Time) string {
 		if t.IsZero() {
 			return "Unknown"

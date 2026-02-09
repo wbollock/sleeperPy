@@ -248,7 +248,7 @@ func fetchBorisTiersImpl(scoring string) map[string][][]string {
 	return out
 }
 
-func fetchRecentTransactions(leagueID string, currentWeek int, players map[string]interface{}, rosters []map[string]interface{}, userNames map[string]string) []Transaction {
+func fetchRecentTransactions(leagueID string, currentWeek int, players map[string]interface{}, rosters []map[string]interface{}, userNames map[string]string, dynastyValues map[string]DynastyValue, isSuperFlex bool) []Transaction {
 	transactions := []Transaction{}
 
 	// Fetch transactions from multiple weeks (last 3 weeks)
@@ -391,18 +391,56 @@ func fetchRecentTransactions(leagueID string, currentWeek int, players map[strin
 				}
 			}
 
+			// Calculate dynasty values if available
+			team1GaveValue := 0
+			team2GaveValue := 0
+			if dynastyValues != nil {
+				for _, playerName := range team1Gave {
+					// Skip draft picks (they contain "Round")
+					if !strings.Contains(playerName, "Round") {
+						normalizedName := normalizeName(playerName)
+						if value, exists := dynastyValues[normalizedName]; exists {
+							if isSuperFlex {
+								team1GaveValue += value.Value2QB
+							} else {
+								team1GaveValue += value.Value1QB
+							}
+						}
+					}
+				}
+				for _, playerName := range team2Gave {
+					// Skip draft picks
+					if !strings.Contains(playerName, "Round") {
+						normalizedName := normalizeName(playerName)
+						if value, exists := dynastyValues[normalizedName]; exists {
+							if isSuperFlex {
+								team2GaveValue += value.Value2QB
+							} else {
+								team2GaveValue += value.Value1QB
+							}
+						}
+					}
+				}
+			}
+
+			// Net value: positive means team1 gained value (got more than they gave)
+			netValue := team2GaveValue - team1GaveValue
+
 			// Build description
 			desc := fmt.Sprintf("%s traded with %s", team1, team2)
 
 			transactions = append(transactions, Transaction{
-				Type:        "trade",
-				Timestamp:   timestamp,
-				Description: desc,
-				TeamNames:   []string{team1, team2},
-				Team1:       team1,
-				Team2:       team2,
-				Team1Gave:   team1Gave,
-				Team2Gave:   team2Gave,
+				Type:           "trade",
+				Timestamp:      timestamp,
+				Description:    desc,
+				TeamNames:      []string{team1, team2},
+				Team1:          team1,
+				Team2:          team2,
+				Team1Gave:      team1Gave,
+				Team2Gave:      team2Gave,
+				Team1GaveValue: team1GaveValue,
+				Team2GaveValue: team2GaveValue,
+				NetValue:       netValue,
 			})
 		} else if txnType == "waiver" || txnType == "free_agent" {
 			// Handle waivers and free agent pickups

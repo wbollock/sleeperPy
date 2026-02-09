@@ -3,7 +3,7 @@
 ## Critical Bugs (Fix ASAP)
 
 ### 1. Draft Capital Bug - Incorrect Ownership Display
-**Status**: 🔴 Broken
+**Status**: 🔴 NOT FIXED - Still Broken
 
 **Problem**: Draft picks showing incorrect "from X" attribution
 - User trades their pick TO team X
@@ -30,7 +30,7 @@
 ---
 
 ### 2. Transactions Missing Team Names
-**Status**: 🟡 Incomplete
+**Status**: ✅ FIXED (commits: 597c363, 9c5c473)
 
 **Problem**: Transaction display doesn't show which team made the move
 - Waiver claims show: "Player X was claimed"
@@ -62,7 +62,7 @@ pauldhaugen claimed JuJu Smith-Schuster (dropped Andrei Iosivas)
 ---
 
 ### 3. Trades Section Not Populated
-**Status**: 🔴 Broken
+**Status**: ✅ FIXED (commit: 2aec378)
 
 **Problem**: Recent trades section shows empty or doesn't populate
 - Trade data exists in Sleeper API
@@ -91,7 +91,7 @@ pauldhaugen claimed JuJu Smith-Schuster (dropped Andrei Iosivas)
 ---
 
 ### 4. 2026 NFL Draft Prospects Contains 2025 Players
-**Status**: 🟡 Data Error
+**Status**: ✅ FIXED (commit: a8abdfb)
 
 **Problem**: 2026 draft prospects list has 2025 rookies mixed in
 - Wrong draft class data
@@ -315,7 +315,7 @@ pauldhaugen claimed JuJu Smith-Schuster (dropped Andrei Iosivas)
 ---
 
 ### 14. Robots.txt & Sitemap
-**Status**: ❌ Missing
+**Status**: ❌ NOT FIXED - Still Missing
 **Priority**: LOW-MEDIUM (for SEO)
 
 **robots.txt**:
