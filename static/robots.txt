@@ -1,0 +1,7 @@
+# robots.txt for SleeperPy
+User-agent: *
+Allow: /
+Disallow: /api/
+
+# Sitemap location
+Sitemap: https://sleeperpy.com/sitemap.xml
