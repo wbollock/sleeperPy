@@ -1,110 +1,191 @@
 # Claude Agent Instructions for SleeperPy
 
-## Auto-Resume Implementation Task
+## CRITICAL PRIORITY: FIX BUGS FIRST
 
-When instructed to "implement the plans" or similar, execute the following implementation sequence:
+**ALL FEATURE WORK IS SUSPENDED** until these two critical bugs are fixed:
 
-### Priority Order
+### Bug #1: Draft Pick Ownership Inverted (BLOCKING) 🔴
 
-**Phase 1-3: Critical Features (Complete First)**
+**Issue**: Draft picks show wrong ownership
+- User trades pick away → app incorrectly shows they still own it
+- User receives pick → might not show correctly
 
-1. **REMOVE-FLASHY-DESIGN.md** (~15 min)
-   - Remove: elite-design.css, premium-design.css, data-viz.css, micro-interactions.css, transaction-viz.css
-   - Keep: loading.css and loading.js (functional loading states)
-   - Update templates/tiers.html and templates/index.html to remove deleted CSS links
-   - Test that app still works with `go run .`
-   - Commit: "chore: remove overly flashy elite design CSS"
+**Example**:
+- User traded 2026 Round 1 pick TO gdyche
+- App displays: "2026 Round 1 (from wboll)" ❌
+- Should display: Nothing (user doesn't own it) ✅
 
-2. **CLI-MODE.md** (~6 hours)
-   - Create cli/ package with cli.go, commands.go, output.go, tests.go
-   - Implement commands: user, league, tiers, dynasty-values, player, test
-   - Add flags: --json, --debug, --cache-off
-   - Update main.go to detect CLI mode and route to cli.Run()
-   - Reuse existing fetch functions (fetchSleeperUser, fetchBorisChenTiers, etc.)
-   - Test all CLI commands work correctly
-   - Commit: "feat: add CLI mode for testing"
+**Root Cause**: Sleeper API field interpretation wrong
+- Code location: `handlers.go` lines 1079-1275
+- Current assumptions about API fields are likely incorrect:
+  - Assumes `roster_id` = current owner
+  - Assumes `owner_id` = original owner
+- User data proves this is wrong
 
-3. **OPENTELEMETRY-OBSERVABILITY.md** (~10 hours)
-   - Install OTEL dependencies (go get go.opentelemetry.io/otel/...)
-   - Create otel/ package with otel.go and metrics.go
-   - Initialize OTEL SDK in main.go with cleanup
-   - Wrap HTTP handlers with otelhttp middleware
-   - Add spans to key functions (fetch.go, roster.go, dynasty.go)
-   - Implement structured logging with trace correlation (logger/ package)
-   - Create docker-compose.otel.yml with Jaeger, Prometheus, Grafana
-   - Create otel-collector-config.yaml and prometheus.yml
-   - Add documentation for running observability stack
-   - Commit: "feat: add OpenTelemetry observability"
+**Fix Steps**:
+1. Run app with `--log=debug` on a real league with traded picks
+2. Examine "TRADED PICKS RAW DATA" output
+3. Compare against actual Sleeper app trade history
+4. Determine correct field meanings
+5. Rewrite draft picks logic with correct interpretation
+6. Test all scenarios: acquired picks, traded away picks, original picks
+7. Add validation to prevent regression
 
-**Phase 4+: Remaining Features (After Phase 1-3)**
+**Test Cases Required**:
+- User's original pick (not traded) → show without annotation
+- User acquired pick from Team A → show "from Team A"
+- User traded pick to Team B → DON'T show at all
+- Multi-hop trades (A→B→C) → show correct current owner
 
-4. **Power User Improvements** (from power-user-improvements.md)
-   - League selector dropdown for users with 5+ leagues
-   - Searchable league list with grouping (Dynasty/Redraft)
-   - Favorite/star leagues functionality
-   - Better transaction display (two-column trade layout)
-   - Transaction filters (All/Trades/Waivers/FA, date range)
-   - User-centric trade views with dynasty value context
-   - Remember last viewed league
-   - Commit: "feat: add power user improvements for multi-league management"
+**Estimated Time**: 4-8 hours (includes debugging + fix + testing)
 
-5. **Admin Dashboard** (from feature-gaps-analysis.md)
-   - Create /admin route with secret key authentication
-   - Real-time metrics display (users online, lookups today, leagues viewed)
-   - Growth metrics (daily/weekly/monthly active users)
-   - Feature usage statistics (dynasty mode %, free agents clicks)
-   - Error logs and debugging info
-   - Browser/device breakdown
-   - Most popular leagues/players
-   - Use Prometheus metrics if available, otherwise in-memory counters
-   - Commit: "feat: add admin dashboard with usage metrics"
+---
 
-6. **Enhanced League Features** (from feature-gaps-analysis.md)
-   - League settings display (roster requirements, scoring format, league size)
-   - Team standings table with current records
-   - Playoff positioning indicator
-   - Player search/filter within league view
-   - Commit: "feat: add league settings, standings, and player search"
+### Bug #2: UI Layout Broken (BLOCKING) 🔴
 
-7. **Mobile/PWA Enhancements** (from feature-gaps-analysis.md)
-   - Create manifest.json for PWA (add to home screen)
-   - Service worker for offline support
-   - Touch-friendly optimizations
-   - Swipe gestures for league tabs (optional)
-   - Bottom navigation for mobile
-   - Commit: "feat: add PWA support and mobile optimizations"
+**Issue**: Layout is broken across the app
+- Text cutting off everywhere
+- Boxes not holding content properly
+- Fails on different screen sizes
+- Rigid box-based design doesn't scale
 
-8. **Additional Improvements** (from various plan docs)
-   - Better error messages with retry buttons
-   - Toast notifications for actions
-   - Demo mode (show mock data without login)
-   - Export league data to CSV (CLI command)
-   - Commit per feature group
+**User Report**: "the UI of the app needs help the boxes are not holding up and text is cutting all over the plan. we need a flexible, clean, and satisifying UI that can scale for all these basica nd premium features not relying on a series of boxes anymore."
 
-### Working Guidelines
+**Root Cause**: Poor CSS architecture
+- Fixed-height boxes constraining variable content
+- Rigid grid layout not responsive
+- Multiple conflicting stylesheets
+- `overflow:hidden` cutting off text
+- Box metaphor doesn't fit dynasty toolkit's variable content
+
+**Fix Required**: Complete UI Redesign
+
+**Design Goals**:
+1. **Flexible, not fixed**: CSS Grid/Flexbox with auto-sizing
+2. **Content-first**: Let content determine size, not boxes constraining content
+3. **Scalable**: Works for basic tier view AND full dynasty toolkit
+4. **Clean & professional**: Modern look without excessive flashiness
+5. **No more rigid boxes**: Flowing sections that adapt to content
+
+**Implementation Steps**:
+
+1. **Audit Current CSS** (~2 hours)
+   - Find all fixed widths/heights → convert to flexible
+   - Find overflow:hidden on text → remove
+   - Map responsive breakpoint issues
+   - Identify conflicting styles
+
+2. **Create New Foundation** (~4 hours)
+   - New modular CSS architecture
+   - CSS Grid for main layout (not fixed boxes)
+   - Consistent spacing system (CSS custom properties)
+   - Typography scale (proper sizing, line-height, word-wrap)
+   - Mobile-first responsive design
+   - Remove all fixed dimensions on content
+
+3. **Rebuild Key Sections** (~6 hours)
+   - Tier display (main content area)
+   - Dynasty toolkit (sidebar/cards with flexible height)
+   - Transaction history (proper two-column layout)
+   - News feed (variable-length content)
+   - Draft picks display
+   - Mobile stacking (vertical, not cramped horizontal)
+
+4. **Test & Polish** (~2 hours)
+   - Test on mobile sizes (320px, 375px, 414px)
+   - Test on tablets (768px, 1024px)
+   - Test on desktop (1280px, 1920px)
+   - Test with varying content (1 item vs 50 items)
+   - Test dark mode compatibility
+   - Verify collapsible sections work
+
+**Files to Modify**:
+- `templates/tiers.html` - Main results page
+- `templates/index.html` - Landing page
+- `static/styles.css` - Complete rewrite or new modular approach
+- KEEP `static/loading.css` - Loading states work fine
+
+**What to Keep**:
+- Dark/light theme toggle (functional)
+- Loading states (good)
+- Color scheme (just make flexible)
+- Collapsible sections (functionality is fine)
+
+**What to Remove**:
+- Fixed pixel heights on content containers
+- Overflow:hidden on text
+- Rigid box CSS paradigm
+- Complex multi-stylesheet conflicts
+
+**Estimated Time**: 14 hours total
+
+---
+
+## Implementation Priority
+
+**MUST COMPLETE IN ORDER - NO EXCEPTIONS**
+
+### Phase 1: Fix Draft Picks Bug
+- Debug API fields with real data
+- Rewrite draft picks logic with correct interpretation
+- Test all trade scenarios
+- Commit: "fix: correct draft pick ownership logic"
+- **BLOCK**: Do not proceed until this is 100% accurate
+
+### Phase 2: Fix UI Layout
+- Audit and document current CSS issues
+- Design new flexible layout system
+- Implement responsive CSS Grid foundation
+- Rebuild all major sections with flexible design
+- Test on all screen sizes
+- Commit: "fix: redesign UI for flexible, scalable layout"
+- **BLOCK**: Do not proceed until UI works on all screens
+
+### Phase 3: Only After Both Bugs Fixed
+- User approval required
+- All previous feature plans are in `plan/archive/`
+- Do NOT implement archived features without explicit user request
+- Focus remains on stability and usability
+
+---
+
+## Suspended Features
+
+All feature plans have been moved to `plan/archive/`:
+- CLI mode
+- OpenTelemetry observability
+- Power user improvements
+- Admin dashboard
+- Enhanced league features
+- Mobile PWA enhancements
+
+**DO NOT implement these until critical bugs are fixed and user approves.**
+
+---
+
+## Working Guidelines (For Bug Fixes)
 
 **Code Quality:**
-- Follow existing patterns in main.go, handlers.go, fetch.go, dynasty.go
+- Follow existing patterns in handlers.go, main.go, etc.
 - Use Go standard library (no frameworks)
 - Keep it simple - don't over-engineer
-- Only implement what's in the plan docs
+- Fix the bug, don't add features
 - No backwards-compatibility hacks
 - Delete unused code completely
 
 **Git Workflow:**
-- One commit per major feature (3 commits total)
-- Use conventional commits: `feat:`, `fix:`, `chore:`, `docs:`
+- Commit after each bug fix
+- Use conventional commits: `fix:`, not `feat:`
 - ALWAYS add footer: `Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>`
-- Test before committing when possible
+- Test thoroughly before committing
 - Use HEREDOC for multi-line commit messages:
   ```bash
   git commit -m "$(cat <<'EOF'
-  feat: add CLI mode for testing
+  fix: correct draft pick ownership logic
 
-  - Create cli/ package with command router
-  - Add user, league, tiers, dynasty-values, player, test commands
-  - Support --json flag for machine-readable output
-  - Integration test suite in cli test command
+  - Debug API showed roster_id is actually [correct meaning]
+  - Rewrite logic to properly track pick ownership
+  - Add validation to prevent showing traded-away picks
 
   Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
   EOF
@@ -112,19 +193,20 @@ When instructed to "implement the plans" or similar, execute the following imple
   ```
 
 **Testing:**
-- Run `go run .` after phase 1 to verify web app still works
-- Test CLI commands after phase 2: `./sleeperPy cli user testuser`
-- Verify OTEL traces show up after phase 3: docker-compose -f docker-compose.otel.yml up
-- If something breaks, fix it before moving on
-- Use existing test mode: `go run . --test` (testuser mock data)
+- Run `go run . --log=debug` to see detailed API data
+- Test with real leagues (not just testuser)
+- Verify against Sleeper app's actual data
+- Test all edge cases before committing
 
-**Error Handling:**
-- If a function doesn't exist, create it following existing patterns
-- If you need architectural decisions, follow plan doc recommendations
-- If you encounter ambiguity, choose the simpler approach
-- Ask user only if truly blocked
+**Debugging:**
+- Use existing debug logging infrastructure
+- Add more debug logs if needed to understand API
+- Compare raw API data vs expected behavior
+- Document findings in code comments
 
-### Project Context
+---
+
+## Project Context
 
 **Architecture:**
 - Backend: Go with standard library (no frameworks)
@@ -134,237 +216,52 @@ When instructed to "implement the plans" or similar, execute the following imple
 
 **Key Files:**
 - `main.go` - Entry point, server setup, template functions
-- `handlers.go` - HTTP handlers (indexHandler, lookupHandler, etc.)
+- `handlers.go` - HTTP handlers, **DRAFT PICKS LOGIC HERE (lines 1079-1275)**
 - `fetch.go` - API fetching (Sleeper, Boris Chen, KTC)
-- `dynasty.go` - Dynasty features (news, breakouts, trade targets, etc.)
+- `dynasty.go` - Dynasty features (news, breakouts, trade targets)
 - `roster.go` - Roster processing and tier assignment
-- `types.go` - All struct definitions
+- `types.go` - All struct definitions (includes DraftPick)
 - `utils.go` - Utility functions
-- `templates/tiers.html` - Main results page
+- `templates/tiers.html` - Main results page, **UI LAYOUT ISSUES HERE**
 - `templates/index.html` - Landing page
+- `static/styles.css` - Main stylesheet, **NEEDS REDESIGN**
 
-**Existing Functions to Reuse:**
-- `fetchSleeperUser(username string)` - Get Sleeper user
-- `fetchUserLeagues(userID string)` - Get user's leagues
-- `fetchBorisChenTiers(format string)` - Get tiers
-- `fetchDynastyValues()` - Get KTC values
-- `fetchSleeperPlayers()` - Get all NFL players
-- `analyzeLeague(leagueID, username string)` - Full league analysis
-
-**Completed Features (see MEMORY.md):**
+**Completed Features:**
 - Core tier analysis with Boris Chen
-- Dynasty toolkit (news, breakouts, aging alerts, draft capital, trade targets, transactions, power rankings, rookies)
+- Dynasty toolkit (news, breakouts, aging alerts, trade targets, transactions, power rankings, rookies)
 - Dynasty mode with collapseable sections
 - Dark/light theme switcher
-- Mobile responsive design
+- Mobile responsive design (BROKEN - needs fix)
 - Product pages (Privacy, ToS, About, FAQ, Pricing, SEO)
 
-### Implementation Steps
+---
 
-**Phase 1: Remove Flashy Design (15 min)**
+## Debugging the Draft Picks Bug
+
+**Run with debug logging:**
 ```bash
-# 1. Remove CSS files
-git rm static/elite-design.css static/premium-design.css static/data-viz.css static/micro-interactions.css static/transaction-viz.css
-
-# 2. Edit templates/tiers.html - remove these lines:
-# <link rel="stylesheet" href="/static/premium-design.css">
-# <link rel="stylesheet" href="/static/data-viz.css">
-# <link rel="stylesheet" href="/static/micro-interactions.css">
-# <link rel="stylesheet" href="/static/elite-design.css">
-# <link rel="stylesheet" href="/static/transaction-viz.css">
-
-# 3. Check templates/index.html for same links
-
-# 4. Test
-go run .
-# Visit localhost:8080, verify it works, loading states still present
-
-# 5. Commit
-git add -A
-git commit -m "..."
+go run . --log=debug
 ```
 
-**Phase 2: CLI Mode (6 hours)**
+**Visit a dynasty league in the browser, then check terminal output for:**
+1. "TRADED PICKS RAW DATA" - Shows API response
+2. "APPLYING TRADED PICKS" - Shows how logic interprets trades
+3. "EXTRACTING USER PICKS" - Shows which picks are included in final list
 
-Create file structure:
-```
-cli/
-├── cli.go       # Main router, Run(), printUsage()
-├── commands.go  # cmdUser, cmdLeague, cmdTiers, etc.
-├── output.go    # printLeagueAnalysis, JSON formatting
-└── tests.go     # cmdTest, integration test suite
-```
+**Compare terminal output against Sleeper app's trade history.**
 
-Key implementation details:
-- CLI detection in main.go: `if len(os.Args) > 1 && os.Args[1] == "cli"`
-- Context struct for flags: `{ JSON bool, Debug bool, NoCache bool, Args []string }`
-- Reuse ALL existing fetch/analysis functions
-- JSON output: `json.NewEncoder(os.Stdout).Encode(data)`
-- Exit codes: 0 for success, 1 for error
+**Questions to answer from debug output:**
+- What does `roster_id` actually represent?
+- What does `owner_id` actually represent?
+- What does `previous_owner_id` actually represent?
+- For a pick the user traded away, who does the API say owns it now?
+- For a pick the user acquired, who does the API say owns it now?
 
-**Phase 3: OpenTelemetry (10 hours)**
-
-Dependencies to install:
-```bash
-go get go.opentelemetry.io/otel
-go get go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc
-go get go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc
-go get go.opentelemetry.io/otel/sdk/trace
-go get go.opentelemetry.io/otel/sdk/metric
-go get go.opentelemetry.io/otel/sdk/resource
-go get go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp
-```
-
-File structure:
-```
-otel/
-├── otel.go     # Init(), initTracer(), initMeter()
-└── metrics.go  # All metric instruments
-
-logger/
-└── logger.go   # Structured logging with trace correlation
-```
-
-Key metrics to track:
-- `http.requests.total` - Request counter
-- `http.request.duration` - Latency histogram
-- `cache.hits` / `cache.misses` - Cache efficiency
-- `api.calls.total` - External API calls
-- `leagues.analyzed` - Business metric
-
-Instrumentation pattern:
-```go
-func fetchSleeperUser(ctx context.Context, username string) (*SleeperUser, error) {
-    ctx, span := tracer.Start(ctx, "fetchSleeperUser")
-    defer span.End()
-
-    span.SetAttributes(attribute.String("username", username))
-
-    // Check cache
-    if user, ok := userCache[username]; ok {
-        otel.CacheHits.Add(ctx, 1, ...)
-        span.SetAttributes(attribute.Bool("cache.hit", true))
-        return user, nil
-    }
-
-    otel.CacheMisses.Add(ctx, 1, ...)
-    // ... API call with timing
-
-    return user, nil
-}
-```
-
-### Autonomous Execution
-
-**CRITICAL: When given the trigger prompt, you MUST complete ALL phases without stopping.**
-
-Execute phases 1-3 first (priority features), then continue with phases 4-8 (remaining features):
-1. Complete phase 1 (remove flashy design), commit
-2. Complete phase 2 (CLI mode), commit
-3. Complete phase 3 (OpenTelemetry), commit
-4. Complete phase 4 (power user improvements), commit
-5. Complete phase 5 (admin dashboard), commit
-6. Complete phase 6 (enhanced league features), commit
-7. Complete phase 7 (mobile/PWA), commit
-8. Complete phase 8 (additional improvements), commit
-9. Report completion summary
-
-**Do NOT:**
-- Ask for approval between phases
-- Stop after each phase
-- Wait for user confirmation
-- Cease execution until ALL features in plan/ are complete
-- Skip features because they seem hard
-- Give up when encountering issues
-
-**Do:**
-- Work through all phases autonomously
-- Fix issues as they arise
-- Make reasonable decisions when needed
-- Test each feature before moving on
-- Commit after each major feature group
-- Continue until everything in plan/ is implemented
-- Only stop if truly blocked (missing external credentials, ambiguous requirements that need clarification)
-
-**Following the plan/ features is paramount. Do not cease until they are all done.**
-
-If you complete all 8 phases, ask the user: "All features from plan/ directory are complete. What would you like me to work on next?"
-
-### Success Criteria
-
-**Phase 1 Complete:**
-- ✅ 5 flashy CSS files removed
-- ✅ Template links updated
-- ✅ App still runs and looks fine
-- ✅ Loading states still work
-- ✅ Committed with proper message
-
-**Phase 2 Complete:**
-- ✅ CLI commands work: `./sleeperPy cli user testuser`
-- ✅ JSON output works: `./sleeperPy cli tiers ppr --json`
-- ✅ Integration tests pass: `./sleeperPy cli test`
-- ✅ main.go routes CLI mode correctly
-- ✅ Committed with proper message
-
-**Phase 3 Complete:**
-- ✅ OTEL dependencies installed
-- ✅ Traces show up in Jaeger: http://localhost:16686
-- ✅ Metrics in Prometheus: http://localhost:9090
-- ✅ Grafana dashboards work: http://localhost:3000
-- ✅ HTTP handlers instrumented
-- ✅ Key functions have spans
-- ✅ Logs have trace correlation
-- ✅ docker-compose.otel.yml works
-- ✅ Committed with proper message
-
-## General Project Guidelines
-
-**Coding Style:**
-- Go: Follow Go conventions, use `gofmt`
-- No emojis in code or commits (unless explicitly requested)
-- Comments only where logic isn't self-evident
-- Simple error messages with actionable next steps
-
-**Security:**
-- No command injection vulnerabilities
-- Validate user input
-- No SQL injection (though we don't use SQL)
-- Proper error handling without leaking internals
-
-**Performance:**
-- Cache API responses appropriately
-- Don't block on slow operations
-- Use goroutines only when needed
-- Keep memory usage reasonable
-
-**Documentation:**
-- Update README.md if adding major features
-- Add comments to complex algorithms
-- Include examples in CLI help text
-- Document environment variables
-
-## Debugging Tips
-
-**If app doesn't compile:**
-- Check imports
-- Run `go mod tidy`
-- Verify function signatures match
-
-**If tests fail:**
-- Use `--test` flag for mock data
-- Check API rate limits
-- Verify cache isn't stale
-- Enable debug logging: `--log=debug`
-
-**If OTEL doesn't work:**
-- Check OTEL_EXPORTER_OTLP_ENDPOINT env var
-- Verify otel-collector is running: `docker ps`
-- Check collector logs: `docker logs <container>`
-- Visit zpages: http://localhost:55679/debug/tracez
+---
 
 ## Reference
 
-- Full implementation details in plan/ directory
-- Project history in MEMORY.md
-- Completed features listed in MEMORY.md
-- Bug tracking in plan/current-bugs.md
+- **Critical bugs documented in**: `plan/CRITICAL-BUGS.md`
+- **All feature plans archived in**: `plan/archive/`
+- **Project history in**: `MEMORY.md`
+- **Current focus**: Fix bugs, not add features
