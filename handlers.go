@@ -1137,10 +1137,26 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			debugLog("[DEBUG] User roster ID: %.0f", userRosterID)
 
 			// Start with default picks (each team has their own picks by default)
-			pickOwnership := make(map[string]int) // key: "year-round-original_roster_id" -> current_owner_roster_id
+			// key: "year-round-original_roster_id" -> current_owner_roster_id
+			pickOwnership := make(map[string]int)
 
-			// Initialize with default picks for next 3 years
+			// Build year set from next 3 years plus any years present in traded picks
+			years := make(map[int]struct{})
 			for year := currentYear; year < currentYear+3; year++ {
+				years[year] = struct{}{}
+			}
+			if tradedPicks != nil {
+				for _, trade := range tradedPicks {
+					if season, ok := trade["season"].(string); ok && season != "" {
+						if year, err := strconv.Atoi(season); err == nil {
+							years[year] = struct{}{}
+						}
+					}
+				}
+			}
+
+			// Initialize with default picks for all years we care about
+			for year := range years {
 				for round := 1; round <= numRounds; round++ {
 					for _, r := range rosters {
 						rosterID, _ := r["roster_id"].(float64)
@@ -1149,7 +1165,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 			}
-			debugLog("[DEBUG] Initialized %d default picks", len(pickOwnership))
+			debugLog("[DEBUG] Initialized %d default picks across %d years", len(pickOwnership), len(years))
 
 			// Apply traded picks
 			if tradedPicks != nil {
@@ -1158,8 +1174,12 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 				for i, trade := range tradedPicks {
 					season, _ := trade["season"].(string)
 					round, _ := trade["round"].(float64)
-					originalRosterID, _ := trade["roster_id"].(float64) // Original owner (default owner)
-					ownerID, _ := trade["owner_id"].(float64)           // Current owner after trade
+					// Sleeper API meanings (verified with real data):
+					// roster_id = original owner (default owner)
+					// owner_id = current owner
+					// previous_owner_id = previous owner before current owner
+					originalRosterID, _ := trade["roster_id"].(float64)
+					ownerID, _ := trade["owner_id"].(float64)
 					previousOwnerID, _ := trade["previous_owner_id"].(float64)
 
 					// Validate data
@@ -1185,6 +1205,10 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 
 					// Update ownership
 					if ownerID > 0 {
+						if previousOwnerID > 0 && int(previousOwnerID) != oldOwner {
+							debugLog("[DEBUG]   ⚠️  WARNING: previous_owner_id %.0f does not match expected owner %d", previousOwnerID, oldOwner)
+						}
+
 						pickOwnership[key] = int(ownerID)
 						debugLog("[DEBUG]   ✓ Updated: roster %d → roster %.0f", oldOwner, ownerID)
 
