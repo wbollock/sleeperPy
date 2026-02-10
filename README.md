@@ -54,6 +54,21 @@ PORT=9090 ./sleeperpy
 
 Then visit [http://localhost:8080](http://localhost:8080) in your browser.
 
+### 2. Admin Dashboard (Local)
+
+Set an admin secret and run the server (example uses `make debug`):
+
+```sh
+ADMIN_KEY=your-secret-here make debug
+```
+
+Open the dashboard:
+
+- `http://localhost:8080/admin?secret=your-secret-here`
+- JSON metrics: `http://localhost:8080/admin/api?secret=your-secret-here`
+
+If `ADMIN_KEY` is not set, it defaults to `changeme` (development only).
+
 ---
 
 ## Usage

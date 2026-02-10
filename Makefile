@@ -5,6 +5,7 @@ BINARY_NAME=sleeperpy
 GO=go
 PORT?=8080
 LOG_LEVEL?=debug
+ADMIN_KEY?=changeme
 
 # Default target
 help: ## Show this help message
@@ -27,7 +28,9 @@ dev: build ## Run in development mode with debug logging
 	PORT=$(PORT) ./$(BINARY_NAME) -log=$(LOG_LEVEL)
 
 debug: build ## Run with debug logging (alias for dev)
-	PORT=$(PORT) ./$(BINARY_NAME) -log=debug
+	@echo "Admin dashboard: http://localhost:$(PORT)/admin?secret=$(ADMIN_KEY)"
+	@echo "Admin API:       http://localhost:$(PORT)/admin/api?secret=$(ADMIN_KEY)"
+	ADMIN_KEY=$(ADMIN_KEY) PORT=$(PORT) ./$(BINARY_NAME) -log=debug
 
 dev-watch: ## Run with hot reload (requires air: go install github.com/air-verse/air@latest)
 	air

@@ -206,6 +206,12 @@ All feature plans have been moved to `plan/archive/`:
 
 ---
 
+## Planned Features
+
+- Harden admin dashboard access (replace query-secret with proper auth and/or IP allowlist)
+
+---
+
 ## Project Context
 
 **Architecture:**
