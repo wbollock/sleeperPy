@@ -1093,10 +1093,10 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 						debugLog("[DEBUG]   round: %.0f", round)
 					}
 					if rosterID, ok := trade["roster_id"].(float64); ok {
-						debugLog("[DEBUG]   roster_id (current owner): %.0f", rosterID)
+						debugLog("[DEBUG]   roster_id (original owner): %.0f", rosterID)
 					}
 					if ownerID, ok := trade["owner_id"].(float64); ok {
-						debugLog("[DEBUG]   owner_id (original owner): %.0f", ownerID)
+						debugLog("[DEBUG]   owner_id (current owner): %.0f", ownerID)
 					}
 					if prevOwner, ok := trade["previous_owner_id"].(float64); ok {
 						debugLog("[DEBUG]   previous_owner_id: %.0f", prevOwner)
@@ -1158,8 +1158,8 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 				for i, trade := range tradedPicks {
 					season, _ := trade["season"].(string)
 					round, _ := trade["round"].(float64)
-					rosterID, _ := trade["roster_id"].(float64)        // Current owner after trade
-					originalRosterID, _ := trade["owner_id"].(float64) // Original owner (default owner)
+					originalRosterID, _ := trade["roster_id"].(float64) // Original owner (default owner)
+					ownerID, _ := trade["owner_id"].(float64)           // Current owner after trade
 					previousOwnerID, _ := trade["previous_owner_id"].(float64)
 
 					// Validate data
@@ -1172,7 +1172,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 					key := fmt.Sprintf("%d-%d-%d", year, int(round), int(originalRosterID))
 
 					debugLog("[DEBUG] Trade %d: %s Round %.0f (originally roster %.0f's pick)", i, season, round, originalRosterID)
-					debugLog("[DEBUG]   roster_id (current owner): %.0f", rosterID)
+					debugLog("[DEBUG]   owner_id (current owner): %.0f", ownerID)
 					debugLog("[DEBUG]   previous_owner_id: %.0f", previousOwnerID)
 					debugLog("[DEBUG]   Key: %s", key)
 
@@ -1184,20 +1184,20 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 					}
 
 					// Update ownership
-					if rosterID > 0 {
-						pickOwnership[key] = int(rosterID)
-						debugLog("[DEBUG]   ✓ Updated: roster %d → roster %.0f", oldOwner, rosterID)
+					if ownerID > 0 {
+						pickOwnership[key] = int(ownerID)
+						debugLog("[DEBUG]   ✓ Updated: roster %d → roster %.0f", oldOwner, ownerID)
 
 						// Extra logging for user's picks
-						if int(rosterID) == int(userRosterID) {
+						if int(ownerID) == int(userRosterID) {
 							debugLog("[DEBUG]   📥 USER ACQUIRED this pick")
 						} else if oldOwner == int(userRosterID) {
-							debugLog("[DEBUG]   📤 USER TRADED AWAY this pick to roster %.0f", rosterID)
+							debugLog("[DEBUG]   📤 USER TRADED AWAY this pick to roster %.0f", ownerID)
 						}
 					} else {
-						// roster_id is 0 or invalid - pick might be in limbo or deleted
+						// owner_id is 0 or invalid - pick might be in limbo or deleted
 						delete(pickOwnership, key)
-						debugLog("[DEBUG]   ✗ Deleted pick (roster_id is 0 or invalid)")
+						debugLog("[DEBUG]   ✗ Deleted pick (owner_id is 0 or invalid)")
 					}
 				}
 				debugLog("[DEBUG] ===================================")
