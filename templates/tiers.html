@@ -148,6 +148,7 @@
             <div class="league-grid-container">
                 <div class="roster-card">
             {{end}}
+            <div class="table-scroll">
             <table class="sortable-table pretty-table">
                 <thead>
                     <tr>
@@ -253,6 +254,7 @@
                     <tr><td colspan="{{if $l.IsDynasty}}4{{else}}3{{end}}" style="padding-top:8px;font-size:0.9em;color:#9fb3d4;font-style:italic;">Note: RB/WR/TE bench players ranked using FLEX tiers</td></tr>
                 </tfoot>
             </table>
+            </div>
 
             {{if $l.IsDynasty}}
                 </div>
@@ -547,6 +549,7 @@
                             {{if gt (len $l.LeagueTrends.MostActiveTeams) 0}}
                             <div style="margin-bottom:24px;">
                                 <div style="font-weight:600;color:#c5d5f0;margin-bottom:12px;font-size:0.95em;">Most Active Teams</div>
+                                <div class="table-scroll">
                                 <table class="age-chart-table">
                                     <thead>
                                         <tr>
@@ -577,6 +580,7 @@
                                     {{end}}
                                     </tbody>
                                 </table>
+                                </div>
                             </div>
                             {{end}}
 
@@ -584,6 +588,7 @@
                             <div style="margin-bottom:24px;">
                                 <div style="font-weight:600;color:#c5d5f0;margin-bottom:12px;font-size:0.95em;">Hot Waiver Players</div>
                                 <div style="font-size:0.85em;color:#9fb3d4;font-style:italic;margin-bottom:12px;">Players claimed multiple times in the past 4 weeks</div>
+                                <div class="table-scroll">
                                 <table class="age-chart-table">
                                     <thead>
                                         <tr>
@@ -604,6 +609,7 @@
                                     {{end}}
                                     </tbody>
                                 </table>
+                                </div>
                             </div>
                             {{end}}
 
@@ -657,6 +663,8 @@
                             <div class="rookies-desc" style="font-size:0.85em;color:#9fb3d4;font-style:italic;margin-bottom:12px;">
                                 Projected draft positions based on current standings. Worst record gets pick 1.01.
                             </div>
+                            <div class="table-scroll">
+                            <div class="table-scroll">
                             <table class="age-chart-table">
                                 <thead>
                                     <tr>
@@ -687,6 +695,8 @@
                                 {{end}}
                                 </tbody>
                             </table>
+                            </div>
+                            </div>
                         </div>
                     </div>
                     {{end}}
@@ -699,6 +709,7 @@
                         </div>
                         <div class="card-content" id="league-age-{{$i}}-content">
                             <div class="age-chart-desc" style="margin-bottom:12px;">Teams sorted by roster age (oldest to youngest)</div>
+                            <div class="table-scroll">
                             <table class="age-chart-table">
                                 <thead>
                                     <tr>
@@ -731,6 +742,7 @@
                                 {{end}}
                                 </tbody>
                             </table>
+                            </div>
                         </div>
                     </div>
                     {{end}}
@@ -870,6 +882,7 @@
                         </div>
                         <div class="card-content" id="rookies-2025-{{$i}}-content">
                             <div class="rookies-desc" style="font-size:0.85em;color:#9fb3d4;font-style:italic;margin-bottom:12px;">Top fantasy-relevant rookies from the 2025 NFL Draft (with NFL teams)</div>
+                            <div class="table-scroll">
                             <table class="rookies-table">
                                 <thead>
                                     <tr>
@@ -894,6 +907,7 @@
                                     {{end}}
                                 </tbody>
                             </table>
+                            </div>
                         </div>
                     </div>
 
@@ -904,6 +918,7 @@
                         </div>
                         <div class="card-content" id="rookies-2026-{{$i}}-content">
                             <div class="rookies-desc" style="font-size:0.85em;color:#9fb3d4;font-style:italic;margin-bottom:12px;">Top 2026 dynasty rookie rankings based on consensus big boards. Subject to change as the college season progresses.</div>
+                            <div class="table-scroll">
                             <table class="rookies-table">
                                 <thead>
                                     <tr>
@@ -928,6 +943,7 @@
                                     {{end}}
                                 </tbody>
                             </table>
+                            </div>
                         </div>
                     </div>
                     {{end}}
@@ -938,6 +954,7 @@
             {{if $l.TopFreeAgents}}
             <div class="fa-section {{if $l.IsDynasty}}inseason-only{{end}}">
                 <div class="fa-header">Recommended Free Agents (Tier-Based)</div>
+                <div class="table-scroll">
                 <table class="sortable-table pretty-table">
                     <thead>
                         <tr><th>Pos</th><th>Player</th><th>Tier</th>{{if $l.IsDynasty}}<th>Dynasty Value</th>{{end}}</tr>
@@ -958,12 +975,14 @@
                     {{end}}
                     </tbody>
                 </table>
+                </div>
             </div>
             {{end}}
 
             {{if $l.TopFreeAgentsByValue}}
             <div class="fa-section dynasty-only">
                 <div class="fa-header">Top Available Players (Dynasty Value)</div>
+                <div class="table-scroll">
                 <table class="sortable-table pretty-table">
                     <thead>
                         <tr><th>Pos</th><th>Player</th><th>Dynasty Value</th></tr>
@@ -983,6 +1002,7 @@
                     {{end}}
                     </tbody>
                 </table>
+                </div>
             </div>
             {{end}}
 
@@ -1087,1035 +1107,7 @@ if (document.getElementById('defaultTab')) document.getElementById('defaultTab')
 </footer>
 {{end}}
 </main>
-<style>
-    .skip-link {
-        position: absolute;
-        top: -100%;
-        left: 16px;
-        background: #0ea5e9;
-        color: #fff;
-        padding: 8px 16px;
-        border-radius: 0 0 8px 8px;
-        z-index: 1000;
-        font-weight: 600;
-        text-decoration: none;
-    }
-    .skip-link:focus {
-        top: 0;
-    }
-    .app-header {
-        width: 100%;
-        background: linear-gradient(135deg, rgba(58, 110, 232, 0.15) 0%, rgba(88, 86, 214, 0.15) 100%);
-        backdrop-filter: blur(20px);
-        padding: 40px 0 24px 0;
-        text-align: center;
-        margin-bottom: 32px;
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
-        border-bottom: 1px solid rgba(123, 176, 255, 0.2);
-    }
-    .app-header .header-content {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 0 24px;
-    }
-    .app-header h1 {
-        color: #e8eef7;
-        font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-        font-size: 2.5em;
-        font-weight: 700;
-        letter-spacing: -0.5px;
-        margin: 0;
-        text-shadow: 0 2px 16px rgba(58, 110, 232, 0.3);
-    }
-    .user-info {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        color: #eaf0fa;
-    }
-    .username-display {
-        font-weight: 600;
-        font-size: 1.1em;
-        padding: 8px 12px;
-        background: rgba(255,255,255,0.15);
-        border-radius: 6px;
-    }
-    .signout-btn {
-        padding: 8px 16px;
-        background: rgba(255,255,255,0.2);
-        color: #eaf0fa;
-        text-decoration: none;
-        border-radius: 6px;
-        font-weight: 600;
-        transition: background 0.2s ease;
-    }
-    .signout-btn:hover {
-        background: rgba(255,255,255,0.3);
-    }
-    @media (max-width: 768px) {
-        .app-header .header-content {
-            flex-direction: column;
-            gap: 16px;
-        }
-        .app-header h1 {
-            font-size: 1.8em;
-        }
-        .user-info {
-            flex-direction: column;
-            gap: 8px;
-        }
-    }
-    .main-content {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 32px 24px 24px 24px;
-        background: rgba(30, 38, 54, 0.4);
-        backdrop-filter: blur(20px);
-        border-radius: 16px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        border: 1px solid rgba(123, 176, 255, 0.1);
-    }
-.fa-section {
-    margin-top: 2em;
-    margin-bottom: 1.5em;
-}
-@media (min-width: 1200px) {
-    .league-grid-container .fa-section {
-        grid-column: 1 / -1;
-    }
-}
-.fa-header {
-    font-size: 1.2em;
-    font-weight: 700;
-    margin-bottom: 1em;
-    color: #7bb0ff;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    text-align: center;
-    padding: 12px;
-    background: rgba(123, 176, 255, 0.08);
-    border-radius: 10px;
-    border: 1px solid rgba(123, 176, 255, 0.15);
-}
-.fa-upgrade {
-    background: linear-gradient(90deg, rgba(58, 232, 122, 0.12) 0%, rgba(30, 58, 46, 0.25) 100%) !important;
-    border-left: 3px solid #3ae87a;
-}
-.fa-upgrade-icon {
-    color: #3ae87a;
-    font-weight: bold;
-    font-size: 1.25em;
-    margin-right: 6px;
-    filter: drop-shadow(0 0 4px rgba(58, 232, 122, 0.4));
-}
-.mode-toggle-container {
-    margin-bottom: 32px;
-    text-align: center;
-    padding-top: 8px;
-}
-.mode-toggle {
-    display: inline-flex;
-    background: rgba(30, 38, 54, 0.6);
-    border-radius: 12px;
-    padding: 4px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-    border: 1px solid rgba(123, 176, 255, 0.2);
-}
-.mode-btn {
-    background: transparent;
-    border: none;
-    color: #9fb3d4;
-    padding: 12px 32px;
-    font-size: 0.95em;
-    font-weight: 600;
-    cursor: pointer;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-.mode-btn:hover {
-    color: #c5d5f0;
-    background: rgba(123, 176, 255, 0.1);
-}
-.mode-btn.active {
-    background: linear-gradient(135deg, rgba(123, 176, 255, 0.3) 0%, rgba(88, 86, 214, 0.3) 100%);
-    color: #e8eef7;
-    box-shadow: 0 2px 8px rgba(123, 176, 255, 0.3);
-}
-.mode-description {
-    margin-top: 12px;
-    font-size: 0.9em;
-    color: #8a9ab8;
-    font-style: italic;
-}
-.toolkit-card {
-    background: rgba(30, 38, 54, 0.5);
-    border-radius: 12px;
-    border: 1px solid rgba(123, 176, 255, 0.15);
-    overflow: hidden;
-}
-.card-header {
-    padding: 16px;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: background 0.2s ease;
-    user-select: none;
-}
-.card-header:hover {
-    background: rgba(123, 176, 255, 0.08);
-}
-.card-title {
-    font-size: 1.15em;
-    font-weight: 700;
-    color: #7bb0ff;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-.collapse-icon {
-    color: #9fb3d4;
-    font-size: 0.9em;
-    transition: transform 0.2s ease;
-}
-.card-content {
-    padding: 0 16px 16px 16px;
-}
-.age-chart-desc {
-    font-size: 0.85em;
-    color: #9fb3d4;
-    font-style: italic;
-}
-.age-chart-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-.age-chart-table thead th {
-    background: rgba(123, 176, 255, 0.1);
-    padding: 10px;
-    font-size: 0.9em;
-    font-weight: 600;
-    color: #c5d5f0;
-    border-bottom: 2px solid rgba(123, 176, 255, 0.2);
-}
-.age-chart-table tbody tr {
-    border-bottom: 1px solid rgba(123, 176, 255, 0.05);
-    transition: background 0.2s ease;
-}
-.age-chart-table tbody tr:hover {
-    background: rgba(123, 176, 255, 0.08);
-}
-.age-chart-table tbody td {
-    padding: 12px 10px;
-    font-size: 0.95em;
-    color: #e8eef7;
-    text-align: center;
-}
-.draft-picks-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 12px;
-}
-.draft-pick-card {
-    background: rgba(123, 176, 255, 0.08);
-    border: 1px solid rgba(123, 176, 255, 0.2);
-    border-radius: 8px;
-    padding: 12px;
-    text-align: center;
-    transition: all 0.2s ease;
-}
-.draft-pick-card:hover {
-    background: rgba(123, 176, 255, 0.12);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-}
-.draft-pick-card.traded-pick {
-    border-color: #3ae87a;
-    background: rgba(58, 232, 122, 0.08);
-}
-.draft-pick-card.traded-pick:hover {
-    background: rgba(58, 232, 122, 0.12);
-}
-.pick-year {
-    font-size: 1.3em;
-    font-weight: 700;
-    color: #7bb0ff;
-    margin-bottom: 4px;
-}
-.draft-pick-card.traded-pick .pick-year {
-    color: #3ae87a;
-}
-.pick-round {
-    font-size: 0.95em;
-    color: #c5d5f0;
-    font-weight: 500;
-}
-.pick-origin {
-    font-size: 0.8em;
-    color: #9fb3d4;
-    margin-top: 6px;
-    font-style: italic;
-}
-.trade-target-item {
-    background: rgba(123, 176, 255, 0.06);
-    border: 1px solid rgba(123, 176, 255, 0.15);
-    border-radius: 8px;
-    padding: 14px;
-    margin-bottom: 12px;
-    transition: all 0.2s ease;
-}
-.trade-target-item:last-child {
-    margin-bottom: 0;
-}
-.trade-target-item:hover {
-    background: rgba(123, 176, 255, 0.1);
-    border-color: rgba(123, 176, 255, 0.25);
-    transform: translateX(4px);
-}
-.target-team {
-    font-size: 1.1em;
-    font-weight: 700;
-    color: #e8eef7;
-    margin-bottom: 8px;
-}
-.target-reason {
-    font-size: 0.9em;
-    color: #3ae87a;
-    margin-bottom: 12px;
-    font-style: italic;
-}
-.target-details {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-.surplus-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.9em;
-    padding: 6px 0;
-    border-top: 1px solid rgba(123, 176, 255, 0.1);
-}
-.surplus-label {
-    color: #9fb3d4;
-    font-weight: 500;
-}
-.surplus-value {
-    color: #c5d5f0;
-    font-weight: 600;
-}
-.info-icon {
-    display: inline-block;
-    margin-left: 8px;
-    width: 18px;
-    height: 18px;
-    background: rgba(123, 176, 255, 0.2);
-    color: #7bb0ff;
-    border-radius: 50%;
-    font-size: 0.7em;
-    font-weight: 700;
-    text-align: center;
-    line-height: 18px;
-    cursor: help;
-    transition: all 0.2s ease;
-}
-.info-icon:hover {
-    background: rgba(123, 176, 255, 0.4);
-    transform: scale(1.1);
-}
-.empty-state {
-    text-align: center;
-    padding: 32px 16px;
-}
-.empty-state-icon {
-    font-size: 3em;
-    margin-bottom: 16px;
-    opacity: 0.6;
-}
-.empty-state-title {
-    font-size: 1.1em;
-    font-weight: 600;
-    color: #c5d5f0;
-    margin-bottom: 12px;
-}
-.empty-state-text {
-    font-size: 0.9em;
-    color: #9fb3d4;
-    line-height: 1.6;
-    max-width: 400px;
-    margin: 0 auto 24px;
-}
-.positional-breakdown {
-    background: rgba(123, 176, 255, 0.05);
-    border: 1px solid rgba(123, 176, 255, 0.15);
-    border-radius: 8px;
-    padding: 16px;
-    margin-top: 16px;
-}
-.breakdown-title {
-    font-size: 0.95em;
-    font-weight: 600;
-    color: #7bb0ff;
-    margin-bottom: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-.breakdown-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-.breakdown-item {
-    display: grid;
-    grid-template-columns: 40px 1fr 60px;
-    align-items: center;
-    gap: 12px;
-}
-.breakdown-pos {
-    font-weight: 600;
-    color: #c5d5f0;
-    font-size: 0.9em;
-}
-.breakdown-bar-wrap {
-    background: rgba(30, 38, 54, 0.6);
-    border-radius: 4px;
-    height: 20px;
-    overflow: hidden;
-}
-.breakdown-bar {
-    display: block;
-    height: 100%;
-    background: linear-gradient(90deg, rgba(123, 176, 255, 0.6) 0%, rgba(123, 176, 255, 0.8) 100%);
-    border-radius: 4px;
-    transition: width 0.3s ease;
-}
-.breakdown-pct {
-    font-size: 0.9em;
-    color: #9fb3d4;
-    font-weight: 500;
-    text-align: right;
-}
-.news-feed {
-    max-height: 500px;
-    overflow-y: auto;
-}
-.news-item {
-    padding: 12px;
-    margin-bottom: 8px;
-    background: rgba(30, 38, 54, 0.5);
-    border-left: 3px solid rgba(123, 176, 255, 0.3);
-    border-radius: 4px;
-    transition: all 0.2s ease;
-}
-.news-item:hover {
-    background: rgba(30, 38, 54, 0.7);
-    border-left-color: rgba(123, 176, 255, 0.5);
-}
-.news-item.news-injury {
-    border-left-color: rgba(255, 123, 123, 0.6);
-    background: rgba(255, 123, 123, 0.05);
-}
-.news-item.news-injury:hover {
-    background: rgba(255, 123, 123, 0.1);
-}
-.news-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 6px;
-    gap: 12px;
-}
-.news-player {
-    font-weight: 600;
-    color: #7bb0ff;
-    font-size: 0.95em;
-}
-.starter-badge {
-    font-size: 0.8em;
-    margin-left: 4px;
-    color: #ffc83a;
-}
-.news-time {
-    font-size: 0.85em;
-    color: #9fb3d4;
-    white-space: nowrap;
-}
-.news-injury-status {
-    display: inline-block;
-    padding: 2px 8px;
-    margin-bottom: 6px;
-    font-size: 0.85em;
-    font-weight: 600;
-    background: rgba(255, 123, 123, 0.2);
-    color: #ff7b7b;
-    border-radius: 4px;
-}
-.news-text {
-    color: #d4dde8;
-    line-height: 1.5;
-    margin-bottom: 4px;
-    font-size: 0.92em;
-}
-.news-source {
-    font-size: 0.8em;
-    color: #9fb3d4;
-    font-style: italic;
-}
-.news-count {
-    display: inline-block;
-    padding: 2px 8px;
-    margin-left: 8px;
-    background: rgba(123, 176, 255, 0.2);
-    border-radius: 10px;
-    font-size: 0.8em;
-    font-weight: 600;
-}
-.breakout-desc, .aging-desc {
-    font-size: 0.85em;
-    color: #9fb3d4;
-    font-style: italic;
-    margin-bottom: 12px;
-}
-.player-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-.player-card {
-    background: rgba(30, 38, 54, 0.5);
-    border-radius: 8px;
-    padding: 12px;
-    transition: all 0.2s ease;
-}
-.player-card:hover {
-    background: rgba(30, 38, 54, 0.7);
-    transform: translateX(4px);
-}
-.breakout-card {
-    border-left: 3px solid rgba(58, 232, 122, 0.5);
-}
-.breakout-card:hover {
-    border-left-color: rgba(58, 232, 122, 0.8);
-    box-shadow: 0 2px 8px rgba(58, 232, 122, 0.2);
-}
-.aging-card {
-    border-left: 3px solid rgba(255, 157, 92, 0.5);
-}
-.aging-card:hover {
-    border-left-color: rgba(255, 157, 92, 0.8);
-    box-shadow: 0 2px 8px rgba(255, 157, 92, 0.2);
-}
-.player-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-}
-.player-card-name {
-    font-weight: 600;
-    color: #e8eef7;
-    font-size: 0.95em;
-}
-.player-card-age {
-    font-size: 0.85em;
-    color: #3ae87a;
-    font-weight: 600;
-    background: rgba(58, 232, 122, 0.15);
-    padding: 2px 8px;
-    border-radius: 4px;
-}
-.aging-age {
-    color: #ff9d5c;
-    background: rgba(255, 157, 92, 0.15);
-}
-.player-card-details {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.85em;
-}
-.player-card-pos {
-    color: #7bb0ff;
-    font-weight: 600;
-}
-.player-card-value {
-    color: #9fb3d4;
-}
-.aging-warning {
-    margin-top: 8px;
-    font-size: 0.8em;
-    color: #ff9d5c;
-    font-style: italic;
-}
-.breakout-count, .aging-count {
-    display: inline-block;
-    padding: 2px 8px;
-    margin-left: 8px;
-    background: rgba(58, 232, 122, 0.2);
-    border-radius: 10px;
-    font-size: 0.8em;
-    font-weight: 600;
-}
-.aging-count {
-    background: rgba(255, 157, 92, 0.2);
-}
-.transaction-filters {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-}
-.filter-btn {
-    background: rgba(123, 176, 255, 0.08);
-    border: 1px solid rgba(123, 176, 255, 0.2);
-    border-radius: 6px;
-    padding: 8px 16px;
-    color: #9fb3d4;
-    font-size: 0.9em;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-.filter-btn:hover {
-    background: rgba(123, 176, 255, 0.15);
-    border-color: rgba(123, 176, 255, 0.3);
-    color: #c5d5f0;
-}
-.filter-btn.active {
-    background: linear-gradient(90deg, rgba(123, 176, 255, 0.25) 0%, rgba(88, 86, 214, 0.25) 100%);
-    border-color: rgba(123, 176, 255, 0.4);
-    color: #7bb0ff;
-    box-shadow: 0 2px 8px rgba(123, 176, 255, 0.2);
-}
-.transactions-list {
-    max-height: 500px;
-    overflow-y: auto;
-}
-.transactions-count {
-    display: inline-block;
-    padding: 2px 8px;
-    margin-left: 8px;
-    background: rgba(123, 176, 255, 0.2);
-    border-radius: 10px;
-    font-size: 0.8em;
-    font-weight: 600;
-}
-.transaction-item {
-    padding: 12px;
-    margin-bottom: 10px;
-    background: rgba(30, 38, 54, 0.5);
-    border-left: 3px solid rgba(123, 176, 255, 0.3);
-    border-radius: 4px;
-    transition: all 0.2s ease;
-}
-.transaction-item:hover {
-    background: rgba(30, 38, 54, 0.7);
-    border-left-color: rgba(123, 176, 255, 0.5);
-}
-.transaction-item:last-child {
-    margin-bottom: 0;
-}
-.transaction-trade {
-    border-left-color: rgba(123, 176, 255, 0.6);
-}
-.transaction-trade:hover {
-    border-left-color: rgba(123, 176, 255, 0.8);
-    box-shadow: 0 2px 8px rgba(123, 176, 255, 0.2);
-}
-.transaction-waiver {
-    border-left-color: rgba(255, 157, 92, 0.6);
-}
-.transaction-waiver:hover {
-    border-left-color: rgba(255, 157, 92, 0.8);
-    box-shadow: 0 2px 8px rgba(255, 157, 92, 0.2);
-}
-.transaction-free_agent {
-    border-left-color: rgba(58, 232, 122, 0.6);
-}
-.transaction-free_agent:hover {
-    border-left-color: rgba(58, 232, 122, 0.8);
-    box-shadow: 0 2px 8px rgba(58, 232, 122, 0.2);
-}
-.transaction-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-    gap: 12px;
-}
-.transaction-type {
-    font-weight: 600;
-    color: #c5d5f0;
-    font-size: 0.95em;
-}
-.transaction-time {
-    font-size: 0.85em;
-    color: #9fb3d4;
-    white-space: nowrap;
-}
-.transaction-desc {
-    color: #d4dde8;
-    line-height: 1.5;
-    margin-bottom: 6px;
-    font-size: 0.92em;
-}
-.transaction-players {
-    font-size: 0.85em;
-    color: #7bb0ff;
-    font-style: italic;
-}
-.trade-details {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-top: 12px;
-    padding: 12px;
-    background: rgba(123, 176, 255, 0.05);
-    border-radius: 6px;
-}
-.trade-side {
-    flex: 1;
-}
-.trade-team {
-    font-weight: 700;
-    color: #c5d5f0;
-    margin-bottom: 8px;
-    font-size: 0.95em;
-}
-.trade-action {
-    font-size: 0.9em;
-    margin-bottom: 6px;
-}
-.trade-action:last-child {
-    margin-bottom: 0;
-}
-.trade-player {
-    padding: 2px 0 2px 12px;
-    color: #e0e7f1;
-}
-.trade-value {
-    font-size: 0.85em;
-    margin-top: 6px;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-weight: 600;
-}
-.gave-value {
-    background: rgba(239, 68, 68, 0.15);
-    color: #fca5a5;
-}
-.got-value {
-    background: rgba(34, 197, 94, 0.15);
-    color: #86efac;
-}
-.trade-net-value {
-    margin-top: 10px;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-weight: 700;
-    font-size: 0.95em;
-    text-align: center;
-}
-.trade-net-value.positive {
-    background: rgba(34, 197, 94, 0.2);
-    color: #86efac;
-    border: 1px solid rgba(34, 197, 94, 0.4);
-}
-.trade-net-value.negative {
-    background: rgba(239, 68, 68, 0.2);
-    color: #fca5a5;
-    border: 1px solid rgba(239, 68, 68, 0.4);
-}
-.trade-net-value.neutral {
-    background: rgba(148, 163, 184, 0.2);
-    color: #cbd5e1;
-    border: 1px solid rgba(148, 163, 184, 0.4);
-}
-.trade-label {
-    font-weight: 600;
-    display: block;
-    margin-bottom: 2px;
-}
-.trade-label.gave {
-    color: #ff9d5c;
-}
-.trade-label.got {
-    color: #3ae87a;
-}
-.trade-divider {
-    color: #7bb0ff;
-    font-size: 1.5em;
-    font-weight: 700;
-}
-.waiver-details {
-    margin-top: 8px;
-    padding: 8px 0;
-}
-.waiver-team {
-    font-weight: 600;
-    color: #7bb0ff;
-    margin-bottom: 6px;
-    font-size: 0.95em;
-}
-.waiver-action {
-    padding: 4px 0;
-    font-size: 0.9em;
-}
-.waiver-label {
-    font-weight: 600;
-    margin-right: 6px;
-}
-.waiver-label.gave {
-    color: #ff9d5c;
-}
-.waiver-label.got {
-    color: #3ae87a;
-}
-@media (max-width: 768px) {
-    .trade-details {
-        flex-direction: column;
-        gap: 12px;
-    }
-    .trade-divider {
-        transform: rotate(90deg);
-    }
-}
-.rookies-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-.rookies-table thead th {
-    background: rgba(123, 176, 255, 0.1);
-    padding: 10px;
-    font-size: 0.9em;
-    font-weight: 600;
-    color: #c5d5f0;
-    border-bottom: 2px solid rgba(123, 176, 255, 0.2);
-}
-.rookies-table tbody tr {
-    border-bottom: 1px solid rgba(123, 176, 255, 0.05);
-    transition: background 0.2s ease;
-}
-.rookies-table tbody tr:hover {
-    background: rgba(123, 176, 255, 0.08);
-}
-.rookies-table tbody td {
-    padding: 12px 10px;
-    font-size: 0.95em;
-    color: #e8eef7;
-}
-.league-info-bar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 4px;
-    padding: 8px 16px;
-    margin-bottom: 16px;
-    font-size: 0.85em;
-    color: #9fb3d4;
-    background: rgba(123, 176, 255, 0.06);
-    border-radius: 8px;
-    border: 1px solid rgba(123, 176, 255, 0.1);
-}
-.player-search-container {
-    margin-left: auto;
-}
-.player-search {
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid rgba(123, 176, 255, 0.2);
-    border-radius: 6px;
-    color: #e0e7f1;
-    padding: 4px 10px;
-    font-size: 0.95em;
-    width: 160px;
-    outline: none;
-    transition: border-color 0.2s;
-}
-.player-search:focus {
-    border-color: #7bb0ff;
-}
-.player-search::placeholder {
-    color: #6b7a94;
-}
-.search-dimmed {
-    opacity: 0.2;
-}
-.league-info-sep { color: rgba(123, 176, 255, 0.3); margin: 0 4px; }
-.dynasty-badge { color: #ffc83a; font-weight: 600; }
-.league-info-slots { color: #7a8ba8; font-size: 0.95em; }
-.league-selector-container {
-    margin-bottom: 32px;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-}
-.league-selector {
-    position: relative;
-}
-.league-dropdown-btn {
-    width: 100%;
-    background: linear-gradient(135deg, rgba(123, 176, 255, 0.15) 0%, rgba(88, 86, 214, 0.15) 100%);
-    border: 2px solid rgba(123, 176, 255, 0.3);
-    border-radius: 12px;
-    padding: 16px 20px;
-    color: #e8eef7;
-    font-size: 1.05em;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-}
-.league-dropdown-btn:hover {
-    background: linear-gradient(135deg, rgba(123, 176, 255, 0.25) 0%, rgba(88, 86, 214, 0.25) 100%);
-    border-color: rgba(123, 176, 255, 0.5);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-    transform: translateY(-2px);
-}
-.current-league-name {
-    flex: 1;
-    text-align: left;
-    color: #7bb0ff;
-}
-.league-count {
-    font-size: 0.85em;
-    color: #9fb3d4;
-    margin: 0 12px;
-}
-.dropdown-arrow {
-    color: #7bb0ff;
-    font-size: 0.9em;
-    transition: transform 0.3s ease;
-}
-.league-dropdown-menu {
-    position: absolute;
-    top: calc(100% + 8px);
-    left: 0;
-    right: 0;
-    background: rgba(30, 38, 54, 0.98);
-    backdrop-filter: blur(20px);
-    border: 2px solid rgba(123, 176, 255, 0.3);
-    border-radius: 12px;
-    max-height: 500px;
-    overflow-y: auto;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-    z-index: 1000;
-}
-.league-search {
-    width: calc(100% - 24px);
-    margin: 12px;
-    padding: 12px 16px;
-    background: rgba(123, 176, 255, 0.08);
-    border: 1px solid rgba(123, 176, 255, 0.2);
-    border-radius: 8px;
-    color: #e8eef7;
-    font-size: 0.95em;
-    outline: none;
-    transition: all 0.2s ease;
-}
-.league-search::placeholder {
-    color: #9fb3d4;
-}
-.league-search:focus {
-    background: rgba(123, 176, 255, 0.12);
-    border-color: rgba(123, 176, 255, 0.4);
-    box-shadow: 0 0 0 3px rgba(123, 176, 255, 0.1);
-}
-.league-options {
-    padding: 0 8px 12px 8px;
-}
-.league-group {
-    margin-bottom: 16px;
-}
-.league-group:last-child {
-    margin-bottom: 0;
-}
-.league-group-header {
-    padding: 10px 12px;
-    font-size: 0.85em;
-    font-weight: 700;
-    color: #7bb0ff;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    background: rgba(123, 176, 255, 0.08);
-    border-radius: 6px;
-    margin-bottom: 8px;
-}
-.league-option {
-    width: 100%;
-    background: transparent;
-    border: none;
-    border-radius: 6px;
-    padding: 12px 14px;
-    color: #c5d5f0;
-    font-size: 0.95em;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: all 0.2s ease;
-    text-align: left;
-    margin-bottom: 4px;
-}
-.league-option:hover {
-    background: rgba(123, 176, 255, 0.15);
-    color: #e8eef7;
-    transform: translateX(4px);
-}
-.league-option.active {
-    background: linear-gradient(90deg, rgba(123, 176, 255, 0.25) 0%, rgba(88, 86, 214, 0.25) 100%);
-    color: #7bb0ff;
-    font-weight: 600;
-}
-.league-option-name {
-    flex: 1;
-}
-.league-option-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-.league-option-type {
-    font-size: 0.85em;
-    color: #9fb3d4;
-}
-.favorite-star {
-    font-size: 1.1em;
-    color: #ffc83a;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    padding: 4px;
-    line-height: 1;
-    user-select: none;
-}
-.favorite-star:hover {
-    transform: scale(1.2);
-    filter: drop-shadow(0 0 6px rgba(255, 200, 58, 0.6));
-}
-@media (max-width: 768px) {
-    .league-selector-container {
-        max-width: 100%;
-    }
-    .league-dropdown-btn {
-        padding: 14px 16px;
-        font-size: 0.95em;
-    }
-    .current-league-name {
-        font-size: 0.9em;
-    }
-    .league-count {
-        font-size: 0.8em;
-    }
-}
-</style>
+
 <script src="/static/loading.js"></script>
 <script src="/static/theme.js"></script>
 <script src="/static/cookie-consent.js"></script>
