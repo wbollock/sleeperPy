@@ -451,6 +451,23 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible) {
 	transform: translateY(-1px);
 }
 
+.cache-reset-btn {
+	padding: 8px 14px;
+	background: rgba(15, 23, 42, 0.35);
+	color: #f1f5f9;
+	border: 1px solid rgba(255, 255, 255, 0.25);
+	border-radius: 8px;
+	font-weight: 600;
+	font-size: 0.85em;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.cache-reset-btn:hover {
+	background: rgba(255, 255, 255, 0.22);
+	transform: translateY(-1px);
+}
+
 .container { max-width: 960px; margin: 0 auto; padding: 40px 16px 24px 16px; }
 h1 { text-align: center; color: var(--text-primary); }
 #userform { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 20px; }

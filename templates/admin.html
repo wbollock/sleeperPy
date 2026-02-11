@@ -157,11 +157,36 @@
         <!-- Auto-refresh -->
         <div class="admin-refresh">
             <button class="refresh-btn" onclick="location.reload()">🔄 Refresh Dashboard</button>
+            <button type="button" class="cache-reset-btn" onclick="clearAppCache()">Clear Cache</button>
             <p class="metric-label">Auto-refresh in <span id="countdown">30</span>s</p>
         </div>
     </div>
 
     <script>
+        async function clearAppCache() {
+            try {
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (const registration of registrations) {
+                        registration.active?.postMessage({ type: 'CLEAR_CACHE' });
+                        await registration.unregister();
+                    }
+                }
+
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    await Promise.all(cacheNames.map((name) => caches.delete(name)));
+                }
+
+                const url = new URL(window.location.href);
+                url.searchParams.set('cachebust', Date.now().toString());
+                window.location.replace(url.toString());
+            } catch (error) {
+                console.error('[CACHE] Failed to clear cache:', error);
+                window.location.reload();
+            }
+        }
+
         // Auto-refresh every 30 seconds
         let countdown = 30;
         const countdownEl = document.getElementById('countdown');

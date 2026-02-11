@@ -43,6 +43,7 @@
                 <button class="theme-option" data-theme="dark" onclick="switchTheme('dark')" title="Dark">🌑</button>
                 <button class="theme-option" data-theme="light" onclick="switchTheme('light')" title="Light">☀️</button>
             </div>
+            <button type="button" class="cache-reset-btn" onclick="clearAppCache()">Clear Cache</button>
             {{if .Username}}
             <div class="user-info">
                 <span class="username-display">{{.Username}}</span>
@@ -1112,6 +1113,30 @@ if (document.getElementById('defaultTab')) document.getElementById('defaultTab')
 <script src="/static/cookie-consent.js"></script>
 <script src="/static/sortable.js"></script>
 <script>
+async function clearAppCache() {
+    try {
+        if ('serviceWorker' in navigator) {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            for (const registration of registrations) {
+                registration.active?.postMessage({ type: 'CLEAR_CACHE' });
+                await registration.unregister();
+            }
+        }
+
+        if ('caches' in window) {
+            const cacheNames = await caches.keys();
+            await Promise.all(cacheNames.map((name) => caches.delete(name)));
+        }
+
+        const url = new URL(window.location.href);
+        url.searchParams.set('cachebust', Date.now().toString());
+        window.location.replace(url.toString());
+    } catch (error) {
+        console.error('[CACHE] Failed to clear cache:', error);
+        window.location.reload();
+    }
+}
+
 // Register service worker for PWA offline support
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
