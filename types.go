@@ -211,12 +211,16 @@ type LeagueData struct {
 	RecentTransactions   []Transaction
 	TopRookies           []RookieProspect
 	LeagueTrends         LeagueTrends
+	PremiumTeamTalk      string
 }
 
 type TiersPage struct {
-	Error    string
-	Leagues  []LeagueData
-	Username string
+	Error           string
+	Leagues         []LeagueData
+	Username        string
+	IsPremium       bool
+	PremiumEnabled  bool
+	PremiumOverview string
 }
 
 type IndexPage struct {

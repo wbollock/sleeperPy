@@ -4,6 +4,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"html/template"
 	"log"
@@ -192,6 +193,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 	debugLog("[DEBUG] /lookup handler called")
 	r.ParseForm()
 	username := r.FormValue("username")
+	llmMode := strings.ToLower(strings.TrimSpace(r.FormValue("llm")))
 	debugLog("[DEBUG] Username submitted: %s", username)
 	if username == "" {
 		debugLog("[DEBUG] No username provided")
@@ -1337,7 +1339,34 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	http.SetCookie(w, cookie)
 
-	if err = templates.ExecuteTemplate(w, "tiers.html", TiersPage{Leagues: leagueResults, Username: username}); err != nil {
+	isPremium := isPremiumUsername(username)
+	premiumEnabled := hasOpenRouterKey()
+	premiumOverview := ""
+
+	if isPremium && premiumEnabled && llmMode != "" {
+		if llmMode == "overview" || llmMode == "all" || llmMode == "1" {
+			ctx, cancel := context.WithTimeout(r.Context(), 20*time.Second)
+			overview, err := generateOverview(ctx, leagueResults)
+			cancel()
+			if err != nil {
+				debugLog("[DEBUG] OpenRouter overview error: %v", err)
+			} else {
+				premiumOverview = overview
+			}
+		}
+
+		if llmMode == "team" || llmMode == "all" || llmMode == "1" {
+			leagueResults = applyTeamTalks(r.Context(), leagueResults)
+		}
+	}
+
+	if err = templates.ExecuteTemplate(w, "tiers.html", TiersPage{
+		Leagues:         leagueResults,
+		Username:        username,
+		IsPremium:       isPremium,
+		PremiumEnabled:  premiumEnabled,
+		PremiumOverview: premiumOverview,
+	}); err != nil {
 		log.Printf("[ERROR] Template execution error: %v", err)
 	}
 }

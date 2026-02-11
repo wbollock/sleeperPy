@@ -140,6 +140,26 @@
         </div>
     </div>
 </div>
+{{if .IsPremium}}
+<div class="premium-controls">
+    {{if .PremiumEnabled}}
+    <form method="get" action="/lookup" class="premium-actions">
+        <input type="hidden" name="username" value="{{.Username}}">
+        <button class="premium-btn" type="submit" name="llm" value="overview">All Teams Overview</button>
+        <button class="premium-btn" type="submit" name="llm" value="team">Generate Team Talks</button>
+        <button class="premium-btn" type="submit" name="llm" value="all">Overview + Team Talks</button>
+    </form>
+    {{else}}
+    <div class="premium-disabled">Premium AI is enabled for your username, but `OPENROUTER_API_KEY` is not set on the server.</div>
+    {{end}}
+</div>
+{{end}}
+{{if .PremiumOverview}}
+<div class="premium-overview-card">
+    <div class="premium-overview-title">All Teams Overview</div>
+    <div class="premium-overview-text">{{.PremiumOverview}}</div>
+</div>
+{{end}}
 <div class="league-contents">
     {{range $i, $l := .Leagues}}
         <div class="league-content" id="league{{$i}}" style="display:{{if eq $i 0}}block{{else}}none{{end}};">
@@ -280,6 +300,16 @@
                 </div>
                 {{if $l.IsDynasty}}
                 <div class="dynasty-toolkit dynasty-only">
+                    {{if $l.PremiumTeamTalk}}
+                    <div class="toolkit-card premium-card">
+                        <div class="card-header">
+                            <span class="card-title">Team Talk (Premium)</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="premium-text">{{$l.PremiumTeamTalk}}</div>
+                        </div>
+                    </div>
+                    {{end}}
                     {{if $l.DynastyValueDate}}
                     <div class="dynasty-source-info">Dynasty values from <a href="https://github.com/dynastyprocess/data" target="_blank" rel="noopener">DynastyProcess</a> · Updated {{$l.DynastyValueDate}}</div>
                     {{end}}

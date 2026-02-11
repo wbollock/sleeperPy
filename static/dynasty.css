@@ -85,6 +85,17 @@
     border-color: var(--border-accent);
 }
 
+.premium-card .card-header {
+	cursor: default;
+}
+
+.premium-text {
+	white-space: pre-wrap;
+	line-height: 1.6;
+	color: #e8eef7;
+	font-size: 0.95em;
+}
+
 .card-header {
     padding: 20px 24px;
     cursor: pointer;
