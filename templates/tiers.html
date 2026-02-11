@@ -296,6 +296,12 @@
                 </tfoot>
             </table>
             </div>
+            {{if and (not $l.IsDynasty) $l.PremiumTeamTalk}}
+            <div class="premium-roster-talk">
+                <div class="premium-roster-title">Team Talk (Premium)</div>
+                <div class="premium-text">{{$l.PremiumTeamTalk}}</div>
+            </div>
+            {{end}}
 
                 </div>
                 {{if $l.IsDynasty}}
