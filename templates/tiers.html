@@ -144,10 +144,10 @@
                     <span class="dynasty-desc">Long-term value & dynasty toolkit</span>
                 </div>
             </div>
-
-            <div class="league-grid-container">
-                <div class="roster-card">
             {{end}}
+
+            <div class="league-grid-container{{if not $l.IsDynasty}} single-column{{end}}">
+                <div class="roster-card">
             <div class="table-scroll">
             <table class="sortable-table pretty-table">
                 <thead>
@@ -256,9 +256,9 @@
             </table>
             </div>
 
-            {{if $l.IsDynasty}}
                 </div>
 
+            {{if $l.IsDynasty}}
                 <div class="dynasty-toolkit dynasty-only">
                     {{if $l.DynastyValueDate}}
                     <div class="dynasty-source-info">Dynasty values from <a href="https://github.com/dynastyprocess/data" target="_blank" rel="noopener">DynastyProcess</a> · Updated {{$l.DynastyValueDate}}</div>
@@ -948,8 +948,8 @@
                     </div>
                     {{end}}
                 </div>
-            </div>
             {{end}}
+            </div>
 
             {{if $l.TopFreeAgents}}
             <div class="fa-section {{if $l.IsDynasty}}inseason-only{{end}}">

@@ -4,29 +4,40 @@
 /* Dynasty Grid Layout - Modern & Space Efficient */
 .league-grid-container {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 24px;
     width: 100%;
+    align-items: start;
+}
+.league-grid-container.single-column {
+    grid-template-columns: minmax(0, 1fr);
 }
 
 /* On larger screens, use full width and let toolkit use masonry grid */
-@media (min-width: 1200px) {
+@media (min-width: 1100px) {
     .league-grid-container {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
         gap: 32px;
+    }
+    .league-grid-container.single-column {
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 
 .roster-card {
     min-width: 0;
+    background: var(--bg-card);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
 }
 
 /* Modern Masonry Grid for Dynasty Toolkit */
 .dynasty-toolkit {
-    display: grid;
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 20px;
-    grid-auto-rows: min-content;
 }
 .dynasty-source-info {
     grid-column: 1 / -1;
@@ -46,32 +57,24 @@
 
 @media (min-width: 768px) {
     .dynasty-toolkit {
-        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
         gap: 24px;
-    }
-}
-
-@media (min-width: 1400px) {
-    .dynasty-toolkit {
-        grid-template-columns: repeat(3, 1fr);
     }
 }
 
 /* Modern Card Design */
 .toolkit-card {
-    background: linear-gradient(135deg, rgba(30, 38, 54, 0.8) 0%, rgba(45, 27, 61, 0.6) 100%);
+    background: var(--bg-card);
     border-radius: 16px;
-    border: 1px solid rgba(123, 176, 255, 0.2);
+    border: 1px solid var(--border-color);
     overflow: visible;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--shadow-sm);
     height: auto;
 }
 
 .toolkit-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15), 0 8px 16px rgba(123, 176, 255, 0.1);
-    border-color: rgba(123, 176, 255, 0.4);
+    box-shadow: var(--shadow-md);
+    border-color: var(--border-accent);
 }
 
 .card-header {
@@ -80,10 +83,12 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
     transition: all 0.2s ease;
     user-select: none;
-    background: linear-gradient(135deg, rgba(58, 110, 232, 0.08) 0%, rgba(88, 86, 214, 0.08) 100%);
-    border-bottom: 1px solid rgba(123, 176, 255, 0.1);
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .card-header:hover {
@@ -99,6 +104,8 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    min-width: 0;
+    flex-wrap: wrap;
 }
 
 .card-title::before {
@@ -124,12 +131,14 @@
 .card-content {
     padding: 24px;
     animation: fadeIn 0.3s ease;
-    overflow-x: auto;
+    overflow: visible;
     max-width: 100%;
     word-wrap: break-word;
-    display: flex;
-    flex-direction: column;
+    display: grid;
     gap: 12px;
+}
+.card-content > * {
+    min-width: 0;
 }
 
 @keyframes fadeIn {
@@ -181,17 +190,16 @@
 .news-item, .transaction-item {
     padding: 16px;
     margin-bottom: 12px;
-    background: rgba(30, 38, 54, 0.4);
-    border-left: 4px solid rgba(123, 176, 255, 0.4);
+    background: var(--bg-secondary);
+    border-left: 4px solid rgba(123, 176, 255, 0.35);
     border-radius: 8px;
     transition: all 0.2s ease;
     position: relative;
 }
 
 .news-item:hover, .transaction-item:hover {
-    background: rgba(30, 38, 54, 0.6);
+    background: var(--bg-card);
     border-left-color: rgba(123, 176, 255, 0.8);
-    transform: translateX(4px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
@@ -211,12 +219,15 @@
     align-items: flex-start;
     margin-bottom: 10px;
     gap: 12px;
+    flex-wrap: wrap;
 }
 
 .news-player, .transaction-type {
     font-weight: 600;
     color: #e8eef7;
     font-size: 0.95em;
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .starter-badge {
@@ -308,12 +319,15 @@
     align-items: center;
     margin-bottom: 12px;
     gap: 12px;
+    flex-wrap: wrap;
 }
 
 .player-card-name {
     font-weight: 600;
     color: #e8eef7;
     font-size: 1em;
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .player-card-age {
@@ -362,7 +376,7 @@
 /* Draft Picks - Modern Grid */
 .draft-picks-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 16px;
 }
 
@@ -643,7 +657,6 @@
 /* Mobile Optimizations */
 @media (max-width: 768px) {
     .dynasty-toolkit {
-        grid-template-columns: 1fr;
         gap: 16px;
     }
 

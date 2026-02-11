@@ -8,10 +8,22 @@
 	--space-5: 24px;
 	--space-6: 32px;
 	--space-7: 48px;
+	--space-8: 64px;
 	--radius-sm: 8px;
 	--radius-md: 12px;
 	--radius-lg: 16px;
+	--radius-xl: 24px;
 	--shadow-card: 0 10px 26px rgba(15, 23, 42, 0.25);
+	--text-xs: 0.75rem;
+	--text-sm: 0.85rem;
+	--text-md: 1rem;
+	--text-lg: 1.15rem;
+	--text-xl: 1.5rem;
+	--surface-1: rgba(15, 23, 42, 0.35);
+	--surface-2: rgba(30, 38, 54, 0.45);
+	--surface-3: rgba(30, 41, 59, 0.65);
+	--border-subtle: rgba(148, 163, 184, 0.18);
+	--border-strong: rgba(123, 176, 255, 0.35);
 }
 
 *,
@@ -274,7 +286,7 @@
 .pretty-table tr:nth-child(odd) td { background: rgba(40, 48, 74, 0.4); }
 .pretty-table tbody tr:hover td {
 	background: rgba(14, 165, 233, 0.15) !important;
-	transform: scale(1.01);
+	transform: none;
 	box-shadow: 0 2px 12px rgba(14, 165, 233, 0.2);
 }
 .pretty-table td {
@@ -441,7 +453,7 @@ button:focus:not(:focus-visible), a:focus:not(:focus-visible) {
 	transform: translateY(-1px);
 }
 
-.container { max-width: 700px; margin: 0 auto; padding: 30px 10px 10px 10px; }
+.container { max-width: 960px; margin: 0 auto; padding: 40px 16px 24px 16px; }
 h1 { text-align: center; color: var(--text-primary); }
 #userform { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-bottom: 20px; }
 #inputButton {
@@ -957,10 +969,13 @@ h1, h2, h3 {
 .main-content {
 	max-width: 1400px;
 	margin: 0 auto;
-	padding: 24px 24px 48px;
+	padding: 28px 24px 56px;
 	background: transparent;
 	border: none;
 	box-shadow: none;
+	display: flex;
+	flex-direction: column;
+	gap: 24px;
 }
 
 .league-selector-container {
@@ -1042,12 +1057,12 @@ h1, h2, h3 {
 	flex-wrap: wrap;
 	gap: 12px;
 	align-items: center;
-	justify-content: space-between;
+	justify-content: flex-start;
 	margin-bottom: 18px;
-	padding: 12px 16px;
-	border-radius: 12px;
-	background: rgba(15, 23, 42, 0.55);
-	border: 1px solid rgba(148, 163, 184, 0.18);
+	padding: 14px 18px;
+	border-radius: 14px;
+	background: var(--bg-card);
+	border: 1px solid var(--border-color);
 }
 
 .league-info-sep {
@@ -1064,8 +1079,9 @@ h1, h2, h3 {
 }
 
 .player-search-container {
-	flex: 1 1 220px;
-	max-width: 280px;
+	flex: 1 1 240px;
+	max-width: 360px;
+	min-width: 200px;
 }
 
 .player-search {
@@ -1079,7 +1095,7 @@ h1, h2, h3 {
 
 .mode-toggle-container {
 	text-align: left;
-	margin-bottom: 24px;
+	margin-bottom: 20px;
 }
 
 .mode-toggle {
@@ -1089,6 +1105,7 @@ h1, h2, h3 {
 	padding: 4px;
 	border-radius: 999px;
 	border: 1px solid rgba(148, 163, 184, 0.2);
+	flex-wrap: wrap;
 }
 
 .mode-btn {
