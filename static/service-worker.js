@@ -1,7 +1,7 @@
 // ABOUTME: Service worker for PWA offline support and caching
 // ABOUTME: Enables "Add to Home Screen" and offline functionality for SleeperPy
 
-const CACHE_NAME = 'sleeperpy-v2';
+const CACHE_NAME = 'sleeperpy-v3';
 const STATIC_CACHE = [
   '/',
   '/static/main.css',
@@ -55,6 +55,11 @@ self.addEventListener('fetch', (event) => {
 
   // Skip non-GET requests
   if (request.method !== 'GET') {
+    return;
+  }
+
+  // Only handle same-origin requests
+  if (!request.url.startsWith(self.location.origin)) {
     return;
   }
 
