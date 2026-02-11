@@ -6,7 +6,7 @@ import (
 )
 
 func cmdTest(ctx *Context) int {
-	fmt.Println("Running integration tests...\n")
+	fmt.Println("Running integration tests...")
 
 	tests := []Test{
 		{"Fetch test user (testuser)", testFetchUser},

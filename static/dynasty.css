@@ -5,9 +5,10 @@
 .league-grid-container {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    gap: 24px;
+    gap: clamp(16px, 2.5vw, 32px);
     width: 100%;
     align-items: start;
+    grid-auto-rows: minmax(0, auto);
 }
 .league-grid-container.single-column {
     grid-template-columns: minmax(0, 1fr);
@@ -26,11 +27,12 @@
 
 .roster-card {
     min-width: 0;
-    background: var(--bg-card);
+    background: linear-gradient(160deg, rgba(30, 38, 54, 0.6), rgba(15, 23, 42, 0.4));
     border-radius: 16px;
-    border: 1px solid var(--border-color);
+    border: 1px solid rgba(125, 211, 252, 0.15);
+    border-left: 4px solid rgba(123, 176, 255, 0.35);
     padding: 20px;
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.18);
 }
 
 /* Modern Masonry Grid for Dynasty Toolkit */
@@ -65,12 +67,13 @@
 
 /* Modern Card Design */
 .toolkit-card {
-    background: var(--bg-card);
+    background: linear-gradient(160deg, rgba(30, 38, 54, 0.62), rgba(15, 23, 42, 0.4));
     border-radius: 16px;
-    border: 1px solid var(--border-color);
+    border: 1px solid rgba(125, 211, 252, 0.12);
+    border-left: 4px solid rgba(123, 176, 255, 0.25);
     overflow: visible;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.18);
     height: auto;
     width: 100%;
 }
@@ -711,10 +714,12 @@
     gap: 16px;
     align-items: center;
     margin-top: 12px;
+    flex-wrap: wrap;
 }
 
 .trade-side {
     flex: 1;
+    min-width: 0;
     background: rgba(21, 27, 46, 0.4);
     border-radius: 10px;
     padding: 14px;
@@ -728,6 +733,7 @@
     margin-bottom: 12px;
     padding-bottom: 8px;
     border-bottom: 1px solid rgba(123, 176, 255, 0.2);
+    overflow-wrap: anywhere;
 }
 
 .trade-action {
@@ -765,6 +771,7 @@
     font-size: 0.9em;
     color: #d4dde8;
     border-left: 2px solid rgba(123, 176, 255, 0.3);
+    overflow-wrap: anywhere;
 }
 
 .trade-divider {
@@ -778,6 +785,17 @@
 @keyframes pulse-divider {
     0%, 100% { opacity: 1; transform: scale(1); }
     50% { opacity: 0.7; transform: scale(1.1); }
+}
+
+@media (max-width: 768px) {
+    .trade-details {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .trade-divider {
+        display: none;
+    }
 }
 
 /* Waiver Details */

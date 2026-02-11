@@ -23,7 +23,7 @@
 - User data proves this is wrong
 
 **Fix Steps**:
-1. Run app with `--log=debug` on a real league with traded picks
+1. Run app with `--log=debug` on a real league with traded picks (use Sleeper username `wboll`; dynasty league ID: `1222367151910834176`)
 2. Examine "TRADED PICKS RAW DATA" output
 3. Compare against actual Sleeper app trade history
 4. Determine correct field meanings
@@ -193,7 +193,7 @@ All feature plans have been moved to `plan/archive/`:
   ```
 
 **Testing:**
-- Run `go run . --log=debug` to see detailed API data
+- Run `go run . --log=debug` to see detailed API data (use username `wboll`; dynasty league ID: `1222367151910834176`)
 - Test with real leagues (not just testuser)
 - Verify against Sleeper app's actual data
 - Test all edge cases before committing
@@ -203,6 +203,14 @@ All feature plans have been moved to `plan/archive/`:
 - Add more debug logs if needed to understand API
 - Compare raw API data vs expected behavior
 - Document findings in code comments
+- To fetch real Sleeper API data for a user/league:
+  - Find leagues: `go run . cli user wboll`
+  - Dynasty league ID: `1222367151910834176`
+  - Fetch traded picks: `curl -sS "https://api.sleeper.app/v1/league/1222367151910834176/traded_picks" -o /tmp/traded_picks.json`
+  - Fetch rosters: `curl -sS "https://api.sleeper.app/v1/league/1222367151910834176/rosters" -o /tmp/rosters.json`
+  - Fetch users: `curl -sS "https://api.sleeper.app/v1/league/1222367151910834176/users" -o /tmp/users.json`
+  - Inspect mapping locally (roster_id → owner_id → user name) using a quick script:
+    - `python3` is available; use it to load `/tmp/*.json` and map `roster_id`, `owner_id`, `previous_owner_id`.
 
 ---
 

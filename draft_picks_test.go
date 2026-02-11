@@ -111,3 +111,24 @@ func TestBuildDraftPicksMultiHop(t *testing.T) {
 		t.Fatalf("expected multi-hop pick to show from TeamA")
 	}
 }
+
+func TestBuildDraftPicksOwnerIdZeroRemovesPick(t *testing.T) {
+	rosters := []map[string]interface{}{
+		{"roster_id": float64(1)},
+		{"roster_id": float64(2)},
+	}
+	rosterOwners := map[int]string{
+		1: "TeamA",
+		2: "TeamB",
+	}
+	traded := []map[string]interface{}{
+		{"season": "2026", "round": float64(1), "roster_id": float64(2), "owner_id": float64(0), "previous_owner_id": float64(2)},
+	}
+
+	picks := buildDraftPicks(traded, rosters, rosterOwners, 1, 2, 2026, nil)
+	for _, pick := range picks {
+		if pick.Year == 2026 && pick.Round == 1 && pick.OriginalName == "" {
+			t.Fatalf("did not expect 2026 R1 pick when owner_id is 0")
+		}
+	}
+}

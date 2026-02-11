@@ -747,7 +747,7 @@
                                         <td>{{printf "%.1f" .AvgAge}}</td>
                                         <td>{{if .RosterValue}}{{.RosterValue}}{{else}}-{{end}}</td>
                                         <td>{{.Rank}}</td>
-                                        <td style="white-space:nowrap;">
+                                        <td>
                                             {{if gt .AvgAge 27.0}}
                                                 <span style="color:#ff9d5c;">Win Now</span>
                                             {{else if lt .AvgAge 24.5}}
@@ -792,7 +792,7 @@
                                         </td>
                                         <td style="font-weight:600;">{{.RosterValue}}</td>
                                         <td>{{.Wins}}-{{.Losses}}</td>
-                                        <td style="white-space:nowrap;">
+                                        <td>
                                             {{if eq .Strategy "Win Now"}}
                                                 <span style="color:#ff9d5c;">Win Now</span>
                                             {{else if eq .Strategy "Rebuilding"}}
