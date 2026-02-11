@@ -1,8 +1,8 @@
 // SleeperPy Service Worker for PWA offline support
 // Version 1.0.0
 
-const CACHE_NAME = 'sleeperpy-v1';
-const RUNTIME_CACHE = 'sleeperpy-runtime';
+const CACHE_NAME = 'sleeperpy-v3';
+const RUNTIME_CACHE = 'sleeperpy-runtime-v3';
 
 // Assets to cache immediately on install
 const PRECACHE_ASSETS = [
@@ -53,6 +53,11 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
+  // Only handle same-origin requests
+  if (url.origin !== self.location.origin) {
+    return;
+  }
+
   // Skip caching for:
   // - Non-GET requests
   // - External API calls (we want fresh data)
@@ -69,33 +74,28 @@ self.addEventListener('fetch', (event) => {
     return event.respondWith(fetch(request));
   }
 
-  // For static assets and pages, use cache-first strategy
+  // For static assets and pages, use network-first to avoid stale CSS/JS
   if (url.pathname.startsWith('/static/') || url.pathname === '/') {
     event.respondWith(
-      caches.match(request)
-        .then((cachedResponse) => {
-          if (cachedResponse) {
-            console.log('[SW] Serving from cache:', request.url);
-            return cachedResponse;
-          }
+      fetch(request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const contentType = response.headers.get('content-type') || '';
+            const isStyle = request.destination === 'style';
+            const isScript = request.destination === 'script';
+            const validType = (!isStyle || contentType.includes('text/css')) &&
+                              (!isScript || contentType.includes('javascript'));
 
-          // Not in cache, fetch and cache
-          return fetch(request)
-            .then((response) => {
-              // Only cache successful responses
-              if (response && response.status === 200) {
-                const responseClone = response.clone();
-                caches.open(CACHE_NAME).then((cache) => {
-                  cache.put(request, responseClone);
-                });
-              }
-              return response;
-            })
-            .catch(() => {
-              // Return offline page if available
-              return caches.match('/');
-            });
+            if (validType) {
+              const responseClone = response.clone();
+              caches.open(CACHE_NAME).then((cache) => {
+                cache.put(request, responseClone);
+              });
+            }
+          }
+          return response;
         })
+        .catch(() => caches.match(request).then((cached) => cached || caches.match('/')))
     );
     return;
   }
