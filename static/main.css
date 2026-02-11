@@ -1084,6 +1084,26 @@ h1, h2, h3 {
 	opacity: 0.6;
 }
 
+.league-meta {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0;
+	min-width: 0;
+}
+
+.league-meta > span {
+	display: inline-flex;
+	align-items: center;
+	font-size: 0.95em;
+}
+
+.league-meta > span + span::before {
+	content: "·";
+	opacity: 0.6;
+	margin: 0 8px;
+}
+
 .dynasty-badge {
 	padding: 4px 10px;
 	border-radius: 999px;
@@ -1097,6 +1117,7 @@ h1, h2, h3 {
 	flex: 1 1 240px;
 	max-width: 360px;
 	min-width: 200px;
+	margin-left: auto;
 }
 
 .player-search {
@@ -1236,6 +1257,8 @@ h1, h2, h3 {
 	font-size: 0.9em;
 	color: var(--text-secondary);
 	font-style: italic;
+	max-width: 100%;
+	overflow-wrap: anywhere;
 }
 
 /* Admin dashboard base (shared) */

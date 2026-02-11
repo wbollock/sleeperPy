@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Unauthorized - SleeperPy</title>
+    <meta name="robots" content="noindex">
+    <link rel="stylesheet" href="/static/main.css?v=20260211b">
+    <link rel="stylesheet" href="/static/theme.css?v=20260211b">
+</head>
+<body>
+    <div class="admin-shell">
+        <header class="admin-header">
+            <h1>Admin Access Required</h1>
+            <p class="subtitle">Request blocked at {{.ServerTime}}</p>
+        </header>
+
+        <div class="admin-card admin-section">
+            <h2 class="card-title">Why This Appears</h2>
+            <div class="stat-row">
+                <span class="stat-label">Status</span>
+                <span class="stat-value">Unauthorized (401)</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Required</span>
+                <span class="stat-value">Valid admin key and allowed source IP</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-label">Local Dev</span>
+                <span class="stat-value">Set `ADMIN_KEY` and append `?secret=...`</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -8,9 +8,11 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 
@@ -73,15 +75,12 @@ type UACount struct {
 }
 
 func adminHandler(w http.ResponseWriter, r *http.Request) {
-	// Simple secret key authentication
-	adminKey := os.Getenv("ADMIN_KEY")
-	if adminKey == "" {
-		adminKey = "changeme" // Default for dev, should set in production
-	}
-
-	providedKey := r.URL.Query().Get("secret")
-	if providedKey != adminKey {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+	if !adminAccessAllowed(r) {
+		w.WriteHeader(http.StatusUnauthorized)
+		tmpl := template.Must(template.ParseFiles("templates/admin_unauthorized.html"))
+		_ = tmpl.Execute(w, map[string]string{
+			"ServerTime": time.Now().Format("2006-01-02 15:04:05 MST"),
+		})
 		return
 	}
 
@@ -163,14 +162,7 @@ func adminHandler(w http.ResponseWriter, r *http.Request) {
 
 // Admin API endpoint for JSON metrics
 func adminAPIHandler(w http.ResponseWriter, r *http.Request) {
-	// Simple secret key authentication
-	adminKey := os.Getenv("ADMIN_KEY")
-	if adminKey == "" {
-		adminKey = "changeme"
-	}
-
-	providedKey := r.URL.Query().Get("secret")
-	if providedKey != adminKey {
+	if !adminAccessAllowed(r) {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
@@ -191,6 +183,88 @@ func adminAPIHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Helper functions
+
+func adminAccessAllowed(r *http.Request) bool {
+	adminKey := os.Getenv("ADMIN_KEY")
+	if adminKey == "" {
+		return false
+	}
+	if adminKey == "changeme" && os.Getenv("ADMIN_ALLOW_INSECURE") != "1" {
+		return false
+	}
+
+	if !adminIPAllowed(r.RemoteAddr) {
+		return false
+	}
+
+	providedKey, fromQuery := adminKeyFromRequest(r)
+	if providedKey == "" {
+		return false
+	}
+	if fromQuery && !allowQueryAuth(r.RemoteAddr) {
+		return false
+	}
+
+	return providedKey == adminKey
+}
+
+func adminKeyFromRequest(r *http.Request) (string, bool) {
+	auth := strings.TrimSpace(r.Header.Get("Authorization"))
+	if strings.HasPrefix(auth, "Bearer ") {
+		return strings.TrimSpace(strings.TrimPrefix(auth, "Bearer ")), false
+	}
+	if key := strings.TrimSpace(r.Header.Get("X-Admin-Key")); key != "" {
+		return key, false
+	}
+	if key := strings.TrimSpace(r.URL.Query().Get("secret")); key != "" {
+		return key, true
+	}
+	return "", false
+}
+
+func allowQueryAuth(remoteAddr string) bool {
+	if os.Getenv("ADMIN_ALLOW_QUERY") == "1" {
+		return true
+	}
+	return isLoopbackAddr(remoteAddr)
+}
+
+func adminIPAllowed(remoteAddr string) bool {
+	allowed := strings.TrimSpace(os.Getenv("ADMIN_ALLOWED_IPS"))
+	if allowed == "" {
+		return true
+	}
+	host, _, err := net.SplitHostPort(remoteAddr)
+	if err != nil {
+		host = remoteAddr
+	}
+	ip := net.ParseIP(strings.TrimSpace(host))
+	if ip == nil {
+		return false
+	}
+	for _, entry := range strings.Split(allowed, ",") {
+		entry = strings.TrimSpace(entry)
+		if entry == "" {
+			continue
+		}
+		if ip.Equal(net.ParseIP(entry)) {
+			return true
+		}
+	}
+	return false
+}
+
+func isLoopbackAddr(remoteAddr string) bool {
+	host, _, err := net.SplitHostPort(remoteAddr)
+	if err != nil {
+		host = remoteAddr
+	}
+	ip := net.ParseIP(strings.TrimSpace(host))
+	if ip == nil {
+		return false
+	}
+	return ip.IsLoopback()
+}
 
 func getMetricValue(counter prometheus.Counter) float64 {
 	metric := &dto.Metric{}

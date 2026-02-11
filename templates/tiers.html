@@ -142,11 +142,12 @@
     {{range $i, $l := .Leagues}}
         <div class="league-content" id="league{{$i}}" style="display:{{if eq $i 0}}block{{else}}none{{end}};">
             <div class="league-info-bar">
-                <span>{{$l.LeagueSize}}-team</span>
-                <span class="league-info-sep">·</span>
-                <span>{{$l.Scoring}}</span>
-                {{if $l.IsDynasty}}<span class="league-info-sep">·</span><span class="dynasty-badge">Dynasty</span>{{end}}
-                {{if $l.RosterSlots}}<span class="league-info-sep">·</span><span class="league-info-slots">{{$l.RosterSlots}}</span>{{end}}
+                <div class="league-meta">
+                    <span>{{$l.LeagueSize}}-team</span>
+                    <span>{{$l.Scoring}}</span>
+                    {{if $l.IsDynasty}}<span class="dynasty-badge">Dynasty</span>{{end}}
+                    {{if $l.RosterSlots}}<span class="league-info-slots">{{$l.RosterSlots}}</span>{{end}}
+                </div>
                 <div class="player-search-container">
                     <input type="text" class="player-search" id="playerSearch{{$i}}" placeholder="Search players..." onkeyup="searchPlayers({{$i}})">
                 </div>
