@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap");
+
 :root {
 	--space-1: 4px;
 	--space-2: 8px;
@@ -594,6 +596,22 @@ h1 { text-align: center; color: var(--text-primary); }
 		padding: 6px 12px;
 	}
 
+	/* League picker wraps cleanly on small screens */
+	.league-dropdown-btn {
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+	.current-league-name {
+		flex: 1 1 100%;
+	}
+	.league-count {
+		order: 2;
+	}
+	.dropdown-arrow {
+		order: 3;
+		margin-left: auto;
+	}
+
 	/* Compact legend */
 	.legend {
 		font-size: 0.8em !important;
@@ -814,17 +832,15 @@ h1 { text-align: center; color: var(--text-primary); }
 		gap: 16px;
 	}
 }
-.swap-candidate {
-
 /* SaaS refresh overrides */
 html, body {
-	font-family: "Manrope", "Segoe UI", system-ui, -apple-system, sans-serif;
+	font-family: "Plus Jakarta Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
 	background: var(--bg-primary) !important;
 	color: var(--text-primary);
 }
 
 h1, h2, h3 {
-	font-family: "Fraunces", "Manrope", "Segoe UI", serif;
+	font-family: "Space Grotesk", "Plus Jakarta Sans", "Segoe UI", system-ui, sans-serif;
 	letter-spacing: -0.3px;
 }
 
@@ -1000,6 +1016,7 @@ h1, h2, h3 {
 .league-selector {
 	position: relative;
 	max-width: 520px;
+	width: 100%;
 }
 
 .league-dropdown-btn {
@@ -1015,6 +1032,30 @@ h1, h2, h3 {
 	color: var(--text-primary);
 	font-weight: 600;
 	cursor: pointer;
+	text-align: left;
+	min-width: 0;
+	flex-wrap: nowrap;
+}
+
+.current-league-name {
+	flex: 1 1 auto;
+	min-width: 0;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.league-count {
+	flex: 0 0 auto;
+	white-space: nowrap;
+	color: var(--text-muted);
+	font-size: 0.9em;
+}
+
+.dropdown-arrow {
+	flex: 0 0 auto;
+	color: var(--text-muted);
+	font-size: 0.85em;
 }
 
 .league-dropdown-menu {
@@ -1051,6 +1092,37 @@ h1, h2, h3 {
 	background: transparent;
 	color: var(--text-primary);
 	cursor: pointer;
+	min-width: 0;
+	flex-wrap: nowrap;
+}
+
+.league-options {
+	max-height: min(60vh, 420px);
+	overflow: auto;
+	padding-right: 4px;
+}
+
+.league-option-name {
+	flex: 1 1 auto;
+	min-width: 0;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.league-option-actions {
+	flex: 0 0 auto;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	white-space: nowrap;
+	color: var(--text-muted);
+	font-size: 0.9em;
+}
+
+.favorite-star {
+	color: #fbbf24;
+	font-size: 1em;
 }
 
 .league-option:hover,

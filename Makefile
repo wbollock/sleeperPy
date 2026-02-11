@@ -30,7 +30,7 @@ dev: build ## Run in development mode with debug logging
 debug: build ## Run with debug logging (alias for dev)
 	@echo "Admin dashboard: http://localhost:$(PORT)/admin?secret=$(ADMIN_KEY)"
 	@echo "Admin API:       http://localhost:$(PORT)/admin/api?secret=$(ADMIN_KEY)"
-	ADMIN_KEY=$(ADMIN_KEY) PORT=$(PORT) ./$(BINARY_NAME) -log=debug
+	ADMIN_KEY=$(ADMIN_KEY) ADMIN_ALLOW_INSECURE=1 ADMIN_ALLOW_QUERY=1 PORT=$(PORT) ./$(BINARY_NAME) -log=debug
 
 dev-watch: ## Run with hot reload (requires air: go install github.com/air-verse/air@latest)
 	air

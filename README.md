@@ -67,7 +67,11 @@ Open the dashboard:
 - `http://localhost:8080/admin?secret=your-secret-here`
 - JSON metrics: `http://localhost:8080/admin/api?secret=your-secret-here`
 
-If `ADMIN_KEY` is not set, it defaults to `changeme` (development only).
+If `ADMIN_KEY` is not set, it defaults to `changeme` (development only). When using the default key, you must allow insecure admin auth in local dev:
+
+```sh
+ADMIN_KEY=changeme ADMIN_ALLOW_INSECURE=1 ADMIN_ALLOW_QUERY=1 make debug
+```
 
 ---
 
