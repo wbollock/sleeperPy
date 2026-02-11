@@ -110,6 +110,7 @@
                         {{if $l.IsDynasty}}
                         <button class="league-option {{if eq $i 0}}active{{end}}" data-league-id="league{{$i}}" data-league-name="{{$l.LeagueName}}" onclick="selectLeague(event, 'league{{$i}}', '{{$l.LeagueName}}')">
                             <span class="league-option-name">{{$l.LeagueName}}</span>
+                            <span class="league-option-meta">{{$l.LeagueSize}} teams · {{$l.Scoring}}</span>
                             <span class="league-option-actions">
                                 <span class="league-option-type">({{$l.Scoring}})</span>
                                 <span class="favorite-star" onclick="toggleFavorite(event, 'league{{$i}}', '{{$l.LeagueName}}')" title="Add to favorites">☆</span>
@@ -126,6 +127,7 @@
                         {{if not $l.IsDynasty}}
                         <button class="league-option {{if eq $i 0}}active{{end}}" data-league-id="league{{$i}}" data-league-name="{{$l.LeagueName}}" onclick="selectLeague(event, 'league{{$i}}', '{{$l.LeagueName}}')">
                             <span class="league-option-name">{{$l.LeagueName}}</span>
+                            <span class="league-option-meta">{{$l.LeagueSize}} teams · {{$l.Scoring}}</span>
                             <span class="league-option-actions">
                                 <span class="league-option-type">({{$l.Scoring}})</span>
                                 <span class="favorite-star" onclick="toggleFavorite(event, 'league{{$i}}', '{{$l.LeagueName}}')" title="Add to favorites">☆</span>
