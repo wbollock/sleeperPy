@@ -22,11 +22,28 @@
     <link rel="manifest" href="/static/manifest.json">
 
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <link rel="stylesheet" href="/static/main.css">
-    <link rel="stylesheet" href="/static/theme.css">
-    <link rel="stylesheet" href="/static/cookie-consent.css">
-    <link rel="stylesheet" href="/static/loading.css">
+    <link rel="stylesheet" href="/static/main.css?v=20260211b">
+    <link rel="stylesheet" href="/static/theme.css?v=20260211b">
+    <link rel="stylesheet" href="/static/cookie-consent.css?v=20260211b">
+    <link rel="stylesheet" href="/static/loading.css?v=20260211b">
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <style>
+        .skip-link {
+            position: absolute;
+            top: -100%;
+            left: 16px;
+            background: #0ea5e9;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 0 0 8px 8px;
+            z-index: 1000;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .skip-link:focus {
+            top: 0;
+        }
+    </style>
 </head>
 <body>
         <a href="#main-content" class="skip-link">Skip to main content</a>
