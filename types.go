@@ -137,6 +137,14 @@ type CompressedNews struct {
 	TotalItems   int          // Total news items for user's players
 }
 
+type ContextCard struct {
+	Title string // "Age Rank", "Value Rank", etc.
+	Value string // "3rd youngest", "8,450 (#2)"
+	Trend string // "↗ Getting younger", "→ Stable", etc.
+	Icon  string // Single emoji for visual scanning
+	Color string // Color code for styling
+}
+
 type TradeFairness struct {
 	Winner        string  // "TeamA" or "TeamB" or "Fair"
 	ValueDelta    int     // Absolute KTC difference
@@ -251,6 +259,7 @@ type LeagueData struct {
 	PremiumTeamTalk      string
 	WeeklyActions        []Action       // Feature #2: Weekly Action List
 	CompressedNews       CompressedNews // Feature #4: News Signal Compression
+	ContextCards         []ContextCard  // Feature #6: League Context Cards
 }
 
 type TiersPage struct {

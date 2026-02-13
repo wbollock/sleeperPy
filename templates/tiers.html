@@ -359,6 +359,26 @@
                     {{if $l.DynastyValueDate}}
                     <div class="dynasty-source-info">Dynasty values from <a href="https://github.com/dynastyprocess/data" target="_blank" rel="noopener">DynastyProcess</a> · Updated {{$l.DynastyValueDate}}</div>
                     {{end}}
+                    {{if gt (len $l.ContextCards) 0}}
+                    <div class="toolkit-card">
+                        <div class="card-header">
+                            <span class="card-title">Team Context</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="context-cards-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;">
+                                {{range $l.ContextCards}}
+                                <div class="context-card" style="padding:12px;background:var(--card-bg-alt);border-radius:8px;border-left:3px solid {{.Color}};">
+                                    <div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">{{.Title}}</div>
+                                    <div style="font-size:1rem;font-weight:600;color:{{.Color}};margin-bottom:2px;">{{.Value}}</div>
+                                    {{if .Trend}}
+                                    <div style="font-size:0.75rem;color:var(--text-secondary);">{{.Trend}}</div>
+                                    {{end}}
+                                </div>
+                                {{end}}
+                            </div>
+                        </div>
+                    </div>
+                    {{end}}
                     {{if gt $l.CompressedNews.TotalItems 0}}
                     <div class="toolkit-card collapseable">
                         <div class="card-header" onclick="toggleSection('player-news-{{$i}}')">

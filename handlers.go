@@ -1331,6 +1331,9 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			leagueData.CompressedNews = compressPlayerNews(playerNewsFeed, userPlayerNames, isDynasty)
 		}
 
+		// Build context cards (Feature #6)
+		leagueData.ContextCards = buildContextCards(leagueData, totalRosterValue, userAvgAge)
+
 		leagueResults = append(leagueResults, leagueData)
 	}
 
