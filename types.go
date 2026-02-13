@@ -256,6 +256,17 @@ type Action struct {
 	WeekID      string // "2026-W14" for persistence
 }
 
+type WaiverRecommendation struct {
+	Player           PlayerRow
+	Score            int
+	Priority         string
+	SuggestedBid     int
+	Rationale        string
+	ImpactType       string
+	TierDelta        float64
+	PositionScarcity int
+}
+
 type LeagueData struct {
 	LeagueName           string
 	Scoring              string
@@ -289,10 +300,11 @@ type LeagueData struct {
 	TopRookies           []RookieProspect
 	LeagueTrends         LeagueTrends
 	PremiumTeamTalk      string
-	WeeklyActions        []Action        // Feature #2: Weekly Action List
-	CompressedNews       CompressedNews  // Feature #4: News Signal Compression
-	ContextCards         []ContextCard   // Feature #6: League Context Cards
-	ValueChanges         []ValueChange   // Feature #7: Value Change Tracker
+	WeeklyActions          []Action               // Feature #2: Weekly Action List
+	CompressedNews         CompressedNews         // Feature #4: News Signal Compression
+	ContextCards           []ContextCard          // Feature #6: League Context Cards
+	ValueChanges           []ValueChange          // Feature #7: Value Change Tracker
+	WaiverRecommendations  []WaiverRecommendation // Feature #10: Advanced Waiver Model
 }
 
 type TiersPage struct {

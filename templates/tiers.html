@@ -412,6 +412,49 @@
                         </div>
                     </div>
                     {{end}}
+
+                    {{if gt (len $l.WaiverRecommendations) 0}}
+                    <div class="toolkit-card collapseable">
+                        <div class="card-header" onclick="toggleSection('waiver-recs-{{$i}}')">
+                            <span class="card-title">
+                                Waiver Wire Targets
+                                <span class="count-badge">{{len $l.WaiverRecommendations}}</span>
+                            </span>
+                            <span class="collapse-icon" id="waiver-recs-{{$i}}-icon">▼</span>
+                        </div>
+                        <div class="card-content" id="waiver-recs-{{$i}}-content">
+                            <div class="waiver-recs-list">
+                                {{range $l.WaiverRecommendations}}
+                                <div class="waiver-rec-item" style="padding:12px;margin-bottom:10px;background:var(--card-bg-alt);border-radius:8px;border-left:3px solid {{if eq .Priority "High"}}#10b981{{else if eq .Priority "Medium"}}#f59e0b{{else}}#6b7280{{end}};">
+                                    <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:6px;">
+                                        <div>
+                                            <div style="font-weight:600;font-size:0.95rem;">{{.Player.Name}}</div>
+                                            <div style="font-size:0.8rem;color:var(--text-secondary);">
+                                                {{.Player.Pos}} | Tier {{.Player.Tier}}
+                                                {{if gt .Player.DynastyValue 0}} | Value: {{.Player.DynastyValue}}{{end}}
+                                            </div>
+                                        </div>
+                                        <div style="text-align:right;">
+                                            <div style="font-size:0.75rem;color:{{if eq .Priority "High"}}#10b981{{else if eq .Priority "Medium"}}#f59e0b{{else}}#6b7280{{end}};font-weight:600;">{{.Priority}}</div>
+                                            <div style="font-size:0.85rem;font-weight:600;margin-top:2px;">{{.SuggestedBid}}% FAAB</div>
+                                        </div>
+                                    </div>
+                                    <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:4px;">
+                                        <span style="padding:2px 6px;background:var(--card-bg);border-radius:4px;font-size:0.75rem;margin-right:6px;">{{.ImpactType}}</span>
+                                        {{.Rationale}}
+                                    </div>
+                                    {{if gt .TierDelta 0.0}}
+                                    <div style="font-size:0.75rem;color:#10b981;">
+                                        +{{printf "%.1f" .TierDelta}} tier upgrade
+                                    </div>
+                                    {{end}}
+                                </div>
+                                {{end}}
+                            </div>
+                        </div>
+                    </div>
+                    {{end}}
+
                     {{if gt $l.CompressedNews.TotalItems 0}}
                     <div class="toolkit-card collapseable">
                         <div class="card-header" onclick="toggleSection('player-news-{{$i}}')">

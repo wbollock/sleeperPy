@@ -1376,6 +1376,13 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			leagueData.ValueChanges = valueChanges
 		}
 
+		// Generate waiver recommendations (Feature #10)
+		if len(freeAgentsByPos) > 0 {
+			waiverRecs := generateWaiverRecommendations(leagueData, freeAgentsByPos, 10, isPremium)
+			leagueData.WaiverRecommendations = waiverRecs
+			debugLog("[DEBUG] Generated %d waiver recommendations", len(waiverRecs))
+		}
+
 		leagueResults = append(leagueResults, leagueData)
 	}
 
