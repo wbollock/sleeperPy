@@ -879,6 +879,12 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 					continue // Only consider skill positions for dynasty
 				}
 
+				// Filter out players without NFL team assignments (undrafted rookies, free agents)
+				team, _ := pm["team"].(string)
+				if team == "" {
+					continue
+				}
+
 				name := getPlayerName(pm)
 				cleanName := normalizeName(name)
 
