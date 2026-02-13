@@ -147,6 +147,13 @@ type TradeFairness struct {
 	DisplayBadge  string  // "🟢 +12%", "🔴 FLEECED", "→ Fair"
 }
 
+type TradeRetrospective struct {
+	Winner      string // Who won the trade overall
+	ValueSwing  int    // How much value swung
+	DaysElapsed int    // Days since trade
+	WinnerGain  string // "+500 value" or similar
+}
+
 type Transaction struct {
 	Type           string // "trade", "waiver", "free_agent"
 	Timestamp      time.Time
@@ -162,7 +169,8 @@ type Transaction struct {
 	NetValue       int   // Net value difference (positive = Team1 gained value)
 	AddedPlayer    string
 	DroppedPlayer  string
-	Fairness       TradeFairness // Feature #3: Trade fairness detection
+	Fairness       TradeFairness      // Feature #3: Trade fairness detection
+	Retrospective  TradeRetrospective // Feature #5: Trade retrospective analysis
 }
 
 type RookieProspect struct {

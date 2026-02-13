@@ -1173,6 +1173,11 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			// Fetch recent league transactions
 			recentTransactions = fetchRecentTransactions(leagueID, week, players, rosters, userNames, dynastyValues, isSuperFlex)
 			debugLog("[DEBUG] Found %d recent transactions", len(recentTransactions))
+
+			// Analyze trade retrospectives (Feature #5)
+			if dynastyValues != nil && len(recentTransactions) > 0 {
+				recentTransactions = analyzeTradeRetrospective(recentTransactions, dynastyValues, isSuperFlex)
+			}
 		}
 
 		// Get top rookies for dynasty leagues

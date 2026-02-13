@@ -645,6 +645,20 @@
                                             {{end}}
                                         </div>
                                         {{end}}
+                                        {{if and (ne .Retrospective.Winner "") (gt .Retrospective.DaysElapsed 0)}}
+                                        <div class="trade-retrospective" style="margin-top:10px;padding:8px;background:var(--card-bg-alt);border-radius:6px;border-left:3px solid #3b82f6;">
+                                            <div style="font-size:0.875rem;font-weight:600;margin-bottom:4px;">
+                                                Trade Update ({{.Retrospective.DaysElapsed}} days later)
+                                            </div>
+                                            <div style="font-size:0.8rem;color:var(--text-secondary);">
+                                                {{if ne .Retrospective.Winner "Even"}}
+                                                Winner: <span style="color:#10b981;font-weight:600;">{{.Retrospective.Winner}}</span> ({{.Retrospective.WinnerGain}})
+                                                {{else}}
+                                                Still roughly even in value
+                                                {{end}}
+                                            </div>
+                                        </div>
+                                        {{end}}
                                         {{else}}
                                         <div class="transaction-desc">{{.Description}}</div>
                                         {{end}}
