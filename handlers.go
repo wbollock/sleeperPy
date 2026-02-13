@@ -1390,6 +1390,13 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			debugLog("[DEBUG] Generated season plan: %s strategy", seasonPlan.Strategy)
 		}
 
+		// Generate rookie draft needs (Feature #12)
+		if isDynasty && len(draftPicks) > 0 {
+			draftStrategy := generateRookieDraftNeeds(leagueData, isPremium)
+			leagueData.DraftStrategy = draftStrategy
+			debugLog("[DEBUG] Generated draft strategy: %s", draftStrategy.OverallApproach)
+		}
+
 		leagueResults = append(leagueResults, leagueData)
 	}
 

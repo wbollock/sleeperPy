@@ -1047,6 +1047,74 @@
                     </div>
                     {{end}}
 
+                    {{if ne $l.DraftStrategy.OverallApproach ""}}
+                    <div class="toolkit-card collapseable">
+                        <div class="card-header" onclick="toggleSection('draft-strategy-{{$i}}')">
+                            <span class="card-title">Rookie Draft Strategy</span>
+                            <span class="collapse-icon" id="draft-strategy-{{$i}}-icon">▼</span>
+                        </div>
+                        <div class="card-content" id="draft-strategy-{{$i}}-content">
+                            <div style="display:grid;gap:16px;">
+                                <div class="strategy-overview" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;">
+                                    <div style="padding:12px;background:var(--card-bg-alt);border-radius:8px;">
+                                        <div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Draft Approach</div>
+                                        <div style="font-weight:600;font-size:0.95rem;color:#3b82f6;">{{$l.DraftStrategy.OverallApproach}}</div>
+                                    </div>
+                                    {{if ne $l.DraftStrategy.PickInventory ""}}
+                                    <div style="padding:12px;background:var(--card-bg-alt);border-radius:8px;">
+                                        <div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Pick Inventory</div>
+                                        <div style="font-weight:600;font-size:0.95rem;">{{$l.DraftStrategy.PickInventory}}</div>
+                                        <div style="font-size:0.75rem;color:var(--text-secondary);margin-top:2px;">{{$l.DraftStrategy.CapitalLevel}} capital</div>
+                                    </div>
+                                    {{end}}
+                                </div>
+
+                                {{if gt (len $l.DraftStrategy.Needs) 0}}
+                                <div class="draft-needs">
+                                    <div style="font-weight:600;margin-bottom:8px;font-size:0.9rem;">Positional Needs</div>
+                                    {{range $l.DraftStrategy.Needs}}
+                                    {{if le .Priority 3}}
+                                    <div style="padding:12px;margin-bottom:8px;background:var(--card-bg-alt);border-radius:6px;border-left:3px solid {{if eq .Priority 1}}#ef4444{{else if eq .Priority 2}}#f59e0b{{else}}#3b82f6{{end}};">
+                                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                                            <div>
+                                                <span style="font-weight:600;font-size:0.95rem;">{{.Position}}</span>
+                                                <span style="margin-left:8px;padding:2px 6px;background:var(--card-bg);border-radius:4px;font-size:0.75rem;color:{{if eq .Priority 1}}#ef4444{{else if eq .Priority 2}}#f59e0b{{else}}#3b82f6{{end}};">
+                                                    {{if eq .Priority 1}}Critical{{else if eq .Priority 2}}High{{else}}Medium{{end}}
+                                                </span>
+                                            </div>
+                                            <div style="font-size:0.8rem;color:var(--text-secondary);">{{.DraftRange}}</div>
+                                        </div>
+                                        <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:4px;">{{.Reasoning}}</div>
+                                        <div style="font-size:0.8rem;color:var(--text-secondary);">
+                                            <div style="margin-bottom:2px;">Target: {{.TargetArchetype}}</div>
+                                            {{if gt .PicksAvailable 0}}
+                                            <div>You have {{.PicksAvailable}} pick{{if ne .PicksAvailable 1}}s{{end}} in this range</div>
+                                            {{end}}
+                                        </div>
+                                    </div>
+                                    {{end}}
+                                    {{end}}
+                                </div>
+                                {{end}}
+
+                                {{if gt (len $l.DraftStrategy.Recommendations) 0}}
+                                <div class="draft-recommendations">
+                                    <div style="font-weight:600;margin-bottom:8px;font-size:0.9rem;">Strategic Guidance</div>
+                                    <div style="padding:12px;background:var(--card-bg-alt);border-radius:8px;">
+                                        {{range $l.DraftStrategy.Recommendations}}
+                                        <div style="font-size:0.85rem;margin-bottom:6px;padding-left:12px;position:relative;">
+                                            <span style="position:absolute;left:0;">→</span>
+                                            {{.}}
+                                        </div>
+                                        {{end}}
+                                    </div>
+                                </div>
+                                {{end}}
+                            </div>
+                        </div>
+                    </div>
+                    {{end}}
+
                     {{if $l.TeamAges}}
                     <div class="toolkit-card collapseable">
                         <div class="card-header" onclick="toggleSection('league-age-{{$i}}')">

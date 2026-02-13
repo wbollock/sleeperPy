@@ -286,6 +286,24 @@ type KeyDate struct {
 	ActionItems []string
 }
 
+type DraftStrategy struct {
+	OverallApproach string
+	Needs           []RookieDraftNeed
+	PickInventory   string
+	CapitalLevel    string
+	Recommendations []string
+}
+
+type RookieDraftNeed struct {
+	Position        string
+	Priority        int
+	Reasoning       string
+	TargetArchetype string
+	DraftRange      string
+	PicksAvailable  int
+	Examples        []string
+}
+
 type LeagueData struct {
 	LeagueName           string
 	Scoring              string
@@ -325,6 +343,7 @@ type LeagueData struct {
 	ValueChanges           []ValueChange          // Feature #7: Value Change Tracker
 	WaiverRecommendations  []WaiverRecommendation // Feature #10: Advanced Waiver Model
 	SeasonPlan             SeasonPlan             // Feature #11: Season Planner
+	DraftStrategy          DraftStrategy          // Feature #12: Rookie Draft Needs
 }
 
 type TiersPage struct {
