@@ -226,3 +226,50 @@ type TiersPage struct {
 type IndexPage struct {
 	SavedUsername string
 }
+
+// Dashboard types for cross-league overview
+type LeagueSummary struct {
+	LeagueID          string
+	LeagueName        string
+	Scoring           string
+	IsDynasty         bool
+	IsSuperFlex       bool
+	LeagueSize        int
+
+	// Dynasty metrics
+	TotalRosterValue  int
+	ValueRank         int     // 1-12
+	ValueTrend        string  // "↗ +5%", "↘ -3%", "→ stable"
+	AvgAge            float64
+	AgeRank           int
+	DraftPicksSummary string // "2026 1st, 2027 1st, 2nd"
+
+	// Season metrics
+	Record         string // "8-5" or empty if offseason
+	PlayoffStatus  string // "Clinched", "In Hunt", "Eliminated", ""
+
+	// Action items (for Feature #2)
+	ActionCount int
+
+	LastUpdated time.Time
+}
+
+type DashboardPage struct {
+	Username        string
+	LeagueSummaries []LeagueSummary
+	TotalLeagues    int
+	DynastyCount    int
+	RedraftCount    int
+}
+
+// Cache for roster value trends (24h comparison)
+type CachedRosterValue struct {
+	RosterValue int
+	Timestamp   time.Time
+}
+
+type valueTrendCache struct {
+	sync.RWMutex
+	data map[string]CachedRosterValue // key: "username:leagueID"
+	ttl  time.Duration
+}

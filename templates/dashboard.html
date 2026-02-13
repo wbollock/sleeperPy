@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - SleeperPy</title>
+    <meta name="description" content="View all your fantasy football leagues at a glance">
+    <link rel="stylesheet" href="/static/main.css?v=20260211d">
+    <link rel="stylesheet" href="/static/theme.css?v=20260211d">
+    <link rel="stylesheet" href="/static/cookie-consent.css?v=20260211d">
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <style>
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .dashboard-header {
+            margin-bottom: 32px;
+        }
+
+        .dashboard-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .dashboard-stats {
+            display: flex;
+            gap: 24px;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .leagues-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .league-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .league-card:hover {
+            border-color: var(--accent-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .league-header {
+            margin-bottom: 16px;
+        }
+
+        .league-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-primary);
+        }
+
+        .league-badges {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .badge-dynasty {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .badge-redraft {
+            background: #8b5cf6;
+            color: white;
+        }
+
+        .badge-sf {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .badge-scoring {
+            background: var(--card-bg-alt);
+            color: var(--text-secondary);
+        }
+
+        .league-metrics {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.875rem;
+        }
+
+        .metric-label {
+            color: var(--text-secondary);
+        }
+
+        .metric-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .trend-up {
+            color: #10b981;
+        }
+
+        .trend-down {
+            color: #ef4444;
+        }
+
+        .trend-stable {
+            color: var(--text-secondary);
+        }
+
+        .playoff-clinched {
+            color: #10b981;
+        }
+
+        .playoff-hunt {
+            color: #f59e0b;
+        }
+
+        .playoff-eliminated {
+            color: #ef4444;
+        }
+
+        .view-league-btn {
+            margin-top: 16px;
+            padding: 10px 16px;
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: opacity 0.2s;
+        }
+
+        .view-league-btn:hover {
+            opacity: 0.9;
+        }
+
+        @media (max-width: 768px) {
+            .leagues-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .dashboard-stats {
+                flex-direction: column;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="app-header" role="banner">
+        <div class="header-content">
+            <div class="logo-section">
+                <svg class="logo-icon" width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <rect width="32" height="32" rx="8" fill="#0ea5e9"/>
+                    <path d="M16 8L22 12V20L16 24L10 20V12L16 8Z" fill="white"/>
+                    <circle cx="16" cy="16" r="3" fill="#0ea5e9"/>
+                </svg>
+                <h1>SleeperPy</h1>
+            </div>
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <div class="theme-toggle">
+                    <button class="theme-option active" data-theme="" onclick="switchTheme('')" title="Default">🌙</button>
+                    <button class="theme-option" data-theme="dark" onclick="switchTheme('dark')" title="Dark">🌑</button>
+                    <button class="theme-option" data-theme="light" onclick="switchTheme('light')" title="Light">☀️</button>
+                </div>
+                <button type="button" class="cache-reset-btn" onclick="clearAppCache()">Clear Cache</button>
+                <div class="user-info">
+                    <span class="username-display">{{.Username}}</span>
+                    <a href="/signout" class="signout-btn">Sign Out</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="dashboard-container">
+        <div class="dashboard-header">
+            <h2 class="dashboard-title">🏈 Your Fantasy Football Empire</h2>
+            <div class="dashboard-stats">
+                <div class="stat-item">
+                    <span>📊</span>
+                    <span>{{.TotalLeagues}} Total Leagues</span>
+                </div>
+                {{if gt .DynastyCount 0}}
+                <div class="stat-item">
+                    <span>👑</span>
+                    <span>{{.DynastyCount}} Dynasty</span>
+                </div>
+                {{end}}
+                {{if gt .RedraftCount 0}}
+                <div class="stat-item">
+                    <span>⚡</span>
+                    <span>{{.RedraftCount}} Redraft</span>
+                </div>
+                {{end}}
+            </div>
+        </div>
+
+        <div class="leagues-grid">
+            {{range .LeagueSummaries}}
+            <div class="league-card" onclick="window.location.href='/lookup?username={{$.Username}}#league-{{.LeagueID}}'">
+                <div class="league-header">
+                    <h3 class="league-name">{{.LeagueName}}</h3>
+                    <div class="league-badges">
+                        {{if .IsDynasty}}
+                        <span class="badge badge-dynasty">Dynasty</span>
+                        {{else}}
+                        <span class="badge badge-redraft">Redraft</span>
+                        {{end}}
+                        {{if .IsSuperFlex}}
+                        <span class="badge badge-sf">SF</span>
+                        {{end}}
+                        <span class="badge badge-scoring">{{.Scoring}}</span>
+                        <span class="badge badge-scoring">{{.LeagueSize}}T</span>
+                    </div>
+                </div>
+
+                <div class="league-metrics">
+                    {{if .IsDynasty}}
+                    {{if gt .TotalRosterValue 0}}
+                    <div class="metric-row">
+                        <span class="metric-label">📊 Roster Value:</span>
+                        <span class="metric-value">{{.TotalRosterValue}} (#{{.ValueRank}}/{{.LeagueSize}})</span>
+                    </div>
+                    {{end}}
+
+                    {{if ne .ValueTrend ""}}
+                    <div class="metric-row">
+                        <span class="metric-label">📈 Trend:</span>
+                        <span class="metric-value {{if contains .ValueTrend "↗"}}trend-up{{else if contains .ValueTrend "↘"}}trend-down{{else}}trend-stable{{end}}">
+                            {{.ValueTrend}}
+                        </span>
+                    </div>
+                    {{end}}
+
+                    {{if gt .AvgAge 0}}
+                    <div class="metric-row">
+                        <span class="metric-label">👴 Avg Age:</span>
+                        <span class="metric-value">{{printf "%.1f" .AvgAge}}</span>
+                    </div>
+                    {{end}}
+
+                    {{if ne .DraftPicksSummary ""}}
+                    <div class="metric-row">
+                        <span class="metric-label">🎯 Draft Picks:</span>
+                        <span class="metric-value">{{.DraftPicksSummary}}</span>
+                    </div>
+                    {{end}}
+                    {{end}}
+
+                    {{if ne .Record ""}}
+                    <div class="metric-row">
+                        <span class="metric-label">📅 Record:</span>
+                        <span class="metric-value">{{.Record}}</span>
+                    </div>
+                    {{end}}
+
+                    {{if ne .PlayoffStatus ""}}
+                    <div class="metric-row">
+                        <span class="metric-label">🏆 Status:</span>
+                        <span class="metric-value {{if contains .PlayoffStatus "Clinched"}}playoff-clinched{{else if contains .PlayoffStatus "Hunt"}}playoff-hunt{{else}}playoff-eliminated{{end}}">
+                            {{.PlayoffStatus}}
+                        </span>
+                    </div>
+                    {{end}}
+
+                    {{if gt .ActionCount 0}}
+                    <div class="metric-row">
+                        <span class="metric-label">⚡ Actions:</span>
+                        <span class="metric-value">{{.ActionCount}} pending</span>
+                    </div>
+                    {{end}}
+                </div>
+
+                <button class="view-league-btn">View League →</button>
+            </div>
+            {{end}}
+        </div>
+    </main>
+
+    <script src="/static/theme.js?v=20260211d"></script>
+    <script src="/static/cookie-consent.js?v=20260211d"></script>
+    <script>
+        function clearAppCache() {
+            localStorage.clear();
+            document.cookie.split(";").forEach(c => {
+                document.cookie = c.trim().split("=")[0] + "=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/";
+            });
+            alert("Cache cleared!");
+        }
+    </script>
+</body>
+</html>

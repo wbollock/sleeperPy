@@ -58,6 +58,9 @@
                     <h1>SleeperPy</h1>
                 </div>
                 <div style="display: flex; align-items: center; gap: 16px;">
+                    {{if .SavedUsername}}
+                    <a href="/dashboard?user={{.SavedUsername}}" style="padding:8px 16px; background:#0ea5e9; color:#fff; border-radius:8px; text-decoration:none; font-weight:600; transition:opacity 0.2s;">Dashboard</a>
+                    {{end}}
                     <div class="theme-toggle">
                         <button class="theme-option active" data-theme="" onclick="switchTheme('')" title="Default">🌙</button>
                         <button class="theme-option" data-theme="dark" onclick="switchTheme('dark')" title="Dark">🌑</button>

@@ -49,6 +49,11 @@ var sleeperPlayersCache = &playersCache{
 	ttl: 1 * time.Hour, // Cache players data for 1 hour
 }
 
+var rosterValueTrendCache = &valueTrendCache{
+	data: make(map[string]CachedRosterValue),
+	ttl:  24 * time.Hour, // Compare values over 24 hours
+}
+
 func debugLog(format string, v ...interface{}) {
 	if logLevel == "debug" {
 		log.Printf(format, v...)
@@ -225,6 +230,7 @@ func main() {
 
 	http.Handle("/", wrapHandler("index", visitorLogging(indexHandler)))
 	http.Handle("/lookup", wrapHandler("lookup", lookupHandler))
+	http.Handle("/dashboard", wrapHandler("dashboard", dashboardHandler))
 	http.Handle("/signout", wrapHandler("signout", signoutHandler))
 	http.Handle("/privacy", wrapHandler("privacy", privacyHandler))
 	http.Handle("/terms", wrapHandler("terms", termsHandler))
@@ -239,11 +245,11 @@ func main() {
 	http.Handle("/admin/api", wrapHandler("admin_api", adminAPIHandler))
 
 	if testMode {
-		log.Printf("Server running on http://localhost:%s (log level: %s, TEST MODE ENABLED)", port, logLevel)
+		log.Printf("Server running on 0.0.0.0:%s (log level: %s, TEST MODE ENABLED)", port, logLevel)
 		log.Printf("  → Use username 'testuser' to see mock data")
 		log.Printf("  → 3 test leagues will be loaded with mock tiers")
 	} else {
-		log.Printf("Server running on http://localhost:%s (log level: %s)", port, logLevel)
+		log.Printf("Server running on 0.0.0.0:%s (listening on all interfaces, log level: %s)", port, logLevel)
 	}
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }

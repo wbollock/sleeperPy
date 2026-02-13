@@ -1371,6 +1371,398 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func dashboardHandler(w http.ResponseWriter, r *http.Request) {
+	debugLog("[DEBUG] /dashboard handler called")
+
+	// Get username from query param or cookie
+	username := r.URL.Query().Get("user")
+	if username == "" {
+		if cookie, err := r.Cookie("sleeper_username"); err == nil {
+			username = cookie.Value
+		}
+	}
+
+	if username == "" {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	// Build dashboard data
+	dashboardPage, err := buildDashboardPage(username)
+	if err != nil {
+		log.Printf("[ERROR] Failed to build dashboard: %v", err)
+		renderError(w, fmt.Sprintf("Failed to load dashboard: %v", err))
+		return
+	}
+
+	// Render dashboard template
+	if err := templates.ExecuteTemplate(w, "dashboard.html", dashboardPage); err != nil {
+		log.Printf("[ERROR] Template execution error: %v", err)
+		http.Error(w, "Error rendering dashboard", http.StatusInternalServerError)
+	}
+}
+
+func buildDashboardPage(username string) (*DashboardPage, error) {
+	// 1. Get user ID
+	user, err := fetchJSON(fmt.Sprintf("https://api.sleeper.app/v1/user/%s", username))
+	if err != nil || user["user_id"] == nil {
+		return nil, fmt.Errorf("user not found")
+	}
+	userID := user["user_id"].(string)
+
+	// 2. Get leagues (current + previous year)
+	year := time.Now().Year()
+	leagues, err := fetchJSONArray(fmt.Sprintf("https://api.sleeper.app/v1/user/%s/leagues/nfl/%d", userID, year))
+	if err != nil {
+		debugLog("[DEBUG] Error fetching leagues for year %d: %v", year, err)
+	}
+
+	previousYear := year - 1
+	previousYearLeagues, err := fetchJSONArray(fmt.Sprintf("https://api.sleeper.app/v1/user/%s/leagues/nfl/%d", userID, previousYear))
+	if err == nil {
+		leagues = append(leagues, previousYearLeagues...)
+	}
+
+	if len(leagues) == 0 {
+		return nil, fmt.Errorf("no leagues found")
+	}
+
+	// 3. Get players data (for dynasty values and age)
+	players, err := fetchPlayers()
+	if err != nil {
+		return nil, fmt.Errorf("could not fetch player data: %v", err)
+	}
+
+	// 4. Fetch dynasty values if needed
+	var dynastyValues map[string]DynastyValue
+	hasDynasty := false
+	for _, league := range leagues {
+		if isDynastyLeague(league) {
+			hasDynasty = true
+			break
+		}
+	}
+	if hasDynasty {
+		dynastyValues, _ = fetchDynastyValues()
+	}
+
+	// 5. Build summary for each league
+	var summaries []LeagueSummary
+	dynastyCount := 0
+	redraftCount := 0
+
+	for _, league := range leagues {
+		leagueID := league["league_id"].(string)
+		leagueName := league["name"].(string)
+		isDynasty := isDynastyLeague(league)
+
+		if isDynasty {
+			dynastyCount++
+		} else {
+			redraftCount++
+		}
+
+		// Get league size
+		rosters, err := fetchJSONArray(fmt.Sprintf("https://api.sleeper.app/v1/league/%s/rosters", leagueID))
+		if err != nil {
+			debugLog("[DEBUG] Error fetching rosters for league %s: %v", leagueName, err)
+			continue
+		}
+		leagueSize := len(rosters)
+
+		// Determine scoring type
+		scoring := "PPR"
+		if scoringSettings, ok := league["scoring_settings"].(map[string]interface{}); ok {
+			if rec, ok := scoringSettings["rec"].(float64); ok {
+				if rec == 0.5 {
+					scoring = "Half PPR"
+				} else if rec == 0.0 {
+					scoring = "Standard"
+				}
+			}
+		}
+
+		// Check if superflex
+		isSuperFlex := false
+		if rosterPositions, ok := league["roster_positions"].([]interface{}); ok {
+			for _, pos := range rosterPositions {
+				if posStr, ok := pos.(string); ok && posStr == "SUPER_FLEX" {
+					isSuperFlex = true
+					break
+				}
+			}
+		}
+
+		summary := LeagueSummary{
+			LeagueID:    leagueID,
+			LeagueName:  leagueName,
+			Scoring:     scoring,
+			IsDynasty:   isDynasty,
+			IsSuperFlex: isSuperFlex,
+			LeagueSize:  leagueSize,
+			LastUpdated: time.Now(),
+		}
+
+		// Find user's roster
+		var userRoster map[string]interface{}
+		for _, r := range rosters {
+			if r["owner_id"] == userID {
+				userRoster = r
+				break
+			}
+		}
+
+		if userRoster == nil {
+			debugLog("[DEBUG] User roster not found in league %s", leagueName)
+			summaries = append(summaries, summary)
+			continue
+		}
+
+		// Get user's record (wins/losses)
+		if settings, ok := userRoster["settings"].(map[string]interface{}); ok {
+			wins := 0
+			losses := 0
+			if w, ok := settings["wins"].(float64); ok {
+				wins = int(w)
+			}
+			if l, ok := settings["losses"].(float64); ok {
+				losses = int(l)
+			}
+			if wins > 0 || losses > 0 {
+				summary.Record = fmt.Sprintf("%d-%d", wins, losses)
+
+				// Simple playoff status (need >50% win rate and >6 wins)
+				totalGames := wins + losses
+				if totalGames > 0 {
+					winPct := float64(wins) / float64(totalGames)
+					if winPct >= 0.6 && wins >= 6 {
+						summary.PlayoffStatus = "Clinched ✓"
+					} else if winPct >= 0.45 {
+						summary.PlayoffStatus = "In Hunt"
+					} else {
+						summary.PlayoffStatus = "Eliminated"
+					}
+				}
+			}
+		}
+
+		// Dynasty-specific metrics
+		if isDynasty && dynastyValues != nil && len(dynastyValues) > 0 {
+			// Calculate total roster value and rank
+			playerIDs, _ := userRoster["players"].([]interface{})
+			totalValue := 0
+			totalAge := 0.0
+			playerCount := 0
+
+			for _, pid := range playerIDs {
+				playerID := pid.(string)
+				if player, ok := players[playerID].(map[string]interface{}); ok {
+					playerName, _ := player["full_name"].(string)
+					normName := normalizeName(playerName)
+
+					if dv, exists := dynastyValues[normName]; exists {
+						value := dv.Value1QB
+						if isSuperFlex {
+							value = dv.Value2QB
+						}
+						totalValue += value
+					}
+
+					// Calculate age
+					if ageFloat, ok := player["age"].(float64); ok {
+						totalAge += ageFloat
+						playerCount++
+					}
+				}
+			}
+
+			summary.TotalRosterValue = totalValue
+			if playerCount > 0 {
+				summary.AvgAge = totalAge / float64(playerCount)
+			}
+
+			// Calculate value rank
+			var allRosterValues []int
+			for _, roster := range rosters {
+				pids, _ := roster["players"].([]interface{})
+				rosterValue := 0
+				for _, pid := range pids {
+					playerID := pid.(string)
+					if player, ok := players[playerID].(map[string]interface{}); ok {
+						playerName, _ := player["full_name"].(string)
+						normName := normalizeName(playerName)
+						if dv, exists := dynastyValues[normName]; exists {
+							value := dv.Value1QB
+							if isSuperFlex {
+								value = dv.Value2QB
+							}
+							rosterValue += value
+						}
+					}
+				}
+				allRosterValues = append(allRosterValues, rosterValue)
+			}
+
+			// Sort and find rank
+			sort.Sort(sort.Reverse(sort.IntSlice(allRosterValues)))
+			for i, val := range allRosterValues {
+				if val == totalValue {
+					summary.ValueRank = i + 1
+					break
+				}
+			}
+
+			// Calculate value trend
+			summary.ValueTrend = getValueTrend(username, leagueID, totalValue)
+
+			// Get draft picks summary
+			summary.DraftPicksSummary = getDraftPicksSummary(leagueID, userRoster)
+		}
+
+		summaries = append(summaries, summary)
+	}
+
+	// Sort: dynasty first, then by name
+	sort.Slice(summaries, func(i, j int) bool {
+		if summaries[i].IsDynasty != summaries[j].IsDynasty {
+			return summaries[i].IsDynasty
+		}
+		return summaries[i].LeagueName < summaries[j].LeagueName
+	})
+
+	return &DashboardPage{
+		Username:        username,
+		LeagueSummaries: summaries,
+		TotalLeagues:    len(summaries),
+		DynastyCount:    dynastyCount,
+		RedraftCount:    redraftCount,
+	}, nil
+}
+
+func getValueTrend(username, leagueID string, currentValue int) string {
+	cacheKey := fmt.Sprintf("%s:%s", username, leagueID)
+
+	rosterValueTrendCache.RLock()
+	cached, exists := rosterValueTrendCache.data[cacheKey]
+	rosterValueTrendCache.RUnlock()
+
+	// If no cached value or too old, cache current and return stable
+	if !exists || time.Since(cached.Timestamp) > rosterValueTrendCache.ttl {
+		rosterValueTrendCache.Lock()
+		rosterValueTrendCache.data[cacheKey] = CachedRosterValue{
+			RosterValue: currentValue,
+			Timestamp:   time.Now(),
+		}
+		rosterValueTrendCache.Unlock()
+		return "→ stable"
+	}
+
+	// Calculate trend
+	delta := currentValue - cached.RosterValue
+	if cached.RosterValue == 0 {
+		return "→ stable"
+	}
+
+	deltaPct := float64(delta) / float64(cached.RosterValue) * 100
+
+	// Update cache with current value
+	rosterValueTrendCache.Lock()
+	rosterValueTrendCache.data[cacheKey] = CachedRosterValue{
+		RosterValue: currentValue,
+		Timestamp:   time.Now(),
+	}
+	rosterValueTrendCache.Unlock()
+
+	if deltaPct >= 1.0 {
+		return fmt.Sprintf("↗ +%.0f%%", deltaPct)
+	} else if deltaPct <= -1.0 {
+		return fmt.Sprintf("↘ %.0f%%", deltaPct)
+	}
+	return "→ stable"
+}
+
+func getDraftPicksSummary(leagueID string, userRoster map[string]interface{}) string {
+	// Fetch traded picks from API
+	tradedPicks, err := fetchJSONArray(fmt.Sprintf("https://api.sleeper.app/v1/league/%s/traded_picks", leagueID))
+	if err != nil {
+		debugLog("[DEBUG] Error fetching traded picks: %v", err)
+		return ""
+	}
+
+	rosterID := int(userRoster["roster_id"].(float64))
+	year := time.Now().Year()
+
+	// Count user's picks for next 2 years
+	type PickCount struct {
+		Year  int
+		Round int
+	}
+	userPickMap := make(map[PickCount]bool)
+
+	// Start with default picks (user owns their own picks by default)
+	for y := year; y < year+2; y++ {
+		userPickMap[PickCount{Year: y, Round: 1}] = true
+		userPickMap[PickCount{Year: y, Round: 2}] = true
+	}
+
+	// Apply traded picks
+	for _, trade := range tradedPicks {
+		season, seasonOk := trade["season"].(string)
+		round, roundOk := trade["round"].(float64)
+		ownerID, ownerOk := trade["owner_id"].(float64)
+		originalRosterID, origOk := trade["roster_id"].(float64)
+
+		if !seasonOk || !roundOk || !ownerOk || !origOk {
+			continue
+		}
+
+		tradeYear := 0
+		fmt.Sscanf(season, "%d", &tradeYear)
+		if tradeYear < year || tradeYear >= year+2 {
+			continue
+		}
+
+		pc := PickCount{Year: tradeYear, Round: int(round)}
+
+		// If user traded away their pick
+		if int(originalRosterID) == rosterID && int(ownerID) != rosterID {
+			delete(userPickMap, pc)
+		}
+
+		// If user acquired someone else's pick
+		if int(originalRosterID) != rosterID && int(ownerID) == rosterID {
+			userPickMap[pc] = true
+		}
+	}
+
+	// Build summary string
+	var picks []string
+	for pc := range userPickMap {
+		roundStr := "th"
+		if pc.Round == 1 {
+			roundStr = "st"
+		} else if pc.Round == 2 {
+			roundStr = "nd"
+		} else if pc.Round == 3 {
+			roundStr = "rd"
+		}
+		picks = append(picks, fmt.Sprintf("%d %d%s", pc.Year, pc.Round, roundStr))
+	}
+
+	if len(picks) == 0 {
+		return "None"
+	}
+
+	sort.Strings(picks)
+
+	// Limit to first 3
+	if len(picks) > 3 {
+		return strings.Join(picks[:3], ", ") + "..."
+	}
+
+	return strings.Join(picks, ", ")
+}
+
 func renderError(w http.ResponseWriter, msg string) {
 	username := ""
 	if u := w.Header().Get("X-Username"); u != "" {
