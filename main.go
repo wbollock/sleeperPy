@@ -144,6 +144,9 @@ var funcMap = template.FuncMap{
 		}
 		return n
 	},
+	"contains": func(s, substr string) bool {
+		return strings.Contains(s, substr)
+	},
 	"formatTime": func(t time.Time) string {
 		if t.IsZero() {
 			return "Unknown"
