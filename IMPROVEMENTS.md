@@ -24,10 +24,12 @@
    - Solution: Consider CDN or asset optimization
 
 ### Quick Wins
-- [ ] Add gzip compression for responses
+- [x] Add gzip compression for responses (DONE - ~70% bandwidth reduction)
+- [x] Reduce default free agent limit from 30 to 20 (DONE)
+- [x] Add Cache-Control headers for static assets (DONE - 1 year cache)
 - [ ] Minify CSS/JS
-- [ ] Reduce default free agent limit (currently 30, maybe 20?)
 - [ ] Add loading states to improve perceived performance
+- [ ] Optimize database queries (if any added later)
 
 ## Bug Hunting
 

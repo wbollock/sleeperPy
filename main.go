@@ -232,8 +232,14 @@ func main() {
 		http.HandleFunc("/boris/mock/", mockBorisTiersHandler)
 	}
 
+	// Static file server with cache headers
 	fs := http.FileServer(http.Dir("static"))
-	http.Handle("/static/", http.StripPrefix("/static/", fs))
+	staticHandler := http.StripPrefix("/static/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Set cache headers for static assets (1 year for immutable assets)
+		w.Header().Set("Cache-Control", "public, max-age=31536000")
+		fs.ServeHTTP(w, r)
+	}))
+	http.Handle("/static/", staticHandler)
 
 	// Gzip middleware
 	gzipMiddleware := func(next http.Handler) http.Handler {
