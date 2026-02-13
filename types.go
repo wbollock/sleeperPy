@@ -267,6 +267,25 @@ type WaiverRecommendation struct {
 	PositionScarcity int
 }
 
+type SeasonPlan struct {
+	CurrentPhase     string
+	PhaseDescription string
+	Strategy         string
+	KeyDates         []KeyDate
+	Recommendations  []string
+	TradeWindow      string
+	NextMilestone    string
+	WeeksRemaining   int
+}
+
+type KeyDate struct {
+	Date        time.Time
+	Label       string
+	DaysAway    int
+	Importance  string
+	ActionItems []string
+}
+
 type LeagueData struct {
 	LeagueName           string
 	Scoring              string
@@ -305,6 +324,7 @@ type LeagueData struct {
 	ContextCards           []ContextCard          // Feature #6: League Context Cards
 	ValueChanges           []ValueChange          // Feature #7: Value Change Tracker
 	WaiverRecommendations  []WaiverRecommendation // Feature #10: Advanced Waiver Model
+	SeasonPlan             SeasonPlan             // Feature #11: Season Planner
 }
 
 type TiersPage struct {

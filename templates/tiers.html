@@ -379,6 +379,78 @@
                         </div>
                     </div>
                     {{end}}
+
+                    {{if ne $l.SeasonPlan.Strategy ""}}
+                    <div class="toolkit-card collapseable">
+                        <div class="card-header" onclick="toggleSection('season-plan-{{$i}}')">
+                            <span class="card-title">Season Plan</span>
+                            <span class="collapse-icon" id="season-plan-{{$i}}-icon">▼</span>
+                        </div>
+                        <div class="card-content" id="season-plan-{{$i}}-content">
+                            <div style="display:grid;gap:16px;">
+                                <div class="plan-overview" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;">
+                                    <div style="padding:12px;background:var(--card-bg-alt);border-radius:8px;">
+                                        <div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Current Phase</div>
+                                        <div style="font-weight:600;font-size:0.95rem;">{{$l.SeasonPlan.CurrentPhase}}</div>
+                                        <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:4px;">{{$l.SeasonPlan.PhaseDescription}}</div>
+                                    </div>
+                                    <div style="padding:12px;background:var(--card-bg-alt);border-radius:8px;">
+                                        <div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Strategy</div>
+                                        <div style="font-weight:600;font-size:0.95rem;color:#3b82f6;">{{$l.SeasonPlan.Strategy}}</div>
+                                        {{if ne $l.SeasonPlan.TradeWindow ""}}
+                                        <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:4px;">Trade: {{$l.SeasonPlan.TradeWindow}}</div>
+                                        {{end}}
+                                    </div>
+                                    {{if gt $l.SeasonPlan.WeeksRemaining 0}}
+                                    <div style="padding:12px;background:var(--card-bg-alt);border-radius:8px;">
+                                        <div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Timeline</div>
+                                        <div style="font-weight:600;font-size:0.95rem;">{{$l.SeasonPlan.WeeksRemaining}} weeks left</div>
+                                        {{if ne $l.SeasonPlan.NextMilestone ""}}
+                                        <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:4px;">{{$l.SeasonPlan.NextMilestone}}</div>
+                                        {{end}}
+                                    </div>
+                                    {{end}}
+                                </div>
+
+                                {{if gt (len $l.SeasonPlan.KeyDates) 0}}
+                                <div class="key-dates">
+                                    <div style="font-weight:600;margin-bottom:8px;font-size:0.9rem;">Key Dates</div>
+                                    {{range $l.SeasonPlan.KeyDates}}
+                                    <div style="padding:10px;margin-bottom:8px;background:var(--card-bg-alt);border-radius:6px;border-left:3px solid {{if eq .Importance "Critical"}}#ef4444{{else if eq .Importance "High"}}#f59e0b{{else}}#3b82f6{{end}};">
+                                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                            <div style="font-weight:600;font-size:0.9rem;">{{.Label}}</div>
+                                            <div style="font-size:0.8rem;color:var(--text-secondary);">{{.DaysAway}} days</div>
+                                        </div>
+                                        {{if gt (len .ActionItems) 0}}
+                                        <div style="font-size:0.8rem;color:var(--text-secondary);">
+                                            {{range .ActionItems}}
+                                            <div style="margin-top:4px;">• {{.}}</div>
+                                            {{end}}
+                                        </div>
+                                        {{end}}
+                                    </div>
+                                    {{end}}
+                                </div>
+                                {{end}}
+
+                                {{if gt (len $l.SeasonPlan.Recommendations) 0}}
+                                <div class="recommendations">
+                                    <div style="font-weight:600;margin-bottom:8px;font-size:0.9rem;">Strategic Recommendations</div>
+                                    <div style="padding:12px;background:var(--card-bg-alt);border-radius:8px;">
+                                        {{range $l.SeasonPlan.Recommendations}}
+                                        <div style="font-size:0.85rem;margin-bottom:6px;padding-left:12px;position:relative;">
+                                            <span style="position:absolute;left:0;">→</span>
+                                            {{.}}
+                                        </div>
+                                        {{end}}
+                                    </div>
+                                </div>
+                                {{end}}
+                            </div>
+                        </div>
+                    </div>
+                    {{end}}
+
                     {{if gt (len $l.ValueChanges) 0}}
                     <div class="toolkit-card collapseable">
                         <div class="card-header" onclick="toggleSection('value-changes-{{$i}}')">

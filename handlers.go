@@ -1383,6 +1383,13 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			debugLog("[DEBUG] Generated %d waiver recommendations", len(waiverRecs))
 		}
 
+		// Generate season plan (Feature #11)
+		if isDynasty {
+			seasonPlan := generateSeasonPlan(leagueData, isPremium)
+			leagueData.SeasonPlan = seasonPlan
+			debugLog("[DEBUG] Generated season plan: %s strategy", seasonPlan.Strategy)
+		}
+
 		leagueResults = append(leagueResults, leagueData)
 	}
 
