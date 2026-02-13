@@ -359,7 +359,60 @@
                     {{if $l.DynastyValueDate}}
                     <div class="dynasty-source-info">Dynasty values from <a href="https://github.com/dynastyprocess/data" target="_blank" rel="noopener">DynastyProcess</a> · Updated {{$l.DynastyValueDate}}</div>
                     {{end}}
-                    {{if $l.PlayerNewsFeed}}
+                    {{if gt $l.CompressedNews.TotalItems 0}}
+                    <div class="toolkit-card collapseable">
+                        <div class="card-header" onclick="toggleSection('player-news-{{$i}}')">
+                            <span class="card-title">
+                                📰 {{$l.CompressedNews.TimeWindow}} - Your Players
+                                <span class="news-count">Top {{len $l.CompressedNews.TopHeadlines}}/{{$l.CompressedNews.TotalItems}}</span>
+                            </span>
+                            <span class="collapse-icon" id="player-news-{{$i}}-icon">▼</span>
+                        </div>
+                        <div class="card-content" id="player-news-{{$i}}-content">
+                            <div class="news-feed-compressed">
+                                {{range $idx, $news := $l.CompressedNews.TopHeadlines}}
+                                <div class="news-item-compressed{{if $news.InjuryStatus}} news-injury{{end}}">
+                                    <div class="news-rank">{{add $idx 1}}.</div>
+                                    <div class="news-content-compressed">
+                                        <div class="news-header-compressed">
+                                            <span class="news-icon">
+                                                {{if or (eq $news.InjuryStatus "Out") (eq $news.InjuryStatus "IR")}}🔴
+                                                {{else if eq $news.InjuryStatus "Doubtful"}}🟡
+                                                {{else if eq $news.InjuryStatus "Questionable"}}⚠️
+                                                {{else}}💬{{end}}
+                                            </span>
+                                            <span class="news-player-compressed">
+                                                {{$news.PlayerName}}
+                                                {{if $news.IsStarter}}<span class="starter-badge">⭐</span>{{end}}
+                                            </span>
+                                            {{if $news.InjuryStatus}}
+                                            <span class="news-injury-badge">{{$news.InjuryStatus}}</span>
+                                            {{end}}
+                                        </div>
+                                        {{if $news.NewsText}}
+                                        <div class="news-text-compressed">{{$news.NewsText}}</div>
+                                        {{else if $news.InjuryBodyPart}}
+                                        <div class="news-text-compressed">{{$news.InjuryBodyPart}}{{if $news.InjuryNotes}} - {{$news.InjuryNotes}}{{end}}</div>
+                                        {{end}}
+                                        <div class="news-footer-compressed">
+                                            <span class="news-time-compressed">{{formatTime $news.Timestamp}}</span>
+                                            <span class="news-importance">Priority: {{$news.ImportanceScore}}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                {{end}}
+                            </div>
+                            {{if gt $l.CompressedNews.TotalItems 3}}
+                            <div class="news-view-all" style="margin-top:12px;text-align:center;padding-top:12px;border-top:1px solid var(--border-color);">
+                                <button class="toggle-btn" onclick="toggleFullNews({{$i}})" style="padding:6px 16px;background:var(--accent-color);color:white;border:none;border-radius:6px;cursor:pointer;font-size:0.875rem;">
+                                    View All {{$l.CompressedNews.TotalItems}} News Items
+                                </button>
+                            </div>
+                            {{end}}
+                        </div>
+                    </div>
+                    {{else if gt (len $l.PlayerNewsFeed) 0}}
+                    <!-- Fallback to full feed if compression yielded no results -->
                     <div class="toolkit-card collapseable">
                         <div class="card-header" onclick="toggleSection('player-news-{{$i}}')">
                             <span class="card-title">
@@ -387,9 +440,6 @@
                                     {{else if .InjuryBodyPart}}
                                     <div class="news-text">{{.InjuryBodyPart}}{{if .InjuryNotes}} - {{.InjuryNotes}}{{end}}</div>
                                     {{end}}
-                                    {{if .Source}}
-                                    <div class="news-source">Source: {{.Source}}</div>
-                                    {{end}}
                                 </div>
                                 {{end}}
                             </div>
@@ -399,7 +449,7 @@
                     <div class="toolkit-card collapseable">
                         <div class="card-header" onclick="toggleSection('player-news-{{$i}}')">
                             <span class="card-title">
-                                Player News
+                                📰 Player News
                                 <span class="news-count">0</span>
                             </span>
                             <span class="collapse-icon" id="player-news-{{$i}}-icon">▼</span>
@@ -409,7 +459,11 @@
                                 <div class="empty-state-icon">📰</div>
                                 <div class="empty-state-title">No Recent News</div>
                                 <div class="empty-state-text">
+                                    {{if eq $l.CompressedNews.TimeWindow "Last 3 Months"}}
+                                    Quiet offseason - check back during training camp.
+                                    {{else}}
                                     All your players are flying under the radar. Check back later for updates.
+                                    {{end}}
                                 </div>
                             </div>
                         </div>

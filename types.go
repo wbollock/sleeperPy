@@ -118,16 +118,23 @@ type TradeTarget struct {
 }
 
 type PlayerNews struct {
-	PlayerName     string
-	Position       string
-	NewsText       string
-	Source         string
-	Timestamp      time.Time
-	InjuryStatus   string
-	InjuryBodyPart string
-	InjuryNotes    string
-	IsStarter      bool
-	DynastyValue   int
+	PlayerName      string
+	Position        string
+	NewsText        string
+	Source          string
+	Timestamp       time.Time
+	InjuryStatus    string
+	InjuryBodyPart  string
+	InjuryNotes     string
+	IsStarter       bool
+	DynastyValue    int
+	ImportanceScore int // Feature #4: 0-200 range for news prioritization
+}
+
+type CompressedNews struct {
+	TimeWindow   string       // "This Week" or "Last 3 Months"
+	TopHeadlines []PlayerNews // Max 3 items
+	TotalItems   int          // Total news items for user's players
 }
 
 type TradeFairness struct {
@@ -234,7 +241,8 @@ type LeagueData struct {
 	TopRookies           []RookieProspect
 	LeagueTrends         LeagueTrends
 	PremiumTeamTalk      string
-	WeeklyActions        []Action // Feature #2: Weekly Action List
+	WeeklyActions        []Action       // Feature #2: Weekly Action List
+	CompressedNews       CompressedNews // Feature #4: News Signal Compression
 }
 
 type TiersPage struct {

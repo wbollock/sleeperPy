@@ -1320,6 +1320,12 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		// Generate weekly actions (Feature #2)
 		leagueData.WeeklyActions = buildWeeklyActions(leagueData)
 
+		// Compress player news (Feature #4)
+		if len(playerNewsFeed) > 0 {
+			userPlayerNames := extractPlayerNames(startersRows, benchRows)
+			leagueData.CompressedNews = compressPlayerNews(playerNewsFeed, userPlayerNames, isDynasty)
+		}
+
 		leagueResults = append(leagueResults, leagueData)
 	}
 
