@@ -269,6 +269,10 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		dynastyValues, dynastyValueDate = fetchDynastyValues()
 	}
 
+	// Check if user has premium access and if premium features are enabled
+	isPremium := isPremiumUsername(username)
+	premiumEnabled := hasOpenRouterKey()
+
 	// 5. Process each league
 	var leagueResults []LeagueData
 	log.Printf("[INFO] Processed %s with %d leagues", username, len(leagues))
@@ -1253,6 +1257,37 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			// Find trade targets
 			tradeTargets = findTradeTargets(userFullRoster, allRosters, teamNamesMap, int(userRosterID))
 			debugLog("[DEBUG] Found %d trade targets", len(tradeTargets))
+
+			// Generate trade proposals for each target (Feature #9)
+			for i := range tradeTargets {
+				target := &tradeTargets[i]
+				targetRosterID := 0
+
+				// Find the roster ID for this target team
+				for rosterID, teamName := range teamNamesMap {
+					if teamName == target.TeamName {
+						targetRosterID = rosterID
+						break
+					}
+				}
+
+				if targetRosterID != 0 {
+					if targetRoster, ok := allRosters[targetRosterID]; ok {
+						proposal := generateTradeProposal(
+							userFullRoster,
+							targetRoster,
+							target.TeamName,
+							target.YourSurplus,
+							target.TheirSurplus,
+							dynastyValues,
+							isSuperFlex,
+							premiumEnabled,
+						)
+						target.Proposal = &proposal
+						debugLog("[DEBUG] Generated trade proposal for %s", target.TeamName)
+					}
+				}
+			}
 		}
 
 		avgTier := avg(starterTiers)
@@ -1363,8 +1398,6 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	http.SetCookie(w, cookie)
 
-	isPremium := isPremiumUsername(username)
-	premiumEnabled := hasOpenRouterKey()
 	premiumOverview := ""
 
 	if isPremium && premiumEnabled && llmMode != "" {

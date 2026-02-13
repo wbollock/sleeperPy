@@ -1047,6 +1047,43 @@
                                             <span class="surplus-value">{{.TheirSurplus}} ({{.TheirSurplusKTC}} value)</span>
                                         </div>
                                     </div>
+
+                                    {{if .Proposal}}
+                                    <div class="trade-proposal" style="margin-top:12px;padding:12px;background:var(--card-bg-alt);border-radius:8px;border-left:3px solid #3b82f6;">
+                                        <div style="font-weight:600;margin-bottom:8px;font-size:0.9rem;">Suggested Trade</div>
+
+                                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+                                            <div>
+                                                <div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">You Send</div>
+                                                {{range .Proposal.YourOffer}}
+                                                <div style="font-size:0.85rem;">{{.Name}} ({{.DynastyValue}})</div>
+                                                {{end}}
+                                            </div>
+                                            <div>
+                                                <div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">You Receive</div>
+                                                {{range .Proposal.TheirReturn}}
+                                                <div style="font-size:0.85rem;">{{.Name}} ({{.DynastyValue}})</div>
+                                                {{end}}
+                                            </div>
+                                        </div>
+
+                                        <div style="margin-bottom:8px;font-size:0.85rem;color:var(--text-secondary);">
+                                            <strong>Rationale:</strong> {{.Proposal.Rationale}}
+                                        </div>
+
+                                        <div style="margin-bottom:12px;display:flex;gap:8px;font-size:0.8rem;">
+                                            <span style="padding:4px 8px;background:var(--card-bg);border-radius:4px;">
+                                                {{if gt .Proposal.ValueDelta 0}}✓{{else if lt .Proposal.ValueDelta 0}}⚠{{else}}→{{end}} {{.Proposal.Fairness}}
+                                            </span>
+                                            <span style="padding:4px 8px;background:var(--card-bg);border-radius:4px;">Risk: {{.Proposal.RiskLevel}}</span>
+                                        </div>
+
+                                        <details style="margin-top:8px;">
+                                            <summary style="cursor:pointer;font-size:0.85rem;color:#3b82f6;user-select:none;">View Draft Message</summary>
+                                            <div style="margin-top:8px;padding:10px;background:var(--card-bg);border-radius:6px;font-size:0.85rem;white-space:pre-wrap;font-family:inherit;">{{.Proposal.DraftMessage}}</div>
+                                        </details>
+                                    </div>
+                                    {{end}}
                                 </div>
                                 {{end}}
                             {{else}}

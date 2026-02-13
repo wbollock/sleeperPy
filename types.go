@@ -115,6 +115,27 @@ type TradeTarget struct {
 	TheirSurplus    string
 	YourSurplusKTC  int
 	TheirSurplusKTC int
+	Proposal        *TradeProposal // Feature #9: Trade coach proposal
+}
+
+type TradeProposal struct {
+	TargetTeamName string
+	YourOffer      []ProposalPlayer
+	TheirReturn    []ProposalPlayer
+	ValueDelta     int
+	Fairness       string
+	DraftMessage   string
+	Rationale      string
+	RiskLevel      string
+	WinNowImpact   int
+	FutureImpact   int
+}
+
+type ProposalPlayer struct {
+	Name         string
+	Position     string
+	DynastyValue int
+	Tier         string
 }
 
 type PlayerNews struct {
