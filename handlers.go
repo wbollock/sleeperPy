@@ -1407,7 +1407,7 @@ func dashboardHandler(w http.ResponseWriter, r *http.Request) {
 	// Render dashboard template
 	if err := templates.ExecuteTemplate(w, "dashboard.html", dashboardPage); err != nil {
 		log.Printf("[ERROR] Template execution error: %v", err)
-		http.Error(w, "Error rendering dashboard", http.StatusInternalServerError)
+		http.Error(w, fmt.Sprintf("Error rendering dashboard: %v", err), http.StatusInternalServerError)
 	}
 }
 

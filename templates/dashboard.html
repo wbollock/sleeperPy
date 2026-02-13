@@ -267,7 +267,7 @@
                     </div>
                     {{end}}
 
-                    {{if gt .AvgAge 0}}
+                    {{if gt .AvgAge 0.0}}
                     <div class="metric-row">
                         <span class="metric-label">👴 Avg Age:</span>
                         <span class="metric-value">{{printf "%.1f" .AvgAge}}</span>
