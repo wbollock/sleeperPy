@@ -262,6 +262,7 @@ type IndexPage struct {
 type LeagueSummary struct {
 	LeagueID          string
 	LeagueName        string
+	Season            string // "2024", "2025" - year of the league
 	Scoring           string
 	IsDynasty         bool
 	IsSuperFlex       bool

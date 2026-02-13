@@ -1,234 +1,176 @@
 # Agent Instructions for SleeperPy
 
-## CRITICAL PRIORITY: FIX BUGS FIRST
+## CRITICAL GUIDELINES
 
-**ALL FEATURE WORK IS SUSPENDED** until these two critical bugs are fixed:
+### 1. TEST EVERYTHING YOURSELF FIRST
 
-### Bug #1: Draft Pick Ownership Inverted (BLOCKING) 🔴
+**BEFORE committing any change:**
+- Build: `go build -o sleeperpy`
+- Test with real user: `curl -s 'http://localhost:8888/dashboard?user=wboll'`
+- Check for errors in output
+- Test the specific feature you changed
+- Verify on multiple screen sizes if UI-related
 
-**Issue**: Draft picks show wrong ownership
-- User trades pick away → app incorrectly shows they still own it
-- User receives pick → might not show correctly
+**Test users:**
+- `wboll` - Real Sleeper user with dynasty leagues
+- `testuser` - Mock data (use `--test` flag)
 
-**Example**:
-- User traded 2026 Round 1 pick TO gdyche
-- App displays: "2026 Round 1 (from wboll)" ❌
-- Should display: Nothing (user doesn't own it) ✅
+**Common test endpoints:**
+- Dashboard: `http://localhost:8888/dashboard?user=wboll`
+- Lookup: `http://localhost:8888/lookup?username=wboll`
+- Check for errors: `grep -i error` in curl output
 
-**Root Cause**: Sleeper API field interpretation wrong
-- Code location: `handlers.go` lines 1079-1275
-- Current assumptions about API fields are likely incorrect:
-  - Assumes `roster_id` = current owner
-  - Assumes `owner_id` = original owner
-- User data proves this is wrong
+### 2. NO "AI SLOP" - PROFESSIONAL DESIGN ONLY
 
-**Fix Steps**:
-1. Run app with `--log=debug` on a real league with traded picks (use Sleeper username `wboll`; dynasty league ID: `1222367151910834176`)
-2. Examine "TRADED PICKS RAW DATA" output
-3. Compare against actual Sleeper app trade history
-4. Determine correct field meanings
-5. Rewrite draft picks logic with correct interpretation
-6. Test all scenarios: acquired picks, traded away picks, original picks
-7. Add validation to prevent regression
+**AVOID:**
+- ❌ Excessive emojis everywhere
+- ❌ Over-the-top enthusiasm in UI text
+- ❌ Flashy, gimmicky design elements
+- ❌ Emoji in every single line of text
+- ❌ "Gamification" that feels forced
 
-**Test Cases Required**:
-- User's original pick (not traded) → show without annotation
-- User acquired pick from Team A → show "from Team A"
-- User traded pick to Team B → DON'T show at all
-- Multi-hop trades (A→B→C) → show correct current owner
+**PREFER:**
+- ✅ Clean, professional text
+- ✅ Minimal, purposeful icons (1-2 per section max)
+- ✅ Straightforward, helpful language
+- ✅ Functional design over decorative
+- ✅ User-focused, not marketing-speak
 
-**Estimated Time**: 4-8 hours (includes debugging + fix + testing)
+**Good example:**
+```
+Player News - Your Players (Top 3/12)
+1. Breece Hall - OUT (knee injury, 2-week absence)
+```
 
----
+**Bad example:**
+```
+📰 What Changed This Week! 🔥 Your Players 🎯
+1. 🔴 Breece Hall 💥 - OUT 😱 (knee injury 🤕)
+```
 
-### Bug #2: UI Layout Broken (BLOCKING) 🔴
+**UI Text Guidelines:**
+- Use clear, direct language
+- Limit emojis to 1 per card/section header (if needed at all)
+- Avoid exclamation marks unless truly critical
+- Write like you're helping a friend, not selling a product
+- Professional > Playful
 
-**Issue**: Layout is broken across the app
-- Text cutting off everywhere
-- Boxes not holding content properly
-- Fails on different screen sizes
-- Rigid box-based design doesn't scale
+### 3. RESPONSIVE DESIGN REQUIRED
 
-**User Report**: "the UI of the app needs help the boxes are not holding up and text is cutting all over the plan. we need a flexible, clean, and satisifying UI that can scale for all these basica nd premium features not relying on a series of boxes anymore."
+**Every UI change must work on:**
+- Mobile: 320px, 375px, 414px
+- Tablet: 768px, 1024px
+- Desktop: 1280px, 1920px
 
-**Root Cause**: Poor CSS architecture
-- Fixed-height boxes constraining variable content
-- Rigid grid layout not responsive
-- Multiple conflicting stylesheets
-- `overflow:hidden` cutting off text
-- Box metaphor doesn't fit dynasty toolkit's variable content
+**Use flexible layouts:**
+- CSS Grid with `auto-fill` / `auto-fit`
+- Flexbox with `flex-wrap`
+- `min-width` / `max-width`, not fixed widths
+- Let content determine size
 
-**Fix Required**: Complete UI Redesign
+### 4. GIT WORKFLOW
 
-**Design Goals**:
-1. **Flexible, not fixed**: CSS Grid/Flexbox with auto-sizing
-2. **Content-first**: Let content determine size, not boxes constraining content
-3. **Scalable**: Works for basic tier view AND full dynasty toolkit
-4. **Clean & professional**: Modern look without excessive flashiness
-5. **No more rigid boxes**: Flowing sections that adapt to content
+**After EVERY change:**
+1. Test locally (see above)
+2. Build: `go build -o sleeperpy`
+3. Commit with conventional commits: `feat:`, `fix:`, `chore:`
+4. Always include Co-Authored-By footer
+5. Push to remote
+6. Note: You cannot restart systemd service (requires sudo)
 
-**Implementation Steps**:
+**Commit format:**
+```bash
+git commit -m "$(cat <<'EOF'
+fix: add year indicator to dashboard league cards
 
-1. **Audit Current CSS** (~2 hours)
-   - Find all fixed widths/heights → convert to flexible
-   - Find overflow:hidden on text → remove
-   - Map responsive breakpoint issues
-   - Identify conflicting styles
+Duplicate league names (renewed leagues) now show year badge
+to distinguish between seasons.
 
-2. **Create New Foundation** (~4 hours)
-   - New modular CSS architecture
-   - CSS Grid for main layout (not fixed boxes)
-   - Consistent spacing system (CSS custom properties)
-   - Typography scale (proper sizing, line-height, word-wrap)
-   - Mobile-first responsive design
-   - Remove all fixed dimensions on content
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
+EOF
+)"
+```
 
-3. **Rebuild Key Sections** (~6 hours)
-   - Tier display (main content area)
-   - Dynasty toolkit (sidebar/cards with flexible height)
-   - Transaction history (proper two-column layout)
-   - News feed (variable-length content)
-   - Draft picks display
-   - Mobile stacking (vertical, not cramped horizontal)
+### 5. CODE QUALITY
 
-4. **Test & Polish** (~2 hours)
-   - Test on mobile sizes (320px, 375px, 414px)
-   - Test on tablets (768px, 1024px)
-   - Test on desktop (1280px, 1920px)
-   - Test with varying content (1 item vs 50 items)
-   - Test dark mode compatibility
-   - Verify collapsible sections work
-
-**Files to Modify**:
-- `templates/tiers.html` - Main results page
-- `templates/index.html` - Landing page
-- `static/styles.css` - Complete rewrite or new modular approach
-- KEEP `static/loading.css` - Loading states work fine
-
-**What to Keep**:
-- Dark/light theme toggle (functional)
-- Loading states (good)
-- Color scheme (just make flexible)
-- Collapsible sections (functionality is fine)
-
-**What to Remove**:
-- Fixed pixel heights on content containers
-- Overflow:hidden on text
-- Rigid box CSS paradigm
-- Complex multi-stylesheet conflicts
-
-**Estimated Time**: 14 hours total
-
----
-
-## Implementation Priority
-
-**MUST COMPLETE IN ORDER - NO EXCEPTIONS**
-
-### Phase 1: Fix Draft Picks Bug
-- Debug API fields with real data
-- Rewrite draft picks logic with correct interpretation
-- Test all trade scenarios
-- Commit: "fix: correct draft pick ownership logic"
-- **BLOCK**: Do not proceed until this is 100% accurate
-
-### Phase 2: Fix UI Layout
-- Audit and document current CSS issues
-- Design new flexible layout system
-- Implement responsive CSS Grid foundation
-- Rebuild all major sections with flexible design
-- Test on all screen sizes
-- Commit: "fix: redesign UI for flexible, scalable layout"
-- **BLOCK**: Do not proceed until UI works on all screens
-
-### Phase 3: Only After Both Bugs Fixed
-- User approval required
-- All previous feature plans are in `plan/archive/`
-- Do NOT implement archived features without explicit user request
-- Focus remains on stability and usability
-
----
-
-## Suspended Features
-
-All feature plans have been moved to `plan/archive/`:
-- CLI mode
-- OpenTelemetry observability
-- Power user improvements
-- Admin dashboard
-- Enhanced league features
-- Mobile PWA enhancements
-
-**DO NOT implement these until critical bugs are fixed and user approves.**
-
----
-
-## Working Guidelines (For Bug Fixes)
-
-**Code Quality:**
-- Follow existing patterns in handlers.go, main.go, etc.
-- Use Go standard library (no frameworks)
-- Keep it simple - don't over-engineer
-- Fix the bug, don't add features
-- No backwards-compatibility hacks
+**Follow existing patterns:**
+- Go standard library only (no frameworks)
+- Simple, readable code > clever code
 - Delete unused code completely
+- No backwards-compatibility hacks
+- Fix bugs, don't add workarounds
 
-**Git Workflow:**
-- Commit after each bug fix
-- Use conventional commits: `fix:`, not `feat:`
-- ALWAYS add footer: `Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>`
-- Test thoroughly before committing
-- Use HEREDOC for multi-line commit messages:
-  ```bash
-  git commit -m "$(cat <<'EOF'
-  fix: correct draft pick ownership logic
-
-  - Debug API showed roster_id is actually [correct meaning]
-  - Rewrite logic to properly track pick ownership
-  - Add validation to prevent showing traded-away picks
-
-  Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
-  EOF
-  )"
-  ```
-
-**Testing:**
-- Run `go run . --log=debug` to see detailed API data (use username `wboll`; dynasty league ID: `1222367151910834176`)
-- Test with real leagues (not just testuser)
-- Verify against Sleeper app's actual data
-- Test all edge cases before committing
-
-**Debugging:**
-- Use existing debug logging infrastructure
-- Add more debug logs if needed to understand API
-- Compare raw API data vs expected behavior
-- Document findings in code comments
-- To fetch real Sleeper API data for a user/league:
-  - Find leagues: `go run . cli user wboll`
-  - Dynasty league ID: `1222367151910834176`
-  - Fetch traded picks: `curl -sS "https://api.sleeper.app/v1/league/1222367151910834176/traded_picks" -o /tmp/traded_picks.json`
-  - Fetch rosters: `curl -sS "https://api.sleeper.app/v1/league/1222367151910834176/rosters" -o /tmp/rosters.json`
-  - Fetch users: `curl -sS "https://api.sleeper.app/v1/league/1222367151910834176/users" -o /tmp/users.json`
-  - Inspect mapping locally (roster_id → owner_id → user name) using a quick script:
-    - `python3` is available; use it to load `/tmp/*.json` and map `roster_id`, `owner_id`, `previous_owner_id`.
+**Error handling:**
+- Log errors with context
+- Show user-friendly messages
+- Never show raw error strings in production UI
 
 ---
 
-## Planned Features
+## Project Status
 
-- Harden admin dashboard access (replace query-secret with proper auth and/or IP allowlist)
+### Recently Completed (Phase 1)
+✅ Feature #1: Cross-League Dashboard
+✅ Feature #2: Weekly Action List
+✅ Feature #3: Trade Fairness Detection
+✅ Feature #4: News Signal Compression
+
+### Known Issues
+- Dashboard shows duplicate league names (needs year indicator) ← **FIX THIS NEXT**
 
 ---
 
-## Project Context
+## Project Architecture
 
-**Architecture:**
-- Backend: Go with standard library (no frameworks)
-- Frontend: HTML templates (html/template) + vanilla JavaScript
-- APIs: Sleeper, Boris Chen, DynastyProcess (KTC)
-- Caching: In-memory (simple maps with mutexes)
+**Backend:** Go with standard library
+**Frontend:** HTML templates + vanilla JavaScript
+**APIs:** Sleeper, Boris Chen, DynastyProcess (KTC)
+**Caching:** In-memory with TTL
 
 **Key Files:**
-- `main.go` - Entry point, server setup, template functions
-- `handlers.go` - HTTP handlers, **DRAFT PICKS LOGIC HERE (lines 1079-1275)**
-- `fetch.go` - API fetching (Sleeper, Boris Chen, KTC)
+- `main.go` - Server setup, template functions
+- `handlers.go` - HTTP handlers for all routes
+- `fetch.go` - API fetching logic
+- `dynasty.go` - Dynasty league features
+- `roster.go` - Roster processing
+- `types.go` - All struct definitions
+- `templates/` - HTML templates
+
+**Testing:**
+- Test mode: `go run . --test` (use username "testuser")
+- Debug mode: `go run . --log=debug`
+- Real user: Use `wboll` for testing with actual data
+
+---
+
+## Current Focus
+
+1. Fix dashboard duplicate league names (add year indicator)
+2. Ensure all features are tested and working
+3. Clean up any remaining emoji overuse
+4. Verify responsive design on all breakpoints
+
+---
+
+## Debugging Real Data
+
+**To inspect Sleeper API data:**
+```bash
+# Get user leagues
+go run . cli user wboll
+
+# Dynasty league ID: 1222367151910834176
+
+# Fetch raw API data
+curl -sS "https://api.sleeper.app/v1/league/1222367151910834176/traded_picks" -o /tmp/traded_picks.json
+curl -sS "https://api.sleeper.app/v1/league/1222367151910834176/rosters" -o /tmp/rosters.json
+curl -sS "https://api.sleeper.app/v1/league/1222367151910834176/users" -o /tmp/users.json
+```
+
+**Inspect with Python:**
+```python
+import json
+with open('/tmp/rosters.json') as f:
+    rosters = json.load(f)
+# Map roster_id → owner_id → user name
+```

@@ -209,7 +209,7 @@
 
     <main class="dashboard-container">
         <div class="dashboard-header">
-            <h2 class="dashboard-title">🏈 Your Fantasy Football Empire</h2>
+            <h2 class="dashboard-title">League Dashboard</h2>
             <div class="dashboard-stats">
                 <div class="stat-item">
                     <span>📊</span>
@@ -234,7 +234,7 @@
             {{range .LeagueSummaries}}
             <div class="league-card" onclick="window.location.href='/lookup?username={{$.Username}}#league-{{.LeagueID}}'">
                 <div class="league-header">
-                    <h3 class="league-name">{{.LeagueName}}</h3>
+                    <h3 class="league-name">{{.LeagueName}} {{if .Season}}<span style="font-size:0.9rem;font-weight:400;color:var(--text-secondary);">({{.Season}})</span>{{end}}</h3>
                     <div class="league-badges">
                         {{if .IsDynasty}}
                         <span class="badge badge-dynasty">Dynasty</span>

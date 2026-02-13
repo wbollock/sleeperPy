@@ -1465,6 +1465,15 @@ func buildDashboardPage(username string) (*DashboardPage, error) {
 		leagueName := league["name"].(string)
 		isDynasty := isDynastyLeague(league)
 
+		// Get season year
+		season := ""
+		if seasonStr, ok := league["season"].(string); ok {
+			season = seasonStr
+			debugLog("[DEBUG] League %s has season: %s", leagueName, season)
+		} else {
+			debugLog("[DEBUG] League %s has no season field", leagueName)
+		}
+
 		if isDynasty {
 			dynastyCount++
 		} else {
@@ -1505,6 +1514,7 @@ func buildDashboardPage(username string) (*DashboardPage, error) {
 		summary := LeagueSummary{
 			LeagueID:    leagueID,
 			LeagueName:  leagueName,
+			Season:      season,
 			Scoring:     scoring,
 			IsDynasty:   isDynasty,
 			IsSuperFlex: isSuperFlex,
