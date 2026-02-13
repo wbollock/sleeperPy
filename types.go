@@ -130,6 +130,16 @@ type PlayerNews struct {
 	DynastyValue   int
 }
 
+type TradeFairness struct {
+	Winner        string  // "TeamA" or "TeamB" or "Fair"
+	ValueDelta    int     // Absolute KTC difference
+	ValueDeltaPct float64 // % of smaller team's roster value
+	Fleeced       bool    // Extreme gap flag
+	Context       string  // "Competing strategy", "Rebuilding", "Extreme value gap"
+	WinnerTeam    string  // Team that got better value
+	DisplayBadge  string  // "🟢 +12%", "🔴 FLEECED", "→ Fair"
+}
+
 type Transaction struct {
 	Type           string // "trade", "waiver", "free_agent"
 	Timestamp      time.Time
@@ -145,6 +155,7 @@ type Transaction struct {
 	NetValue       int   // Net value difference (positive = Team1 gained value)
 	AddedPlayer    string
 	DroppedPlayer  string
+	Fairness       TradeFairness // Feature #3: Trade fairness detection
 }
 
 type RookieProspect struct {

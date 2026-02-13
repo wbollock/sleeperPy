@@ -429,7 +429,7 @@ func fetchRecentTransactions(leagueID string, currentWeek int, players map[strin
 			// Build description
 			desc := fmt.Sprintf("%s traded with %s", team1, team2)
 
-			transactions = append(transactions, Transaction{
+			txn := Transaction{
 				Type:           "trade",
 				Timestamp:      timestamp,
 				Description:    desc,
@@ -441,7 +441,14 @@ func fetchRecentTransactions(leagueID string, currentWeek int, players map[strin
 				Team1GaveValue: team1GaveValue,
 				Team2GaveValue: team2GaveValue,
 				NetValue:       netValue,
-			})
+			}
+
+			// Calculate fairness (Feature #3) - only for dynasty leagues
+			if dynastyValues != nil && (team1GaveValue > 0 || team2GaveValue > 0) {
+				txn.Fairness = calculateTradeFairness(txn, nil)
+			}
+
+			transactions = append(transactions, txn)
 		} else if txnType == "waiver" || txnType == "free_agent" {
 			// Handle waivers and free agent pickups
 			rosterIDs, _ := txn["roster_ids"].([]interface{})

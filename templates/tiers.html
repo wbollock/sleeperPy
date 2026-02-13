@@ -577,6 +577,20 @@
                                                 {{end}}
                                             </div>
                                         </div>
+                                        {{if .Fairness.DisplayBadge}}
+                                        <div class="trade-fairness" style="margin-top:10px;padding:8px;background:var(--card-bg-alt);border-radius:6px;">
+                                            <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.875rem;">
+                                                <span style="font-weight:600;color:{{if .Fairness.Fleeced}}#ef4444{{else if gt .Fairness.ValueDeltaPct 5.0}}#10b981{{else}}var(--text-secondary){{end}};">
+                                                    {{.Fairness.DisplayBadge}}
+                                                </span>
+                                            </div>
+                                            {{if .Fairness.Context}}
+                                            <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:4px;">
+                                                {{.Fairness.Context}}
+                                            </div>
+                                            {{end}}
+                                        </div>
+                                        {{end}}
                                         {{else}}
                                         <div class="transaction-desc">{{.Description}}</div>
                                         {{end}}
