@@ -1334,6 +1334,13 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		// Build context cards (Feature #6)
 		leagueData.ContextCards = buildContextCards(leagueData, totalRosterValue, userAvgAge)
 
+		// Track value changes (Feature #7)
+		if isDynasty && dynastyValues != nil && len(dynastyValues) > 0 {
+			userPlayerNames := extractPlayerNames(startersRows, benchRows)
+			valueChanges, _ := getValueChanges(dynastyValues, userPlayerNames, isSuperFlex)
+			leagueData.ValueChanges = valueChanges
+		}
+
 		leagueResults = append(leagueResults, leagueData)
 	}
 

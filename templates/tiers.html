@@ -379,6 +379,39 @@
                         </div>
                     </div>
                     {{end}}
+                    {{if gt (len $l.ValueChanges) 0}}
+                    <div class="toolkit-card collapseable">
+                        <div class="card-header" onclick="toggleSection('value-changes-{{$i}}')">
+                            <span class="card-title">
+                                Value Movers (Your Players)
+                                <span class="count-badge">{{len $l.ValueChanges}}</span>
+                            </span>
+                            <span class="collapse-icon" id="value-changes-{{$i}}-icon">▼</span>
+                        </div>
+                        <div class="card-content" id="value-changes-{{$i}}-content">
+                            <div class="value-changes-list">
+                                {{range $l.ValueChanges}}
+                                {{if .IsOwned}}
+                                <div class="value-change-item" style="padding:10px;margin-bottom:8px;background:var(--card-bg-alt);border-radius:6px;border-left:3px solid {{if .IsRiser}}#10b981{{else}}#ef4444{{end}};">
+                                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                                        <div>
+                                            <span style="font-weight:600;">{{.PlayerName}}</span>
+                                            <span style="color:var(--text-secondary);font-size:0.875rem;margin-left:6px;">{{.Position}}</span>
+                                        </div>
+                                        <div style="font-weight:600;color:{{if .IsRiser}}#10b981{{else}}#ef4444{{end}};">
+                                            {{if .IsRiser}}+{{end}}{{.Delta}}
+                                        </div>
+                                    </div>
+                                    <div style="font-size:0.8rem;color:var(--text-secondary);">
+                                        {{.OldValue}} → {{.NewValue}} ({{if gt .DeltaPct 0.0}}+{{end}}{{printf "%.1f" .DeltaPct}}%)
+                                    </div>
+                                </div>
+                                {{end}}
+                                {{end}}
+                            </div>
+                        </div>
+                    </div>
+                    {{end}}
                     {{if gt $l.CompressedNews.TotalItems 0}}
                     <div class="toolkit-card collapseable">
                         <div class="card-header" onclick="toggleSection('player-news-{{$i}}')">

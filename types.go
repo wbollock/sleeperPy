@@ -145,6 +145,17 @@ type ContextCard struct {
 	Color string // Color code for styling
 }
 
+type ValueChange struct {
+	PlayerName  string
+	Position    string
+	OldValue    int
+	NewValue    int
+	Delta       int
+	DeltaPct    float64
+	IsRiser     bool
+	IsOwned     bool // User owns this player
+}
+
 type TradeFairness struct {
 	Winner        string  // "TeamA" or "TeamB" or "Fair"
 	ValueDelta    int     // Absolute KTC difference
@@ -257,9 +268,10 @@ type LeagueData struct {
 	TopRookies           []RookieProspect
 	LeagueTrends         LeagueTrends
 	PremiumTeamTalk      string
-	WeeklyActions        []Action       // Feature #2: Weekly Action List
-	CompressedNews       CompressedNews // Feature #4: News Signal Compression
-	ContextCards         []ContextCard  // Feature #6: League Context Cards
+	WeeklyActions        []Action        // Feature #2: Weekly Action List
+	CompressedNews       CompressedNews  // Feature #4: News Signal Compression
+	ContextCards         []ContextCard   // Feature #6: League Context Cards
+	ValueChanges         []ValueChange   // Feature #7: Value Change Tracker
 }
 
 type TiersPage struct {
