@@ -1,10 +1,12 @@
 package main
 
 import (
+	"compress/gzip"
 	"context"
 	"flag"
 	"fmt"
 	"html/template"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -52,6 +54,16 @@ var sleeperPlayersCache = &playersCache{
 var rosterValueTrendCache = &valueTrendCache{
 	data: make(map[string]CachedRosterValue),
 	ttl:  24 * time.Hour, // Compare values over 24 hours
+}
+
+// gzipResponseWriter wraps http.ResponseWriter to support gzip compression
+type gzipResponseWriter struct {
+	io.Writer
+	http.ResponseWriter
+}
+
+func (w *gzipResponseWriter) Write(b []byte) (int, error) {
+	return w.Writer.Write(b)
 }
 
 func debugLog(format string, v ...interface{}) {
@@ -223,12 +235,41 @@ func main() {
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	// Wrap handlers with OTEL instrumentation if enabled
+	// Gzip middleware
+	gzipMiddleware := func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Check if client accepts gzip
+			if !strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			// Create gzip writer
+			gz := gzip.NewWriter(w)
+			defer gz.Close()
+
+			// Wrap response writer
+			gzw := &gzipResponseWriter{Writer: gz, ResponseWriter: w}
+			w.Header().Set("Content-Encoding", "gzip")
+			w.Header().Del("Content-Length") // Let gzip set the length
+
+			next.ServeHTTP(gzw, r)
+		})
+	}
+
+	// Wrap handlers with gzip + OTEL instrumentation if enabled
 	wrapHandler := func(name string, handler http.HandlerFunc) http.Handler {
+		h := http.Handler(http.HandlerFunc(handler))
+
+		// Add gzip compression
+		h = gzipMiddleware(h)
+
+		// Add OTEL if configured
 		if os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT") != "" {
-			return otelhttp.NewHandler(http.HandlerFunc(handler), name)
+			h = otelhttp.NewHandler(h, name)
 		}
-		return http.HandlerFunc(handler)
+
+		return h
 	}
 
 	http.Handle("/", wrapHandler("index", visitorLogging(indexHandler)))

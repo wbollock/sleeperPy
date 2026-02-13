@@ -942,8 +942,8 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 				return valueUpgrades[i].DynastyValue > valueUpgrades[j].DynastyValue
 			})
 
-			// Take top 30 most valuable available players (increased for dynasty mode)
-			limit := 30
+			// Take top 20 most valuable available players
+			limit := 20
 			if len(valueUpgrades) < limit {
 				limit = len(valueUpgrades)
 			}
