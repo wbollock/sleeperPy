@@ -190,6 +190,43 @@
             </div>
             {{end}}
 
+            {{if $l.WeeklyActions}}
+            <div class="actions-banner" style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:16px;margin-bottom:20px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                    <h3 style="margin:0;font-size:1.1rem;display:flex;align-items:center;gap:8px;">
+                        ⚡ {{len $l.WeeklyActions}} Action{{if gt (len $l.WeeklyActions) 1}}s{{end}} This Week
+                    </h3>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:10px;">
+                    {{range $idx, $action := $l.WeeklyActions}}
+                    {{if lt $idx 3}}
+                    <div class="action-item" style="display:flex;align-items:start;gap:10px;padding:10px;background:var(--card-bg-alt);border-radius:8px;">
+                        <input type="checkbox" id="action-{{$i}}-{{$idx}}" class="action-checkbox" style="margin-top:2px;">
+                        <label for="action-{{$i}}-{{$idx}}" style="flex:1;cursor:pointer;">
+                            <div style="font-weight:600;margin-bottom:2px;">{{add $idx 1}}. {{$action.Title}}</div>
+                            <div style="font-size:0.875rem;color:var(--text-secondary);">{{$action.Description}}</div>
+                            <div style="font-size:0.8rem;color:#10b981;margin-top:4px;">Impact: {{$action.Impact}}</div>
+                        </label>
+                    </div>
+                    {{end}}
+                    {{end}}
+                </div>
+                {{if gt (len $l.WeeklyActions) 3}}
+                <div style="margin-top:12px;text-align:center;">
+                    <button class="toggle-btn" onclick="toggleAllActions({{$i}})" style="padding:6px 16px;background:var(--accent-color);color:white;border:none;border-radius:6px;cursor:pointer;font-size:0.875rem;">
+                        View All {{len $l.WeeklyActions}} Actions
+                    </button>
+                </div>
+                {{end}}
+            </div>
+            {{else}}
+            <div class="actions-banner" style="background:var(--card-bg);border:1px solid #10b981;border-radius:12px;padding:16px;margin-bottom:20px;">
+                <div style="display:flex;align-items:center;gap:8px;color:#10b981;">
+                    ✅ <span style="font-weight:600;">Looking good! No urgent actions this week.</span>
+                </div>
+            </div>
+            {{end}}
+
             <div class="league-grid-container{{if not $l.IsDynasty}} single-column{{end}}">
                 <div class="roster-card">
             <div class="table-scroll">
@@ -1194,6 +1231,38 @@ async function clearAppCache() {
         window.location.reload();
     }
 }
+
+// Actions feature: localStorage persistence for checkboxes
+function toggleAllActions(leagueIdx) {
+    const banner = document.querySelector(`#league${leagueIdx} .actions-banner`);
+    const hiddenActions = banner.querySelectorAll('.action-item:nth-child(n+4)');
+    const btn = banner.querySelector('.toggle-btn');
+
+    if (hiddenActions.length > 0 && hiddenActions[0].style.display === 'none') {
+        hiddenActions.forEach(action => action.style.display = 'flex');
+        btn.textContent = 'Show Less';
+    } else {
+        hiddenActions.forEach(action => action.style.display = 'none');
+        btn.textContent = `View All ${banner.querySelectorAll('.action-item').length} Actions`;
+    }
+}
+
+// Load action checkbox states from localStorage
+document.addEventListener('DOMContentLoaded', () => {
+    const checkboxes = document.querySelectorAll('.action-checkbox');
+    checkboxes.forEach(checkbox => {
+        const saved = localStorage.getItem(checkbox.id);
+        if (saved === 'true') {
+            checkbox.checked = true;
+            checkbox.parentElement.style.opacity = '0.5';
+        }
+
+        checkbox.addEventListener('change', (e) => {
+            localStorage.setItem(checkbox.id, e.target.checked);
+            checkbox.parentElement.style.opacity = e.target.checked ? '0.5' : '1';
+        });
+    });
+});
 
 // Register service worker for PWA offline support
 if ('serviceWorker' in navigator) {

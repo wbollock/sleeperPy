@@ -1317,6 +1317,9 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			LeagueTrends:         leagueTrends,
 		}
 
+		// Generate weekly actions (Feature #2)
+		leagueData.WeeklyActions = buildWeeklyActions(leagueData)
+
 		leagueResults = append(leagueResults, leagueData)
 	}
 

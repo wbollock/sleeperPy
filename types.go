@@ -179,6 +179,17 @@ type WaiverActivity struct {
 	LastClaimed string // Time ago
 }
 
+type Action struct {
+	Priority    int    // 1-5 (1 = highest)
+	Category    string // "swap", "waiver", "trade", "injury", "lineup"
+	Title       string // "Swap Starter"
+	Description string // "Start Jahmyr Gibbs over James Conner"
+	Impact      string // "+1.2 tier upgrade"
+	Link        string // "#player-name" anchor link
+	Completed   bool   // User checked it off
+	WeekID      string // "2026-W14" for persistence
+}
+
 type LeagueData struct {
 	LeagueName           string
 	Scoring              string
@@ -212,6 +223,7 @@ type LeagueData struct {
 	TopRookies           []RookieProspect
 	LeagueTrends         LeagueTrends
 	PremiumTeamTalk      string
+	WeeklyActions        []Action // Feature #2: Weekly Action List
 }
 
 type TiersPage struct {
