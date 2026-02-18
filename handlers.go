@@ -70,12 +70,16 @@ func termsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func pricingHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl := template.Must(template.ParseFiles("templates/pricing.html"))
+func roadmapHandler(w http.ResponseWriter, r *http.Request) {
+	tmpl := template.Must(template.ParseFiles("templates/roadmap.html"))
 	if err := tmpl.Execute(w, nil); err != nil {
-		http.Error(w, "Error rendering pricing page", http.StatusInternalServerError)
-		log.Printf("Error rendering pricing.html: %v", err)
+		http.Error(w, "Error rendering planned features page", http.StatusInternalServerError)
+		log.Printf("Error rendering roadmap.html: %v", err)
 	}
+}
+
+func pricingRedirectHandler(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/roadmap", http.StatusMovedPermanently)
 }
 
 func aboutHandler(w http.ResponseWriter, r *http.Request) {
@@ -123,7 +127,7 @@ func sitemapHandler(w http.ResponseWriter, r *http.Request) {
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://sleeperpy.com/pricing</loc>
+    <loc>https://sleeperpy.com/roadmap</loc>
     <priority>0.7</priority>
   </url>
   <url>

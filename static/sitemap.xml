@@ -26,7 +26,7 @@
     <changefreq>yearly</changefreq>
   </url>
   <url>
-    <loc>https://sleeperpy.com/pricing</loc>
+    <loc>https://sleeperpy.com/roadmap</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
   </url>
