@@ -1543,6 +1543,91 @@ h1, h2, h3 {
 	}
 }
 
+@media (max-width: 375px) {
+	.app-header .header-content {
+		padding: 8px 10px;
+		gap: 10px;
+	}
+
+	.app-header h1 {
+		font-size: 1.2em;
+	}
+
+	.theme-toggle {
+		padding: 4px;
+	}
+
+	.theme-option {
+		min-width: 32px;
+		min-height: 32px;
+		padding: 4px 6px;
+	}
+
+	.container {
+		padding: 16px 10px 10px;
+	}
+
+	.hero-title {
+		font-size: 1.75em;
+		line-height: 1.12;
+	}
+
+	.hero-subtitle {
+		font-size: 0.95em;
+		line-height: 1.45;
+	}
+
+	#inputButton,
+	.cta-button,
+	#generateTiers {
+		font-size: 0.96em;
+		padding-left: 14px;
+		padding-right: 14px;
+		min-height: 44px;
+	}
+
+	.help-text {
+		font-size: 0.84em;
+		line-height: 1.45;
+	}
+
+	.footer-links {
+		gap: 12px;
+	}
+
+	.footer-links a {
+		font-size: 0.84em;
+	}
+
+	.footer-love,
+	.footer-bottom {
+		font-size: 0.8em;
+		line-height: 1.4;
+	}
+
+	.pretty-table th {
+		font-size: 0.78em;
+		padding: 7px 5px;
+	}
+
+	.pretty-table td {
+		font-size: 0.86em;
+		padding: 8px 5px;
+	}
+
+	.table-scroll > table {
+		min-width: 480px;
+	}
+
+	.privacy-container {
+		padding: 28px 12px;
+	}
+
+	.privacy-section {
+		margin-bottom: 24px;
+	}
+}
+
 /* Shared utility and legacy inline styles moved here */
 .skip-link {
 	position: absolute;
