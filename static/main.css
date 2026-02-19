@@ -1012,6 +1012,61 @@ h1, h2, h3 {
 	text-decoration: underline;
 }
 
+.privacy-container {
+	max-width: 900px;
+	margin: 0 auto;
+	padding: 48px 20px;
+}
+
+.privacy-container h2 {
+	margin: 0 0 14px;
+	font-size: clamp(1.8rem, 3.6vw, 2.4rem);
+	line-height: 1.2;
+	color: var(--text-primary);
+}
+
+.privacy-section {
+	margin-bottom: 32px;
+}
+
+.privacy-section h3 {
+	margin: 0 0 12px;
+	font-size: clamp(1.2rem, 2.8vw, 1.6rem);
+	line-height: 1.3;
+	color: #7dd3fc;
+}
+
+.privacy-section h4 {
+	margin: 20px 0 10px;
+	font-size: clamp(1rem, 2.4vw, 1.2rem);
+	line-height: 1.3;
+	color: #0ea5e9;
+}
+
+.privacy-section p,
+.privacy-section li,
+.privacy-section a {
+	overflow-wrap: anywhere;
+	word-break: break-word;
+}
+
+.privacy-section ul {
+	margin: 12px 0 12px 22px;
+	line-height: 1.65;
+}
+
+.privacy-section li {
+	margin-bottom: 10px;
+}
+
+.table-scroll {
+	max-width: 100%;
+}
+
+.table-scroll .admin-table {
+	min-width: 520px;
+}
+
 .main-content {
 	max-width: 1400px;
 	margin: 0 auto;
@@ -1446,6 +1501,10 @@ h1, h2, h3 {
 		font-size: 0.88em;
 	}
 
+	.privacy-container {
+		padding: 36px 16px;
+	}
+
 	.league-info-bar {
 		flex-direction: column;
 		align-items: flex-start;
@@ -1461,7 +1520,12 @@ h1, h2, h3 {
 	.footer-love,
 	.footer-bottom p,
 	.current-league-name,
-	.league-option-name {
+	.league-option-name,
+	.league-name,
+	.metric-label,
+	.metric-value,
+	.stat-label,
+	.stat-value {
 		overflow-wrap: anywhere;
 		word-break: break-word;
 	}

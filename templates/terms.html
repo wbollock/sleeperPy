@@ -167,6 +167,44 @@
     </div>
 </footer>
 
+<style>
+    .main-content,
+    .main-content p,
+    .main-content li,
+    .main-content a,
+    footer,
+    footer a {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    @media (max-width: 768px) {
+        .main-content {
+            padding: 20px 14px 36px !important;
+            max-width: 100% !important;
+        }
+
+        .main-content h1 {
+            font-size: 1.65rem !important;
+            line-height: 1.2;
+        }
+
+        .main-content h2 {
+            font-size: 1.2rem !important;
+            line-height: 1.3;
+            margin-top: 1.1em !important;
+        }
+
+        .main-content section {
+            margin-bottom: 1.3em !important;
+        }
+
+        .main-content ul {
+            margin-left: 1.2em !important;
+        }
+    }
+</style>
+
 <script src="/static/theme.js"></script>
 </body>
 </html>

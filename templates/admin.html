@@ -127,6 +127,7 @@
         <div class="admin-card admin-section">
             <h2 class="card-title">Recent Errors</h2>
             {{if .RecentErrors}}
+            <div class="table-scroll">
             <table class="admin-table">
                 <thead>
                     <tr>
@@ -147,6 +148,7 @@
                     {{end}}
                 </tbody>
             </table>
+            </div>
             {{else}}
             <div class="empty-state">
                 <span class="badge badge-success">No errors logged</span>
