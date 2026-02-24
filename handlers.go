@@ -1435,19 +1435,24 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 	premiumOverview := ""
 
 	if isPremium && premiumEnabled && llmMode != "" {
-		if llmMode == "overview" || llmMode == "all" || llmMode == "1" {
-			ctx, cancel := context.WithTimeout(r.Context(), 20*time.Second)
-			overview, err := generateOverview(ctx, leagueResults)
-			cancel()
-			if err != nil {
-				debugLog("[DEBUG] OpenRouter overview error: %v", err)
-			} else {
-				premiumOverview = overview
+		allowed, remaining := consumeLLMBudget(username, llmMode)
+		if !allowed {
+			premiumOverview = fmt.Sprintf("Daily AI limit reached. Try again tomorrow. Remaining today: %d", remaining)
+		} else {
+			if llmMode == "overview" || llmMode == "all" || llmMode == "1" {
+				ctx, cancel := context.WithTimeout(r.Context(), 20*time.Second)
+				overview, err := generateOverview(ctx, leagueResults)
+				cancel()
+				if err != nil {
+					debugLog("[DEBUG] OpenRouter overview error: %v", err)
+				} else {
+					premiumOverview = overview
+				}
 			}
-		}
 
-		if llmMode == "team" || llmMode == "all" || llmMode == "1" {
-			leagueResults = applyTeamTalks(r.Context(), leagueResults)
+			if llmMode == "team" || llmMode == "all" || llmMode == "1" {
+				leagueResults = applyTeamTalks(r.Context(), leagueResults)
+			}
 		}
 	}
 

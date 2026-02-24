@@ -104,3 +104,26 @@ func TestCallOpenRouterMissingKey(t *testing.T) {
 		t.Fatalf("expected error when OPENROUTER_API_KEY is missing")
 	}
 }
+
+func TestConsumeLLMBudget(t *testing.T) {
+	t.Setenv("PREMIUM_LLM_DAILY_LIMIT", "3")
+
+	llmUsageState.Lock()
+	llmUsageState.data = map[string]llmUsageEntry{}
+	llmUsageState.Unlock()
+
+	ok, rem := consumeLLMBudget("wboll", "overview")
+	if !ok || rem != 2 {
+		t.Fatalf("expected first call allowed with 2 remaining, got allowed=%v rem=%d", ok, rem)
+	}
+
+	ok, rem = consumeLLMBudget("wboll", "all") // costs 2 units
+	if !ok || rem != 0 {
+		t.Fatalf("expected second call allowed with 0 remaining, got allowed=%v rem=%d", ok, rem)
+	}
+
+	ok, rem = consumeLLMBudget("wboll", "team")
+	if ok || rem != 0 {
+		t.Fatalf("expected third call blocked with 0 remaining, got allowed=%v rem=%d", ok, rem)
+	}
+}

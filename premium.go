@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -37,6 +39,18 @@ type openRouterResponse struct {
 	} `json:"choices"`
 }
 
+var llmUsageState = struct {
+	sync.Mutex
+	data map[string]llmUsageEntry
+}{
+	data: make(map[string]llmUsageEntry),
+}
+
+type llmUsageEntry struct {
+	Date  string
+	Count int
+}
+
 func isPremiumUsername(username string) bool {
 	allowlist := strings.TrimSpace(os.Getenv("PREMIUM_USERS"))
 	if allowlist == "" || username == "" {
@@ -53,6 +67,60 @@ func isPremiumUsername(username string) bool {
 
 func hasOpenRouterKey() bool {
 	return strings.TrimSpace(os.Getenv("OPENROUTER_API_KEY")) != ""
+}
+
+func dailyLLMLimit() int {
+	raw := strings.TrimSpace(os.Getenv("PREMIUM_LLM_DAILY_LIMIT"))
+	if raw == "" {
+		return 12
+	}
+	n, err := strconv.Atoi(raw)
+	if err != nil || n <= 0 {
+		return 12
+	}
+	return n
+}
+
+func llmUnitsForMode(mode string) int {
+	switch mode {
+	case "all", "1":
+		return 2
+	default:
+		return 1
+	}
+}
+
+// consumeLLMBudget returns allowed, remaining quota.
+func consumeLLMBudget(username, llmMode string) (bool, int) {
+	if strings.TrimSpace(username) == "" || strings.TrimSpace(llmMode) == "" {
+		return true, dailyLLMLimit()
+	}
+
+	limit := dailyLLMLimit()
+	units := llmUnitsForMode(llmMode)
+	today := time.Now().Format("2006-01-02")
+	key := strings.ToLower(strings.TrimSpace(username))
+
+	llmUsageState.Lock()
+	defer llmUsageState.Unlock()
+
+	entry := llmUsageState.data[key]
+	if entry.Date != today {
+		entry = llmUsageEntry{Date: today, Count: 0}
+	}
+
+	if entry.Count+units > limit {
+		remaining := limit - entry.Count
+		if remaining < 0 {
+			remaining = 0
+		}
+		llmUsageState.data[key] = entry
+		return false, remaining
+	}
+
+	entry.Count += units
+	llmUsageState.data[key] = entry
+	return true, limit - entry.Count
 }
 
 func openRouterModel() string {
