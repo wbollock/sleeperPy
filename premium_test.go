@@ -127,3 +127,41 @@ func TestConsumeLLMBudget(t *testing.T) {
 		t.Fatalf("expected third call blocked with 0 remaining, got allowed=%v rem=%d", ok, rem)
 	}
 }
+
+func TestBuildPriorityMatrix(t *testing.T) {
+	league := LeagueData{
+		PositionalBreakdown: PositionalKTC{
+			QB: 500,
+			RB: 120,
+			WR: 1200,
+			TE: 80,
+		},
+	}
+	out := buildPriorityMatrix(league)
+	if !strings.Contains(out, "Needs: RB") && !strings.Contains(out, "Needs: TE") {
+		t.Fatalf("expected needs in matrix, got %q", out)
+	}
+	if !strings.Contains(out, "Surpluses: WR") {
+		t.Fatalf("expected WR surplus in matrix, got %q", out)
+	}
+}
+
+func TestBuildRiskWatchlistAndCount(t *testing.T) {
+	league := LeagueData{
+		PlayerNewsFeed: []PlayerNews{
+			{PlayerName: "Player A", InjuryStatus: "Out"},
+			{PlayerName: "Player B", InjuryStatus: "Questionable"},
+		},
+		AgingPlayers: []PlayerRow{
+			{Name: "Vet C", Pos: "RB", Age: 29},
+		},
+	}
+	watchlist := buildRiskWatchlist(league)
+	if !strings.Contains(watchlist, "Player A") || !strings.Contains(watchlist, "Vet C") {
+		t.Fatalf("expected injury and age risks in watchlist, got %q", watchlist)
+	}
+	count := countLeagueRisks(league)
+	if count != 3 {
+		t.Fatalf("expected 3 risk flags, got %d", count)
+	}
+}
