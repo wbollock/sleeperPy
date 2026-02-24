@@ -34,12 +34,10 @@
 12. Rookie Draft Needs (Premium Dynasty)
 13. Feature gating + usage limits
 14. Account linking (multiple Sleeper usernames)
-15. Billing integration
-16. Provider Interface
-17. ESPN/Yahoo read‑only imports
-18. CSV/manual import fallback
-19. Weekly email summary (low priority)
-20. Public status page (sanitized operational health)
+15. Provider Interface
+16. ESPN/Yahoo read‑only imports
+17. Weekly email summary (low priority)
+18. Public status page (sanitized operational health)
 
 1) **Cross-League Dashboard (Free)**
 - **User Story:** “Show me how my teams are doing without clicking each league.”
@@ -172,10 +170,9 @@
 **Deliverables:**
 - Feature gating with usage limits.
 - Account linking for multiple Sleeper usernames.
-- Basic billing integration.
 - Public status page with sanitized operational metrics.
 
-20) **Public Status Page (Ops/Public)**
+18) **Public Status Page (Ops/Public)**
 - **User Story:** “Let me quickly see if SleeperPy is healthy without exposing admin internals.”
 - **UX:** Public `/status` page with uptime, aggregate usage counters, and coarse health status.
 - **Security/Safety:** No user agents, no path-level data, no raw errors, no admin auth details.
@@ -188,24 +185,18 @@
 ## Phase 5 — Cross-Platform (Last)
 **Priority:** mitigate API risk
 
-13) **Provider Interface**
+15) **Provider Interface**
 - **Goal:** Abstract Sleeper so ESPN/Yahoo can be added without rewriting logic.
 - **Implementation Steps:**
   1. Define interface `Provider` in new file `providers/provider.go`.
   2. Implement `SleeperProvider`.
   3. Refactor `handlers.go` to use provider instance.
 
-14) **ESPN/Yahoo Read-Only Imports**
+16) **ESPN/Yahoo Read-Only Imports**
 - **Goal:** read-only support for ESPN/Yahoo.
 - **Implementation Steps:**
   1. Build provider adapters with mapping.
   2. Normalize data into internal structs.
-
-15) **CSV/Manual Import Fallback**
-- **Goal:** offline ingestion when APIs unavailable.
-- **Implementation Steps:**
-  1. Accept CSV upload.
-  2. Map to internal structs.
 
 ## Low Priority (Nice-to-Have)
 - **Weekly Email Summary**
