@@ -362,7 +362,8 @@ type TiersPage struct {
 }
 
 type IndexPage struct {
-	SavedUsername string
+	SavedUsername  string
+	SavedUsernames []string
 }
 
 // Dashboard types for cross-league overview

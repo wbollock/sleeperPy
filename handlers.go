@@ -37,7 +37,11 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	if cookie, err := r.Cookie("sleeper_username"); err == nil {
 		savedUsername = cookie.Value
 	}
-	templates.ExecuteTemplate(w, "index.html", IndexPage{SavedUsername: savedUsername})
+	savedUsernames := readSavedUsernames(r)
+	templates.ExecuteTemplate(w, "index.html", IndexPage{
+		SavedUsername:  savedUsername,
+		SavedUsernames: savedUsernames,
+	})
 }
 
 func signoutHandler(w http.ResponseWriter, r *http.Request) {
@@ -50,7 +54,66 @@ func signoutHandler(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 	}
 	http.SetCookie(w, cookie)
+	http.SetCookie(w, &http.Cookie{
+		Name:     "sleeper_usernames",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: false,
+		SameSite: http.SameSiteLaxMode,
+	})
 	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func readSavedUsernames(r *http.Request) []string {
+	cookie, err := r.Cookie("sleeper_usernames")
+	if err != nil || strings.TrimSpace(cookie.Value) == "" {
+		return nil
+	}
+	raw := strings.Split(cookie.Value, ",")
+	out := make([]string, 0, len(raw))
+	seen := make(map[string]bool)
+	for _, item := range raw {
+		name := strings.TrimSpace(item)
+		if name == "" {
+			continue
+		}
+		key := strings.ToLower(name)
+		if seen[key] {
+			continue
+		}
+		seen[key] = true
+		out = append(out, name)
+	}
+	return out
+}
+
+func writeSavedUsernames(w http.ResponseWriter, r *http.Request, username string) {
+	username = strings.TrimSpace(username)
+	if username == "" {
+		return
+	}
+	accounts := readSavedUsernames(r)
+	normalized := strings.ToLower(username)
+	newList := []string{username}
+	for _, existing := range accounts {
+		if strings.ToLower(existing) == normalized {
+			continue
+		}
+		newList = append(newList, existing)
+	}
+	if len(newList) > 5 {
+		newList = newList[:5]
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "sleeper_usernames",
+		Value:    strings.Join(newList, ","),
+		Path:     "/",
+		MaxAge:   30 * 24 * 60 * 60,
+		HttpOnly: false,
+		SameSite: http.SameSiteLaxMode,
+	})
 }
 
 func privacyHandler(w http.ResponseWriter, r *http.Request) {
@@ -1431,6 +1494,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 	}
 	http.SetCookie(w, cookie)
+	writeSavedUsernames(w, r, username)
 
 	premiumOverview := ""
 
