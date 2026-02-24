@@ -1511,6 +1511,28 @@ func buildDashboardPage(username string) (*DashboardPage, error) {
 		leagues = append(leagues, previousYearLeagues...)
 	}
 
+	// Sleeper can return the same league when querying adjacent seasons.
+	// Keep one copy per league_id to avoid duplicate dashboard cards.
+	leagueByID := make(map[string]map[string]interface{}, len(leagues))
+	dedupedLeagues := make([]map[string]interface{}, 0, len(leagues))
+	duplicateCount := 0
+	for _, league := range leagues {
+		leagueID, ok := league["league_id"].(string)
+		if !ok || leagueID == "" {
+			continue
+		}
+		if _, exists := leagueByID[leagueID]; exists {
+			duplicateCount++
+			continue
+		}
+		leagueByID[leagueID] = league
+		dedupedLeagues = append(dedupedLeagues, league)
+	}
+	if duplicateCount > 0 {
+		debugLog("[DEBUG] Removed %d duplicate league entries from merged season fetch", duplicateCount)
+	}
+	leagues = dedupedLeagues
+
 	if len(leagues) == 0 {
 		return nil, fmt.Errorf("no leagues found")
 	}
@@ -1540,14 +1562,28 @@ func buildDashboardPage(username string) (*DashboardPage, error) {
 	redraftCount := 0
 
 	for _, league := range leagues {
-		leagueID := league["league_id"].(string)
-		leagueName := league["name"].(string)
+		leagueID, ok := league["league_id"].(string)
+		if !ok || leagueID == "" {
+			debugLog("[DEBUG] Skipping league with missing league_id")
+			continue
+		}
+		leagueName, _ := league["name"].(string)
+		if leagueName == "" {
+			leagueName = "Unnamed League"
+		}
 		isDynasty := isDynastyLeague(league)
 
 		// Get season year
 		season := ""
-		if seasonStr, ok := league["season"].(string); ok {
-			season = seasonStr
+		switch seasonValue := league["season"].(type) {
+		case string:
+			season = seasonValue
+		case float64:
+			season = strconv.Itoa(int(seasonValue))
+		case int:
+			season = strconv.Itoa(seasonValue)
+		}
+		if season != "" {
 			debugLog("[DEBUG] League %s has season: %s", leagueName, season)
 		} else {
 			debugLog("[DEBUG] League %s has no season field", leagueName)

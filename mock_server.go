@@ -22,9 +22,14 @@ func mockAPIHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 
-	// User lookup
-	if strings.HasPrefix(path, "/api/mock/user/") && !strings.Contains(path, "/leagues/") {
-		username := strings.TrimPrefix(path, "/api/mock/user/")
+	// User lookup (supports /api/mock/user/<name> and /api/mock/v1/user/<name>)
+	if strings.Contains(path, "/user/") && !strings.Contains(path, "/leagues/") {
+		lastSlash := strings.LastIndex(path, "/")
+		if lastSlash == -1 || lastSlash == len(path)-1 {
+			http.Error(w, "Invalid mock user path", 400)
+			return
+		}
+		username := path[lastSlash+1:]
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"user_id":      "test_user_" + username,
 			"username":     username,
@@ -275,11 +280,13 @@ func initTestMode() {
 type mockTransport struct{}
 
 func (t *mockTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	mockHost := "localhost:" + getServerPort()
+
 	// Intercept Sleeper API calls
 	if strings.Contains(req.URL.Host, "api.sleeper.app") {
 		// Rewrite to local mock server
 		req.URL.Scheme = "http"
-		req.URL.Host = "localhost:8080"
+		req.URL.Host = mockHost
 		req.URL.Path = "/api/mock" + req.URL.Path
 		log.Printf("[TEST MODE] Intercepted Sleeper API call, redirecting to mock: %s", req.URL.String())
 	}
@@ -287,11 +294,19 @@ func (t *mockTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	// Intercept Boris Chen tier calls
 	if strings.Contains(req.URL.Host, "s3-us-west-1.amazonaws.com") {
 		req.URL.Scheme = "http"
-		req.URL.Host = "localhost:8080"
+		req.URL.Host = mockHost
 		req.URL.Path = "/boris/mock" + req.URL.Path
 		log.Printf("[TEST MODE] Intercepted Boris Chen call, redirecting to mock: %s", req.URL.String())
 	}
 
 	// Use default transport for the modified request
 	return http.DefaultTransport.RoundTrip(req)
+}
+
+func getServerPort() string {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	return port
 }

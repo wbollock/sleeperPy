@@ -191,6 +191,12 @@
             }
         }
 
+        @media (max-width: 414px) {
+            .dashboard-container {
+                padding: 14px 10px;
+            }
+        }
+
         @media (max-width: 480px) {
             .dashboard-container {
                 padding: 14px 10px;
@@ -240,6 +246,26 @@
                 font-size: 0.8rem;
             }
         }
+
+        @media (max-width: 320px) {
+            .dashboard-container {
+                padding: 10px 6px;
+            }
+
+            .league-card {
+                padding: 10px;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-container {
+                max-width: 100%;
+            }
+
+            .leagues-grid {
+                gap: 16px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -272,18 +298,15 @@
             <h2 class="dashboard-title">League Dashboard</h2>
             <div class="dashboard-stats">
                 <div class="stat-item">
-                    <span>📊</span>
                     <span>{{.TotalLeagues}} Total Leagues</span>
                 </div>
                 {{if gt .DynastyCount 0}}
                 <div class="stat-item">
-                    <span>👑</span>
                     <span>{{.DynastyCount}} Dynasty</span>
                 </div>
                 {{end}}
                 {{if gt .RedraftCount 0}}
                 <div class="stat-item">
-                    <span>⚡</span>
                     <span>{{.RedraftCount}} Redraft</span>
                 </div>
                 {{end}}
@@ -313,14 +336,14 @@
                     {{if .IsDynasty}}
                     {{if gt .TotalRosterValue 0}}
                     <div class="metric-row">
-                        <span class="metric-label">📊 Roster Value:</span>
+                        <span class="metric-label">Roster Value:</span>
                         <span class="metric-value">{{.TotalRosterValue}} (#{{.ValueRank}}/{{.LeagueSize}})</span>
                     </div>
                     {{end}}
 
                     {{if ne .ValueTrend ""}}
                     <div class="metric-row">
-                        <span class="metric-label">📈 Trend:</span>
+                        <span class="metric-label">Trend:</span>
                         <span class="metric-value {{if contains .ValueTrend "↗"}}trend-up{{else if contains .ValueTrend "↘"}}trend-down{{else}}trend-stable{{end}}">
                             {{.ValueTrend}}
                         </span>
@@ -329,14 +352,14 @@
 
                     {{if gt .AvgAge 0.0}}
                     <div class="metric-row">
-                        <span class="metric-label">👴 Avg Age:</span>
+                        <span class="metric-label">Avg Age:</span>
                         <span class="metric-value">{{printf "%.1f" .AvgAge}}</span>
                     </div>
                     {{end}}
 
                     {{if ne .DraftPicksSummary ""}}
                     <div class="metric-row">
-                        <span class="metric-label">🎯 Draft Picks:</span>
+                        <span class="metric-label">Draft Picks:</span>
                         <span class="metric-value">{{.DraftPicksSummary}}</span>
                     </div>
                     {{end}}
@@ -344,14 +367,14 @@
 
                     {{if ne .Record ""}}
                     <div class="metric-row">
-                        <span class="metric-label">📅 Record:</span>
+                        <span class="metric-label">Record:</span>
                         <span class="metric-value">{{.Record}}</span>
                     </div>
                     {{end}}
 
                     {{if ne .PlayoffStatus ""}}
                     <div class="metric-row">
-                        <span class="metric-label">🏆 Status:</span>
+                        <span class="metric-label">Status:</span>
                         <span class="metric-value {{if contains .PlayoffStatus "Clinched"}}playoff-clinched{{else if contains .PlayoffStatus "Hunt"}}playoff-hunt{{else}}playoff-eliminated{{end}}">
                             {{.PlayoffStatus}}
                         </span>
@@ -360,7 +383,7 @@
 
                     {{if gt .ActionCount 0}}
                     <div class="metric-row">
-                        <span class="metric-label">⚡ Actions:</span>
+                        <span class="metric-label">Actions:</span>
                         <span class="metric-value">{{.ActionCount}} pending</span>
                     </div>
                     {{end}}
