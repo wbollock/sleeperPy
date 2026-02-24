@@ -149,11 +149,11 @@ func sitemapHandler(w http.ResponseWriter, r *http.Request) {
 func demoHandler(w http.ResponseWriter, r *http.Request) {
 	trackPageView(r.URL.Path)
 	demoLeague := LeagueData{
-		LeagueName: "Example League (Demo)",
-		Scoring:    "PPR",
-		IsDynasty:  false,
+		LeagueName:  "Example League (Demo)",
+		Scoring:     "PPR",
+		IsDynasty:   false,
 		HasMatchups: true,
-		LeagueSize: 12,
+		LeagueSize:  12,
 		RosterSlots: "1 QB, 2 RB, 3 WR, 1 TE, 1 FLEX, 1 K, 1 DEF, 5 BN",
 		Starters: []PlayerRow{
 			{Pos: "QB", Name: "Patrick Mahomes", Tier: 1},
@@ -1383,7 +1383,9 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		if isDynasty && dynastyValues != nil && len(dynastyValues) > 0 {
 			userPlayerNames := extractPlayerNames(startersRows, benchRows)
 			valueChanges, _ := getValueChanges(dynastyValues, userPlayerNames, isSuperFlex)
-			leagueData.ValueChanges = valueChanges
+			topRisers := getTopRisers(valueChanges, 5)
+			topFallers := getTopFallers(valueChanges, 5)
+			leagueData.ValueChanges = append(topRisers, topFallers...)
 		}
 
 		// Generate waiver recommendations (Feature #10)
