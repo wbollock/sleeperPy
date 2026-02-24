@@ -676,8 +676,17 @@
 
 /* Mobile Optimizations */
 @media (max-width: 768px) {
+    .league-grid-container {
+        gap: 12px;
+    }
+
+    .roster-card {
+        padding: 14px;
+        border-radius: 12px;
+    }
+
     .dynasty-toolkit {
-        gap: 16px;
+        gap: 12px;
     }
 
     .toolkit-card {
@@ -693,7 +702,7 @@
     }
 
     .card-content {
-        padding: 20px;
+        padding: 16px;
     }
 
     .news-item, .transaction-item {

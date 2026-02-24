@@ -16,8 +16,8 @@
     <meta name="theme-color" content="#1e293b">
     <link rel="manifest" href="/static/manifest.json">
 
-    <link rel="stylesheet" href="/static/main.css?v=20260211d">
-    <link rel="stylesheet" href="/static/dynasty.css?v=20260211d">
+    <link rel="stylesheet" href="/static/main.css?v=20260224a">
+    <link rel="stylesheet" href="/static/dynasty.css?v=20260224a">
     <link rel="stylesheet" href="/static/theme.css?v=20260211d">
     <link rel="stylesheet" href="/static/cookie-consent.css?v=20260211d">
     <link rel="stylesheet" href="/static/loading.css?v=20260211d">
@@ -190,38 +190,38 @@
             {{end}}
 
             {{if $l.WeeklyActions}}
-            <div class="actions-banner" style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:16px;margin-bottom:20px;">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-                    <h3 style="margin:0;font-size:1.1rem;display:flex;align-items:center;gap:8px;">
+            <div class="actions-banner">
+                <div class="actions-banner-header">
+                    <h3 class="actions-banner-title">
                         ⚡ {{len $l.WeeklyActions}} Action{{if gt (len $l.WeeklyActions) 1}}s{{end}} This Week
                     </h3>
                 </div>
-                <div style="display:flex;flex-direction:column;gap:10px;">
+                <div class="actions-list">
                     {{range $idx, $action := $l.WeeklyActions}}
                     {{if lt $idx 3}}
-                    <div class="action-item" style="display:flex;align-items:start;gap:10px;padding:10px;background:var(--card-bg-alt);border-radius:8px;">
-                        <input type="checkbox" id="action-{{$i}}-{{$idx}}" class="action-checkbox" style="margin-top:2px;">
-                        <label for="action-{{$i}}-{{$idx}}" style="flex:1;cursor:pointer;">
-                            <div style="font-weight:600;margin-bottom:2px;">{{add $idx 1}}. {{$action.Title}}</div>
-                            <div style="font-size:0.875rem;color:var(--text-secondary);">{{$action.Description}}</div>
-                            <div style="font-size:0.8rem;color:#10b981;margin-top:4px;">Impact: {{$action.Impact}}</div>
+                    <div class="action-item">
+                        <input type="checkbox" id="action-{{$i}}-{{$idx}}" class="action-checkbox">
+                        <label for="action-{{$i}}-{{$idx}}" class="action-item-label">
+                            <div class="action-item-title">{{add $idx 1}}. {{$action.Title}}</div>
+                            <div class="action-item-desc">{{$action.Description}}</div>
+                            <div class="action-item-impact">Impact: {{$action.Impact}}</div>
                         </label>
                     </div>
                     {{end}}
                     {{end}}
                 </div>
                 {{if gt (len $l.WeeklyActions) 3}}
-                <div style="margin-top:12px;text-align:center;">
-                    <button class="toggle-btn" onclick="toggleAllActions({{$i}})" style="padding:6px 16px;background:var(--accent-color);color:white;border:none;border-radius:6px;cursor:pointer;font-size:0.875rem;">
+                <div class="actions-footer">
+                    <button class="toggle-btn actions-toggle-btn" onclick="toggleAllActions({{$i}})">
                         View All {{len $l.WeeklyActions}} Actions
                     </button>
                 </div>
                 {{end}}
             </div>
             {{else}}
-            <div class="actions-banner" style="background:var(--card-bg);border:1px solid #10b981;border-radius:12px;padding:16px;margin-bottom:20px;">
-                <div style="display:flex;align-items:center;gap:8px;color:#10b981;">
-                    ✅ <span style="font-weight:600;">Looking good! No urgent actions this week.</span>
+            <div class="actions-banner actions-banner-empty">
+                <div class="actions-empty-text">
+                    Weekly action list is clear right now. No urgent lineup moves detected.
                 </div>
             </div>
             {{end}}

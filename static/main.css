@@ -1420,6 +1420,102 @@ h1, h2, h3 {
 	box-shadow: none;
 }
 
+.league-content {
+	animation: fadein 0.3s;
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+}
+
+.actions-banner {
+	background: var(--card-bg);
+	border: 1px solid var(--border-color);
+	border-radius: 12px;
+	padding: 14px;
+	margin: 0;
+}
+
+.actions-banner-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 10px;
+}
+
+.actions-banner-title {
+	margin: 0;
+	font-size: 1.02rem;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.actions-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.action-item {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	padding: 10px;
+	background: var(--card-bg-alt);
+	border-radius: 8px;
+}
+
+.action-checkbox {
+	margin-top: 2px;
+}
+
+.action-item-label {
+	flex: 1;
+	cursor: pointer;
+}
+
+.action-item-title {
+	font-weight: 600;
+	margin-bottom: 2px;
+}
+
+.action-item-desc {
+	font-size: 0.875rem;
+	color: var(--text-secondary);
+}
+
+.action-item-impact {
+	font-size: 0.8rem;
+	color: #10b981;
+	margin-top: 4px;
+}
+
+.actions-footer {
+	margin-top: 12px;
+	text-align: center;
+}
+
+.actions-toggle-btn {
+	padding: 7px 16px;
+	background: var(--accent-color);
+	color: #fff;
+	border: none;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 0.875rem;
+}
+
+.actions-banner-empty {
+	border-color: rgba(148, 163, 184, 0.25);
+	background: rgba(15, 23, 42, 0.45);
+}
+
+.actions-empty-text {
+	color: var(--text-secondary);
+	font-weight: 600;
+	font-size: 0.92rem;
+}
+
 .pretty-table {
 	background: rgba(15, 23, 42, 0.45);
 	border-radius: 14px;
@@ -1508,6 +1604,46 @@ h1, h2, h3 {
 	.league-info-bar {
 		flex-direction: column;
 		align-items: flex-start;
+		margin-bottom: 0;
+		padding: 12px;
+	}
+
+	.player-search-container {
+		width: 100%;
+		min-width: 0;
+		margin-left: 0;
+	}
+
+	.mode-toggle-container {
+		margin-bottom: 0;
+	}
+
+	.mode-toggle {
+		width: 100%;
+		justify-content: space-between;
+	}
+
+	.mode-btn {
+		flex: 1 1 0;
+		text-align: center;
+		padding: 9px 10px;
+	}
+
+	.league-content {
+		gap: 10px;
+	}
+
+	.actions-banner {
+		padding: 12px;
+	}
+
+	.actions-banner-title {
+		font-size: 0.96rem;
+	}
+
+	.actions-empty-text {
+		font-size: 0.88rem;
+		line-height: 1.4;
 	}
 }
 
@@ -1540,6 +1676,29 @@ h1, h2, h3 {
 		min-width: 0;
 		flex: 1 1 100%;
 		margin-right: 0;
+	}
+
+	.main-content {
+		padding: 14px 10px 32px;
+		gap: 14px;
+	}
+
+	.league-content {
+		gap: 8px;
+	}
+
+	.actions-banner {
+		padding: 10px;
+		border-radius: 10px;
+	}
+
+	.actions-banner-header {
+		margin-bottom: 8px;
+	}
+
+	.action-item {
+		padding: 8px;
+		gap: 8px;
 	}
 }
 
