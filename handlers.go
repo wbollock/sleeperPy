@@ -5,6 +5,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
@@ -159,6 +160,53 @@ func faqHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error rendering FAQ page", http.StatusInternalServerError)
 		log.Printf("Error rendering faq.html: %v", err)
 	}
+}
+
+func importHandler(w http.ResponseWriter, r *http.Request) {
+	trackPageView(r.URL.Path)
+	provider := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("provider")))
+	leagueID := strings.TrimSpace(r.URL.Query().Get("league_id"))
+	seasonRaw := strings.TrimSpace(r.URL.Query().Get("season"))
+	swid := strings.TrimSpace(r.URL.Query().Get("swid"))
+	espnS2 := strings.TrimSpace(r.URL.Query().Get("espn_s2"))
+
+	if provider == "" || leagueID == "" {
+		http.Error(w, "provider and league_id are required", http.StatusBadRequest)
+		return
+	}
+
+	season := 0
+	if seasonRaw != "" {
+		n, err := strconv.Atoi(seasonRaw)
+		if err != nil || n < 2000 || n > 2100 {
+			http.Error(w, "season must be a valid year", http.StatusBadRequest)
+			return
+		}
+		season = n
+	}
+
+	importer, err := getImporter(provider)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	opts := ImportOptions{
+		LeagueID: leagueID,
+		Season:   season,
+		SWID:     swid,
+		ESPN_S2:  espnS2,
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), 12*time.Second)
+	defer cancel()
+	league, err := importer.ImportLeague(ctx, opts)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadGateway)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_ = json.NewEncoder(w).Encode(league)
 }
 
 func robotsHandler(w http.ResponseWriter, r *http.Request) {
