@@ -74,6 +74,63 @@ type UACount struct {
 	Count     int64
 }
 
+type PublicStatusData struct {
+	Uptime         string
+	UpdatedAt      string
+	ServiceStatus  string
+	ErrorRate      string
+	TotalLookups   float64
+	TotalLeagues   float64
+	TotalErrors    float64
+	LookupsPerHour float64
+	LeaguesPerHour float64
+}
+
+func publicStatusHandler(w http.ResponseWriter, r *http.Request) {
+	lookups := getMetricValue(totalLookups)
+	leagues := getMetricValue(totalLeagues)
+	errors := getMetricValue(totalErrors)
+
+	uptime := time.Since(adminMetrics.startTime)
+	uptimeHours := uptime.Hours()
+	lookupsPerHour := 0.0
+	leaguesPerHour := 0.0
+	if uptimeHours > 0 {
+		lookupsPerHour = lookups / uptimeHours
+		leaguesPerHour = leagues / uptimeHours
+	}
+
+	denom := lookups
+	if denom < 1 {
+		denom = 1
+	}
+	errorRate := (errors / denom) * 100.0
+	serviceStatus := "Operational"
+	if lookups == 0 {
+		serviceStatus = "Initializing"
+	} else if errorRate >= 5.0 {
+		serviceStatus = "Degraded"
+	}
+
+	data := PublicStatusData{
+		Uptime:         uptime.Round(time.Second).String(),
+		UpdatedAt:      time.Now().Format("2006-01-02 15:04:05 MST"),
+		ServiceStatus:  serviceStatus,
+		ErrorRate:      fmt.Sprintf("%.1f%%", errorRate),
+		TotalLookups:   lookups,
+		TotalLeagues:   leagues,
+		TotalErrors:    errors,
+		LookupsPerHour: lookupsPerHour,
+		LeaguesPerHour: leaguesPerHour,
+	}
+
+	tmpl := template.Must(template.ParseFiles("templates/status.html"))
+	if err := tmpl.Execute(w, data); err != nil {
+		http.Error(w, "Error rendering status page", http.StatusInternalServerError)
+		log.Printf("Error rendering status.html: %v", err)
+	}
+}
+
 func adminHandler(w http.ResponseWriter, r *http.Request) {
 	if !adminAccessAllowed(r) {
 		w.WriteHeader(http.StatusUnauthorized)

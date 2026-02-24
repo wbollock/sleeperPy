@@ -39,6 +39,7 @@
 17. ESPN/Yahoo read‑only imports
 18. CSV/manual import fallback
 19. Weekly email summary (low priority)
+20. Public status page (sanitized operational health)
 
 1) **Cross-League Dashboard (Free)**
 - **User Story:** “Show me how my teams are doing without clicking each league.”
@@ -172,6 +173,17 @@
 - Feature gating with usage limits.
 - Account linking for multiple Sleeper usernames.
 - Basic billing integration.
+- Public status page with sanitized operational metrics.
+
+20) **Public Status Page (Ops/Public)**
+- **User Story:** “Let me quickly see if SleeperPy is healthy without exposing admin internals.”
+- **UX:** Public `/status` page with uptime, aggregate usage counters, and coarse health status.
+- **Security/Safety:** No user agents, no path-level data, no raw errors, no admin auth details.
+- **Implementation Steps:**
+  1. Add a dedicated public status handler and template.
+  2. Reuse aggregate counters (uptime, lookups, leagues, errors) only.
+  3. Compute a coarse health state from aggregate error rate.
+  4. Keep `/admin` and `/admin/api` private and unchanged.
 
 ## Phase 5 — Cross-Platform (Last)
 **Priority:** mitigate API risk

@@ -289,6 +289,7 @@ func main() {
 	http.Handle("/about", wrapHandler("about", aboutHandler))
 	http.Handle("/faq", wrapHandler("faq", faqHandler))
 	http.Handle("/demo", wrapHandler("demo", demoHandler))
+	http.Handle("/status", wrapHandler("status", publicStatusHandler))
 	http.Handle("/robots.txt", wrapHandler("robots", robotsHandler))
 	http.Handle("/sitemap.xml", wrapHandler("sitemap", sitemapHandler))
 	http.Handle("/metrics", promhttp.Handler())

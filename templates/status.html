@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status - SleeperPy</title>
+    <meta name="description" content="Public operational status for SleeperPy">
+    <link rel="stylesheet" href="/static/main.css?v=20260211d">
+    <link rel="stylesheet" href="/static/theme.css?v=20260211d">
+</head>
+<body>
+    <main style="max-width:900px;margin:0 auto;padding:24px;">
+        <header style="margin-bottom:20px;">
+            <h1 style="margin:0 0 8px 0;">SleeperPy Status</h1>
+            <p style="margin:0;color:var(--text-secondary);">Updated: {{.UpdatedAt}} | Uptime: {{.Uptime}}</p>
+        </header>
+
+        <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:18px;">
+            <article style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:10px;padding:14px;">
+                <div style="font-size:0.8rem;color:var(--text-secondary);">Service</div>
+                <div style="font-size:1.4rem;font-weight:700;margin-top:4px;">{{.ServiceStatus}}</div>
+            </article>
+            <article style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:10px;padding:14px;">
+                <div style="font-size:0.8rem;color:var(--text-secondary);">Error Rate</div>
+                <div style="font-size:1.4rem;font-weight:700;margin-top:4px;">{{.ErrorRate}}</div>
+            </article>
+        </section>
+
+        <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
+            <article style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:10px;padding:14px;">
+                <div style="font-size:0.8rem;color:var(--text-secondary);">Total Lookups</div>
+                <div style="font-size:1.2rem;font-weight:700;margin-top:4px;">{{printf "%.0f" .TotalLookups}}</div>
+                <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:4px;">{{printf "%.1f" .LookupsPerHour}}/hr since start</div>
+            </article>
+            <article style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:10px;padding:14px;">
+                <div style="font-size:0.8rem;color:var(--text-secondary);">Leagues Processed</div>
+                <div style="font-size:1.2rem;font-weight:700;margin-top:4px;">{{printf "%.0f" .TotalLeagues}}</div>
+                <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:4px;">{{printf "%.1f" .LeaguesPerHour}}/hr since start</div>
+            </article>
+            <article style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:10px;padding:14px;">
+                <div style="font-size:0.8rem;color:var(--text-secondary);">Total Errors</div>
+                <div style="font-size:1.2rem;font-weight:700;margin-top:4px;">{{printf "%.0f" .TotalErrors}}</div>
+                <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:4px;">Aggregate counter</div>
+            </article>
+        </section>
+
+        <p style="margin-top:18px;font-size:0.85rem;color:var(--text-secondary);">
+            This page is intentionally sanitized and does not include raw error details, user agents, path-level traffic, or admin-only diagnostics.
+        </p>
+    </main>
+</body>
+</html>
