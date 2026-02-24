@@ -43,16 +43,24 @@ func buildContextCards(league LeagueData, userRosterValue int, userAvgAge float6
 		youngestAge := 100.0
 		oldestAge := 0.0
 
-		for i, team := range league.TeamAges {
+		for _, team := range league.TeamAges {
 			if team.AvgAge < youngestAge {
 				youngestAge = team.AvgAge
 			}
 			if team.AvgAge > oldestAge {
 				oldestAge = team.AvgAge
 			}
+		}
+		// Rank age from youngest (1) to oldest (N), independent of incoming order.
+		ageSorted := sortTeamsByAge(league.TeamAges)
+		for i, team := range ageSorted {
 			if team.IsUserTeam {
 				ageRank = i + 1
+				break
 			}
+		}
+		if ageRank == 0 {
+			ageRank = league.LeagueSize
 		}
 
 		rankSuffix := getRankSuffix(ageRank)
@@ -90,7 +98,9 @@ func buildContextCards(league LeagueData, userRosterValue int, userAvgAge float6
 		totalPicks := len(league.DraftPicks)
 
 		for _, pick := range league.DraftPicks {
-			if pick.Round == 1 && pick.IsYours {
+			// DraftPicks already contains picks the user currently owns.
+			// Count all round-1 picks, including acquired picks.
+			if pick.Round == 1 {
 				firstRoundPicks++
 			}
 		}
