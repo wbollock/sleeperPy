@@ -4,9 +4,11 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 )
 
 // Generate trade proposal for a specific target team
@@ -67,8 +69,8 @@ func generateTradeProposal(
 	proposal.Rationale = buildRationale(proposal, userSurplus, targetSurplus)
 
 	// Generate draft message (LLM if premium, template otherwise)
-	if premiumEnabled {
-		proposal.DraftMessage = generateLLMTradeMessage(proposal)
+	if premiumEnabled && hasOpenRouterKey() {
+		proposal.DraftMessage = generateLLMTradeMessage(proposal, userSurplus, targetSurplus)
 	} else {
 		proposal.DraftMessage = generateTemplateMessage(proposal)
 	}
@@ -242,39 +244,70 @@ Let me know if you'd like to discuss!`,
 	return template
 }
 
-func generateLLMTradeMessage(proposal TradeProposal) string {
-	// TODO: Integrate with actual LLM API in future
-	// For now, return enhanced template
-
+func generateLLMTradeMessage(proposal TradeProposal, userSurplus, targetSurplus string) string {
 	yourPlayers := formatPlayerList(proposal.YourOffer)
 	theirPlayers := formatPlayerList(proposal.TheirReturn)
 
-	// More personalized message based on trade context
-	opener := "Hey! I've been looking at both our rosters and think we could help each other out."
+	// Safe fallback template if LLM is unavailable or fails.
+	fallback := fmt.Sprintf(`Hey! I think we might match up well on a trade.
 
-	if proposal.WinNowImpact > 30 {
-		opener = "Hey! I'm making a push for the playoffs and wanted to reach out about a potential trade."
-	} else if proposal.FutureImpact > 30 {
-		opener = "Hey! I'm building for the future and think we might have a mutually beneficial trade."
-	}
+I can send: %s
+I'd be looking for: %s
 
-	message := fmt.Sprintf(`%s
-
-Trade proposal:
-- You receive: %s
-- I receive: %s
-
+I have surplus at %s and you have surplus at %s, so this could help both sides.
 %s
 
-This looks like a fair deal for both sides (within %d dynasty points). Interested in discussing?`,
-		opener,
+If this framework works for you, I can adjust details.`,
 		yourPlayers,
 		theirPlayers,
+		emptyToNA(userSurplus),
+		emptyToNA(targetSurplus),
 		proposal.Rationale,
-		abs(proposal.ValueDelta),
 	)
 
-	return message
+	if !hasOpenRouterKey() {
+		return fallback
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 12*time.Second)
+	defer cancel()
+
+	messages := []openRouterMessage{
+		{
+			Role: "system",
+			Content: "You are writing a concise fantasy football trade message. " +
+				"Be polite, direct, and specific. Do not overhype. Keep it under 120 words.",
+		},
+		{
+			Role: "user",
+			Content: fmt.Sprintf(
+				"Write a trade message to %s.\n"+
+					"My surplus: %s\n"+
+					"Their surplus: %s\n"+
+					"I send: %s\n"+
+					"I receive: %s\n"+
+					"Rationale: %s\n"+
+					"Fairness: %s\n"+
+					"Risk: %s\n"+
+					"Use plain language and end with a simple question.",
+				proposal.TargetTeamName,
+				emptyToNA(userSurplus),
+				emptyToNA(targetSurplus),
+				yourPlayers,
+				theirPlayers,
+				proposal.Rationale,
+				proposal.Fairness,
+				proposal.RiskLevel,
+			),
+		},
+	}
+
+	msg, err := callOpenRouter(ctx, messages, 180)
+	if err != nil || strings.TrimSpace(msg) == "" {
+		debugLog("[DEBUG] trade message LLM fallback: %v", err)
+		return fallback
+	}
+	return strings.TrimSpace(msg)
 }
 
 func formatPlayerList(players []ProposalPlayer) string {
@@ -311,4 +344,11 @@ func clamp(value, min, max int) int {
 		return max
 	}
 	return value
+}
+
+func emptyToNA(s string) string {
+	if strings.TrimSpace(s) == "" {
+		return "N/A"
+	}
+	return s
 }
