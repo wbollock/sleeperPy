@@ -5,6 +5,8 @@ package main
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -26,6 +28,9 @@ func generateSeasonPlan(league LeagueData, isPremium bool) SeasonPlan {
 	// Determine strategy based on team composition
 	plan.Strategy = determineStrategy(league)
 
+	// Build a simple schedule difficulty profile for upcoming weeks
+	plan.ScheduleDifficulty, plan.ScheduleNote = buildScheduleDifficultyProfile(league, plan.Strategy)
+
 	// Generate key dates
 	plan.KeyDates = generateKeyDates(now, league.HasMatchups)
 
@@ -36,7 +41,7 @@ func generateSeasonPlan(league LeagueData, isPremium bool) SeasonPlan {
 	plan.TradeWindow = determineTradeWindow(now)
 
 	// Generate strategic recommendations
-	plan.Recommendations = generateStrategicRecommendations(league, plan.Strategy, plan.CurrentPhase)
+	plan.Recommendations = generateStrategicRecommendations(league, plan.Strategy, plan.CurrentPhase, plan.ScheduleDifficulty)
 
 	// Set next milestone
 	if len(plan.KeyDates) > 0 {
@@ -216,7 +221,7 @@ func determineTradeWindow(now time.Time) string {
 	return "Open"
 }
 
-func generateStrategicRecommendations(league LeagueData, strategy string, phase string) []string {
+func generateStrategicRecommendations(league LeagueData, strategy string, phase string, scheduleDifficulty string) []string {
 	recs := []string{}
 
 	// Strategy-specific recommendations
@@ -287,5 +292,75 @@ func generateStrategicRecommendations(league LeagueData, strategy string, phase 
 		}
 	}
 
+	// Difficulty profile recommendations
+	switch scheduleDifficulty {
+	case "Hard":
+		recs = append(recs, "Prioritize floor and lineup stability for difficult upcoming matchups")
+		recs = append(recs, "Add depth at fragile positions before bye/injury pressure")
+	case "Moderate":
+		recs = append(recs, "Mix floor and upside plays while preserving roster flexibility")
+	case "Easy":
+		recs = append(recs, "Use softer matchup window to test upside players and stash value")
+	}
+
 	return recs
+}
+
+func buildScheduleDifficultyProfile(league LeagueData, strategy string) (string, string) {
+	if !league.HasMatchups {
+		return "Offseason", "No active weekly matchups; focus on roster construction and value accumulation."
+	}
+
+	score := 1 // baseline: moderate
+	winProb := parseWinProbPct(league.WinProb)
+	if winProb > 0 {
+		if winProb < 45 {
+			score += 2
+		} else if winProb <= 55 {
+			score += 1
+		} else if winProb >= 65 {
+			score -= 1
+		}
+	}
+
+	for _, pr := range league.PowerRankings {
+		if !pr.IsUserTeam {
+			continue
+		}
+		if pr.StandingRank <= 3 {
+			score += 1 // contenders get targeted and face stronger resistance
+		}
+		if pr.ValueRank > league.LeagueSize/2 {
+			score += 1 // weaker rosters have less margin
+		}
+		break
+	}
+
+	if strategy == "Rebuild" || strategy == "Build" {
+		score -= 1
+	}
+
+	if score <= 0 {
+		return "Easy", "Current matchup profile is favorable; use this window to optimize upside."
+	}
+	if score <= 2 {
+		return "Moderate", "Balanced matchup profile; stay flexible and avoid overreacting."
+	}
+	return "Hard", "Upcoming stretch projects tougher; protect floor and reinforce depth."
+}
+
+func parseWinProbPct(s string) int {
+	if s == "" {
+		return 0
+	}
+	fields := strings.Fields(s)
+	if len(fields) == 0 {
+		return 0
+	}
+	raw := strings.TrimSuffix(fields[0], "%")
+	n, err := strconv.Atoi(raw)
+	if err != nil {
+		return 0
+	}
+	return n
 }

@@ -400,6 +400,15 @@
                                         <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:4px;">Trade: {{$l.SeasonPlan.TradeWindow}}</div>
                                         {{end}}
                                     </div>
+                                    {{if ne $l.SeasonPlan.ScheduleDifficulty ""}}
+                                    <div style="padding:12px;background:var(--card-bg-alt);border-radius:8px;">
+                                        <div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Schedule Difficulty</div>
+                                        <div style="font-weight:600;font-size:0.95rem;color:{{if eq $l.SeasonPlan.ScheduleDifficulty "Hard"}}#ef4444{{else if eq $l.SeasonPlan.ScheduleDifficulty "Easy"}}#10b981{{else}}#f59e0b{{end}};">{{$l.SeasonPlan.ScheduleDifficulty}}</div>
+                                        {{if ne $l.SeasonPlan.ScheduleNote ""}}
+                                        <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:4px;">{{$l.SeasonPlan.ScheduleNote}}</div>
+                                        {{end}}
+                                    </div>
+                                    {{end}}
                                     {{if gt $l.SeasonPlan.WeeksRemaining 0}}
                                     <div style="padding:12px;background:var(--card-bg-alt);border-radius:8px;">
                                         <div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Timeline</div>

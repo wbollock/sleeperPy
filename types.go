@@ -272,14 +272,16 @@ type WaiverRecommendation struct {
 }
 
 type SeasonPlan struct {
-	CurrentPhase     string
-	PhaseDescription string
-	Strategy         string
-	KeyDates         []KeyDate
-	Recommendations  []string
-	TradeWindow      string
-	NextMilestone    string
-	WeeksRemaining   int
+	CurrentPhase       string
+	PhaseDescription   string
+	Strategy           string
+	ScheduleDifficulty string
+	ScheduleNote       string
+	KeyDates           []KeyDate
+	Recommendations    []string
+	TradeWindow        string
+	NextMilestone      string
+	WeeksRemaining     int
 }
 
 type KeyDate struct {
