@@ -431,6 +431,7 @@ func fetchRecentTransactions(leagueID string, currentWeek int, players map[strin
 
 			txn := Transaction{
 				Type:           "trade",
+				LeagueID:       leagueID,
 				Timestamp:      timestamp,
 				Description:    desc,
 				TeamNames:      []string{team1, team2},
@@ -496,6 +497,7 @@ func fetchRecentTransactions(leagueID string, currentWeek int, players map[strin
 
 			transactions = append(transactions, Transaction{
 				Type:          txnType,
+				LeagueID:      leagueID,
 				Timestamp:     timestamp,
 				Description:   desc,
 				TeamNames:     []string{teamName},

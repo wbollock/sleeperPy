@@ -196,6 +196,7 @@ type TradeRetrospective struct {
 
 type Transaction struct {
 	Type           string // "trade", "waiver", "free_agent"
+	LeagueID       string
 	Timestamp      time.Time
 	Description    string
 	TeamNames      []string
