@@ -318,7 +318,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 1. Get user ID
-	user, err := fetchJSON(fmt.Sprintf("https://api.sleeper.app/v1/user/%s", username))
+	user, err := appProvider.FetchUser(username)
 	if err != nil || user["user_id"] == nil {
 		log.Printf("[ERROR] User not found or error: %v", err)
 		totalErrors.Inc()
@@ -329,14 +329,14 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 
 	// 2. Get leagues (check current year and previous year for dynasty leagues)
 	year := time.Now().Year()
-	leagues, err := fetchJSONArray(fmt.Sprintf("https://api.sleeper.app/v1/user/%s/leagues/nfl/%d", userID, year))
+	leagues, err := appProvider.FetchUserLeagues(userID, year)
 	if err != nil {
 		debugLog("[DEBUG] Error fetching leagues for year %d: %v", year, err)
 	}
 
 	// Also fetch previous year leagues (dynasty leagues often stay on previous season)
 	previousYear := year - 1
-	previousYearLeagues, err := fetchJSONArray(fmt.Sprintf("https://api.sleeper.app/v1/user/%s/leagues/nfl/%d", userID, previousYear))
+	previousYearLeagues, err := appProvider.FetchUserLeagues(userID, previousYear)
 	if err != nil {
 		debugLog("[DEBUG] Error fetching leagues for year %d: %v", previousYear, err)
 	} else {
@@ -352,7 +352,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 3. Get current NFL week from Sleeper API
-	state, err := fetchJSON("https://api.sleeper.app/v1/state/nfl")
+	state, err := appProvider.FetchNFLState()
 	if err != nil {
 		log.Printf("[ERROR] Could not get current NFL week: %v", err)
 		totalErrors.Inc()
@@ -432,7 +432,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Get rosters and matchups
-		rosters, err := fetchJSONArray(fmt.Sprintf("https://api.sleeper.app/v1/league/%s/rosters", leagueID))
+		rosters, err := appProvider.FetchLeagueRosters(leagueID)
 		if err != nil {
 			log.Printf("[ERROR] Error fetching rosters for league %s: %v", leagueName, err)
 			totalErrors.Inc()
@@ -440,7 +440,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		totalTeams.Add(float64(len(rosters)))
 
-		matchups, err := fetchJSONArray(fmt.Sprintf("https://api.sleeper.app/v1/league/%s/matchups/%d", leagueID, week))
+		matchups, err := appProvider.FetchLeagueMatchups(leagueID, week)
 		hasMatchups := (err == nil && len(matchups) > 0)
 		if !hasMatchups {
 			if isDynasty {
@@ -1095,7 +1095,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		// Get league users for team names (for dynasty mode - used by both team ages and draft picks)
 		var userNames map[string]string
 		if isDynasty {
-			leagueUsers, err := fetchJSONArray(fmt.Sprintf("https://api.sleeper.app/v1/league/%s/users", leagueID))
+			leagueUsers, err := appProvider.FetchLeagueUsers(leagueID)
 			if err != nil {
 				debugLog("[DEBUG] Could not fetch league users: %v", err)
 			}
@@ -1204,7 +1204,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		var projectedDraftPicks []ProjectedDraftPick
 		if isDynasty {
 			// Fetch traded picks from Sleeper API
-			tradedPicks, err := fetchJSONArray(fmt.Sprintf("https://api.sleeper.app/v1/league/%s/traded_picks", leagueID))
+			tradedPicks, err := appProvider.FetchLeagueTradedPicks(leagueID)
 			if err != nil {
 				debugLog("[DEBUG] Could not fetch traded picks: %v", err)
 			}
@@ -1612,7 +1612,7 @@ func dashboardHandler(w http.ResponseWriter, r *http.Request) {
 
 func buildDashboardPage(username string) (*DashboardPage, error) {
 	// 1. Get user ID
-	user, err := fetchJSON(fmt.Sprintf("https://api.sleeper.app/v1/user/%s", username))
+	user, err := appProvider.FetchUser(username)
 	if err != nil || user["user_id"] == nil {
 		return nil, fmt.Errorf("user not found")
 	}
@@ -1620,13 +1620,13 @@ func buildDashboardPage(username string) (*DashboardPage, error) {
 
 	// 2. Get leagues (current + previous year)
 	year := time.Now().Year()
-	leagues, err := fetchJSONArray(fmt.Sprintf("https://api.sleeper.app/v1/user/%s/leagues/nfl/%d", userID, year))
+	leagues, err := appProvider.FetchUserLeagues(userID, year)
 	if err != nil {
 		debugLog("[DEBUG] Error fetching leagues for year %d: %v", year, err)
 	}
 
 	previousYear := year - 1
-	previousYearLeagues, err := fetchJSONArray(fmt.Sprintf("https://api.sleeper.app/v1/user/%s/leagues/nfl/%d", userID, previousYear))
+	previousYearLeagues, err := appProvider.FetchUserLeagues(userID, previousYear)
 	if err == nil {
 		leagues = append(leagues, previousYearLeagues...)
 	}
@@ -1716,7 +1716,7 @@ func buildDashboardPage(username string) (*DashboardPage, error) {
 		}
 
 		// Get league size
-		rosters, err := fetchJSONArray(fmt.Sprintf("https://api.sleeper.app/v1/league/%s/rosters", leagueID))
+		rosters, err := appProvider.FetchLeagueRosters(leagueID)
 		if err != nil {
 			debugLog("[DEBUG] Error fetching rosters for league %s: %v", leagueName, err)
 			continue
@@ -1937,7 +1937,7 @@ func getValueTrend(username, leagueID string, currentValue int) string {
 
 func getDraftPicksSummary(leagueID string, userRoster map[string]interface{}) string {
 	// Fetch traded picks from API
-	tradedPicks, err := fetchJSONArray(fmt.Sprintf("https://api.sleeper.app/v1/league/%s/traded_picks", leagueID))
+	tradedPicks, err := appProvider.FetchLeagueTradedPicks(leagueID)
 	if err != nil {
 		debugLog("[DEBUG] Error fetching traded picks: %v", err)
 		return ""

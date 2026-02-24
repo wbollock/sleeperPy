@@ -4,28 +4,27 @@ package main
 import (
 	"context"
 	"fmt"
+	"time"
 )
 
 // APIClient provides access to core SleeperPy functionality
 type APIClient struct {
-	// Can add config here if needed
+	provider LeagueProvider
 }
 
 // NewAPIClient creates a new API client
 func NewAPIClient() *APIClient {
-	return &APIClient{}
+	return &APIClient{provider: appProvider}
 }
 
 // FetchUser fetches a Sleeper user by username
 func (a *APIClient) FetchUser(ctx context.Context, username string) (map[string]interface{}, error) {
-	url := fmt.Sprintf("https://api.sleeper.app/v1/user/%s", username)
-	return fetchJSON(url)
+	return a.provider.FetchUser(username)
 }
 
 // FetchUserLeagues fetches leagues for a user ID
 func (a *APIClient) FetchUserLeagues(ctx context.Context, userID string) ([]map[string]interface{}, error) {
-	url := fmt.Sprintf("https://api.sleeper.app/v1/user/%s/leagues/nfl/2025", userID)
-	return fetchJSONArray(url)
+	return a.provider.FetchUserLeagues(userID, time.Now().Year())
 }
 
 // FetchBorisChenTiers fetches Boris Chen tiers for a scoring format
