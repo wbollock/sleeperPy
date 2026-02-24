@@ -25,10 +25,10 @@ type openRouterMessage struct {
 }
 
 type openRouterRequest struct {
-	Model       string             `json:"model"`
+	Model       string              `json:"model"`
 	Messages    []openRouterMessage `json:"messages"`
-	Temperature float64            `json:"temperature,omitempty"`
-	MaxTokens   int                `json:"max_tokens,omitempty"`
+	Temperature float64             `json:"temperature,omitempty"`
+	MaxTokens   int                 `json:"max_tokens,omitempty"`
 }
 
 type openRouterResponse struct {
@@ -121,6 +121,18 @@ func buildLeagueSummary(league LeagueData) string {
 		sb.WriteString(fmt.Sprintf("Recent Transactions: %d\n", len(league.RecentTransactions)))
 	}
 
+	priorityMatrix := buildPriorityMatrix(league)
+	if priorityMatrix != "" {
+		sb.WriteString("Priority Matrix:\n")
+		sb.WriteString(priorityMatrix)
+	}
+
+	riskWatchlist := buildRiskWatchlist(league)
+	if riskWatchlist != "" {
+		sb.WriteString("Risk Watchlist:\n")
+		sb.WriteString(riskWatchlist)
+	}
+
 	return sb.String()
 }
 
@@ -128,6 +140,7 @@ func buildOverviewSummary(leagues []LeagueData) string {
 	var sb strings.Builder
 
 	sb.WriteString("All Leagues Summary:\n")
+	totalRiskFlags := 0
 	for _, league := range leagues {
 		sb.WriteString(fmt.Sprintf("\n- %s (%s, %d teams)\n", league.LeagueName, league.Scoring, league.LeagueSize))
 		if league.TotalRosterValue > 0 {
@@ -142,7 +155,13 @@ func buildOverviewSummary(leagues []LeagueData) string {
 		if len(league.TradeTargets) > 0 {
 			sb.WriteString(fmt.Sprintf("  Trade Targets: %d\n", len(league.TradeTargets)))
 		}
+		riskCount := countLeagueRisks(league)
+		if riskCount > 0 {
+			totalRiskFlags += riskCount
+			sb.WriteString(fmt.Sprintf("  Risk Flags: %d\n", riskCount))
+		}
 	}
+	sb.WriteString(fmt.Sprintf("\nAggregate Risk Flags: %d\n", totalRiskFlags))
 
 	return sb.String()
 }
@@ -209,6 +228,8 @@ func generateTeamTalk(ctx context.Context, league LeagueData) (string, error) {
 			Role: "user",
 			Content: "Provide a short team talk with:\n" +
 				"- 3 priority actions\n" +
+				"- Priority Matrix (Needs vs Surpluses)\n" +
+				"- Risk Watchlist (injury/age)\n" +
 				"- 2 watchlist notes\n" +
 				"- 1 trade suggestion (if any)\n\n" +
 				"Team data:\n" + summary,
@@ -228,6 +249,8 @@ func generateOverview(ctx context.Context, leagues []LeagueData) (string, error)
 			Role: "user",
 			Content: "Provide an overview across all leagues with:\n" +
 				"- Top 3 priorities across leagues\n" +
+				"- Cross-League Priority Matrix themes (common needs/surpluses)\n" +
+				"- Cross-League Risk Watchlist (injury/age)\n" +
 				"- 2 common risks\n" +
 				"- 2 quick wins\n\n" +
 				"Data:\n" + summary,
@@ -248,4 +271,113 @@ func applyTeamTalks(ctx context.Context, leagues []LeagueData) []LeagueData {
 		leagues[i].PremiumTeamTalk = talk
 	}
 	return leagues
+}
+
+func buildPriorityMatrix(league LeagueData) string {
+	pb := league.PositionalBreakdown
+	total := pb.QB + pb.RB + pb.WR + pb.TE
+	if total == 0 {
+		return ""
+	}
+
+	type posPct struct {
+		pos string
+		pct float64
+	}
+	positions := []posPct{
+		{pos: "QB", pct: float64(pb.QB) / float64(total) * 100},
+		{pos: "RB", pct: float64(pb.RB) / float64(total) * 100},
+		{pos: "WR", pct: float64(pb.WR) / float64(total) * 100},
+		{pos: "TE", pct: float64(pb.TE) / float64(total) * 100},
+	}
+
+	needs := []string{}
+	surpluses := []string{}
+	for _, p := range positions {
+		if p.pct < 15 {
+			needs = append(needs, fmt.Sprintf("%s (%.0f%%)", p.pos, p.pct))
+		}
+		if p.pct > 30 {
+			surpluses = append(surpluses, fmt.Sprintf("%s (%.0f%%)", p.pos, p.pct))
+		}
+	}
+	if len(needs) == 0 {
+		needs = append(needs, "None")
+	}
+	if len(surpluses) == 0 {
+		surpluses = append(surpluses, "None")
+	}
+
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf("- Needs: %s\n", strings.Join(needs, ", ")))
+	sb.WriteString(fmt.Sprintf("- Surpluses: %s\n", strings.Join(surpluses, ", ")))
+	return sb.String()
+}
+
+func buildRiskWatchlist(league LeagueData) string {
+	risks := []string{}
+	seen := map[string]bool{}
+
+	for _, p := range league.PlayerNewsFeed {
+		if p.InjuryStatus == "" {
+			continue
+		}
+		status := strings.ToLower(p.InjuryStatus)
+		if status == "out" || status == "ir" || status == "doubtful" || status == "questionable" {
+			key := "injury:" + p.PlayerName
+			if seen[key] {
+				continue
+			}
+			seen[key] = true
+			risks = append(risks, fmt.Sprintf("- Injury: %s (%s)", p.PlayerName, p.InjuryStatus))
+			if len(risks) >= 3 {
+				break
+			}
+		}
+	}
+
+	for _, p := range league.AgingPlayers {
+		if p.Age <= 0 {
+			continue
+		}
+		key := "age:" + p.Name
+		if seen[key] {
+			continue
+		}
+		seen[key] = true
+		risks = append(risks, fmt.Sprintf("- Age: %s (%s age %d)", p.Name, p.Pos, p.Age))
+		if len(risks) >= 6 {
+			break
+		}
+	}
+
+	if len(risks) == 0 {
+		return ""
+	}
+	return strings.Join(risks, "\n") + "\n"
+}
+
+func countLeagueRisks(league LeagueData) int {
+	count := 0
+	seen := map[string]bool{}
+	for _, p := range league.PlayerNewsFeed {
+		status := strings.ToLower(p.InjuryStatus)
+		if status == "out" || status == "ir" || status == "doubtful" || status == "questionable" {
+			key := "injury:" + p.PlayerName
+			if !seen[key] {
+				seen[key] = true
+				count++
+			}
+		}
+	}
+	for _, p := range league.AgingPlayers {
+		if p.Age > 0 {
+			key := "age:" + p.Name
+			if !seen[key] {
+				seen[key] = true
+				count++
+			}
+		}
+	}
+	return count
 }
