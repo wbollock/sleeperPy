@@ -55,6 +55,8 @@ func scoreWaiverTarget(fa PlayerRow, league LeagueData, position string, availab
 	tierDelta := 0.0
 	impactType := "Depth Add"
 	rationale := ""
+	role := classifyWaiverRole(fa, impactType)
+	usageSignal := usageSignal(fa.RosterPercent)
 
 	faTier := parseTierFloat(fa.Tier)
 	if faTier == 0 {
@@ -117,6 +119,15 @@ func scoreWaiverTarget(fa PlayerRow, league LeagueData, position string, availab
 	}
 	score += scarcityScore
 
+	// 3b. Usage bonus from roster percentage (proxy for role/market confidence)
+	if fa.RosterPercent >= 70 {
+		score += 15
+	} else if fa.RosterPercent >= 40 {
+		score += 8
+	} else if fa.RosterPercent >= 20 {
+		score += 4
+	}
+
 	// 4. Dynasty value bonus (if dynasty league)
 	if league.IsDynasty && fa.DynastyValue > 0 {
 		if fa.DynastyValue > 1000 {
@@ -158,10 +169,13 @@ func scoreWaiverTarget(fa PlayerRow, league LeagueData, position string, availab
 	// Build rationale if not set
 	if rationale == "" {
 		if faTier <= 3.0 {
-			rationale = fmt.Sprintf("Strong tier ranking (%.1f)", faTier)
+			rationale = fmt.Sprintf("Strong tier ranking (%.1f), %s", faTier, usageSignal)
 		} else {
-			rationale = fmt.Sprintf("Depth option at %s", position)
+			rationale = fmt.Sprintf("Depth option at %s, %s", position, usageSignal)
 		}
+	}
+	if role == "" {
+		role = classifyWaiverRole(fa, impactType)
 	}
 
 	return WaiverRecommendation{
@@ -171,6 +185,8 @@ func scoreWaiverTarget(fa PlayerRow, league LeagueData, position string, availab
 		SuggestedBid:     suggestedBid,
 		Rationale:        rationale,
 		ImpactType:       impactType,
+		Role:             role,
+		UsageSignal:      usageSignal,
 		TierDelta:        tierDelta,
 		PositionScarcity: availableAtPos,
 	}
@@ -210,6 +226,35 @@ func calculateFAABBid(score int, impactType string, inSeason bool) int {
 	}
 
 	return bid
+}
+
+func classifyWaiverRole(fa PlayerRow, impactType string) string {
+	if impactType == "Starter Upgrade" {
+		return "Immediate Starter"
+	}
+	if impactType == "Lottery Ticket" {
+		return "Upside Stash"
+	}
+	if fa.RosterPercent >= 60 {
+		return "High-usage Depth"
+	}
+	if fa.RosterPercent >= 25 {
+		return "Rotational Depth"
+	}
+	return "Bench Stash"
+}
+
+func usageSignal(rosterPercent float64) string {
+	if rosterPercent >= 70 {
+		return "strong usage signal"
+	}
+	if rosterPercent >= 40 {
+		return "stable usage signal"
+	}
+	if rosterPercent >= 20 {
+		return "speculative usage signal"
+	}
+	return "low usage signal"
 }
 
 // Count starters at each position for depth analysis

@@ -769,13 +769,14 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			rows := []PlayerRow{}
 			for _, fa := range posList {
 				rows = append(rows, PlayerRow{
-					Pos:         fa.pos,
-					Name:        fa.name,
-					Tier:        fa.tier,
-					IsFreeAgent: true,
-					IsUpgrade:   fa.isUpgrade,
-					UpgradeFor:  fa.upgradeFor,
-					UpgradeType: fa.upgradeType,
+					Pos:           fa.pos,
+					Name:          fa.name,
+					Tier:          fa.tier,
+					IsFreeAgent:   true,
+					IsUpgrade:     fa.isUpgrade,
+					UpgradeFor:    fa.upgradeFor,
+					UpgradeType:   fa.upgradeType,
+					RosterPercent: fa.percent,
 				})
 			}
 			if len(rows) > 0 {

@@ -55,6 +55,7 @@ type PlayerRow struct {
 	IsSuperflex          bool   // Heuristic SUPERFLEX indicator
 	DynastyValue         int    // Dynasty value from DynastyProcess (0-10000 scale)
 	Age                  int    // Player age from Sleeper API
+	RosterPercent        float64
 }
 
 type TeamAgeData struct {
@@ -167,14 +168,14 @@ type ContextCard struct {
 }
 
 type ValueChange struct {
-	PlayerName  string
-	Position    string
-	OldValue    int
-	NewValue    int
-	Delta       int
-	DeltaPct    float64
-	IsRiser     bool
-	IsOwned     bool // User owns this player
+	PlayerName string
+	Position   string
+	OldValue   int
+	NewValue   int
+	Delta      int
+	DeltaPct   float64
+	IsRiser    bool
+	IsOwned    bool // User owns this player
 }
 
 type TradeFairness struct {
@@ -205,9 +206,9 @@ type Transaction struct {
 	Team2          string
 	Team1Gave      []string
 	Team2Gave      []string
-	Team1GaveValue int   // Total dynasty value of Team1's players
-	Team2GaveValue int   // Total dynasty value of Team2's players
-	NetValue       int   // Net value difference (positive = Team1 gained value)
+	Team1GaveValue int // Total dynasty value of Team1's players
+	Team2GaveValue int // Total dynasty value of Team2's players
+	NetValue       int // Net value difference (positive = Team1 gained value)
 	AddedPlayer    string
 	DroppedPlayer  string
 	Fairness       TradeFairness      // Feature #3: Trade fairness detection
@@ -264,6 +265,8 @@ type WaiverRecommendation struct {
 	SuggestedBid     int
 	Rationale        string
 	ImpactType       string
+	Role             string
+	UsageSignal      string
 	TierDelta        float64
 	PositionScarcity int
 }
@@ -306,45 +309,45 @@ type RookieDraftNeed struct {
 }
 
 type LeagueData struct {
-	LeagueName           string
-	Scoring              string
-	IsDynasty            bool
-	HasMatchups          bool
-	DynastyValueDate     string
-	LeagueSize           int
-	RosterSlots          string
-	Starters             []PlayerRow
-	Unranked             []PlayerRow
-	AvgTier              string
-	AvgOppTier           string
-	WinProb              string
-	Bench                []PlayerRow
-	BenchUnranked        []PlayerRow
-	FreeAgentsByPos      map[string][]PlayerRow
-	TopFreeAgents        []PlayerRow
-	TopFreeAgentsByValue []PlayerRow
-	TotalRosterValue     int
-	UserAvgAge           float64
-	TeamAges             []TeamAgeData
-	PowerRankings        []PowerRanking
-	DraftPicks           []DraftPick
-	ProjectedDraftPicks  []ProjectedDraftPick
-	TradeTargets         []TradeTarget
-	PositionalBreakdown  PositionalKTC
-	PlayerNewsFeed       []PlayerNews
-	BreakoutCandidates   []PlayerRow
-	AgingPlayers         []PlayerRow
-	RecentTransactions   []Transaction
-	TopRookies           []RookieProspect
-	LeagueTrends         LeagueTrends
-	PremiumTeamTalk      string
-	WeeklyActions          []Action               // Feature #2: Weekly Action List
-	CompressedNews         CompressedNews         // Feature #4: News Signal Compression
-	ContextCards           []ContextCard          // Feature #6: League Context Cards
-	ValueChanges           []ValueChange          // Feature #7: Value Change Tracker
-	WaiverRecommendations  []WaiverRecommendation // Feature #10: Advanced Waiver Model
-	SeasonPlan             SeasonPlan             // Feature #11: Season Planner
-	DraftStrategy          DraftStrategy          // Feature #12: Rookie Draft Needs
+	LeagueName            string
+	Scoring               string
+	IsDynasty             bool
+	HasMatchups           bool
+	DynastyValueDate      string
+	LeagueSize            int
+	RosterSlots           string
+	Starters              []PlayerRow
+	Unranked              []PlayerRow
+	AvgTier               string
+	AvgOppTier            string
+	WinProb               string
+	Bench                 []PlayerRow
+	BenchUnranked         []PlayerRow
+	FreeAgentsByPos       map[string][]PlayerRow
+	TopFreeAgents         []PlayerRow
+	TopFreeAgentsByValue  []PlayerRow
+	TotalRosterValue      int
+	UserAvgAge            float64
+	TeamAges              []TeamAgeData
+	PowerRankings         []PowerRanking
+	DraftPicks            []DraftPick
+	ProjectedDraftPicks   []ProjectedDraftPick
+	TradeTargets          []TradeTarget
+	PositionalBreakdown   PositionalKTC
+	PlayerNewsFeed        []PlayerNews
+	BreakoutCandidates    []PlayerRow
+	AgingPlayers          []PlayerRow
+	RecentTransactions    []Transaction
+	TopRookies            []RookieProspect
+	LeagueTrends          LeagueTrends
+	PremiumTeamTalk       string
+	WeeklyActions         []Action               // Feature #2: Weekly Action List
+	CompressedNews        CompressedNews         // Feature #4: News Signal Compression
+	ContextCards          []ContextCard          // Feature #6: League Context Cards
+	ValueChanges          []ValueChange          // Feature #7: Value Change Tracker
+	WaiverRecommendations []WaiverRecommendation // Feature #10: Advanced Waiver Model
+	SeasonPlan            SeasonPlan             // Feature #11: Season Planner
+	DraftStrategy         DraftStrategy          // Feature #12: Rookie Draft Needs
 }
 
 type TiersPage struct {
@@ -362,25 +365,25 @@ type IndexPage struct {
 
 // Dashboard types for cross-league overview
 type LeagueSummary struct {
-	LeagueID          string
-	LeagueName        string
-	Season            string // "2024", "2025" - year of the league
-	Scoring           string
-	IsDynasty         bool
-	IsSuperFlex       bool
-	LeagueSize        int
+	LeagueID    string
+	LeagueName  string
+	Season      string // "2024", "2025" - year of the league
+	Scoring     string
+	IsDynasty   bool
+	IsSuperFlex bool
+	LeagueSize  int
 
 	// Dynasty metrics
 	TotalRosterValue  int
-	ValueRank         int     // 1-12
-	ValueTrend        string  // "↗ +5%", "↘ -3%", "→ stable"
+	ValueRank         int    // 1-12
+	ValueTrend        string // "↗ +5%", "↘ -3%", "→ stable"
 	AvgAge            float64
 	AgeRank           int
 	DraftPicksSummary string // "2026 1st, 2027 1st, 2nd"
 
 	// Season metrics
-	Record         string // "8-5" or empty if offseason
-	PlayoffStatus  string // "Clinched", "In Hunt", "Eliminated", ""
+	Record        string // "8-5" or empty if offseason
+	PlayoffStatus string // "Clinched", "In Hunt", "Eliminated", ""
 
 	// Action items (for Feature #2)
 	ActionCount int

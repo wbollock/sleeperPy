@@ -514,6 +514,9 @@
                                         <span style="padding:2px 6px;background:var(--card-bg);border-radius:4px;font-size:0.75rem;margin-right:6px;">{{.ImpactType}}</span>
                                         {{.Rationale}}
                                     </div>
+                                    <div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">
+                                        Role: {{.Role}} · Usage: {{.UsageSignal}}
+                                    </div>
                                     {{if gt .TierDelta 0.0}}
                                     <div style="font-size:0.75rem;color:#10b981;">
                                         +{{printf "%.1f" .TierDelta}} tier upgrade
