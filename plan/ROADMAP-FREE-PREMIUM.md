@@ -200,5 +200,7 @@
 
 ## Low Priority (Nice-to-Have)
 - **Weekly Email Summary**
+  - **Status:** Implemented.
   - Digest of all leagues with action items + top risks.
-  - Triggered weekly cron; requires email provider.
+  - Endpoint: `GET /weekly-email?user=<username>` for preview text.
+  - Optional send mode: `GET /weekly-email?user=<username>&send=1&to=<email>` (or `EMAIL_SUMMARY_TO` env var) with SMTP env config.

@@ -285,6 +285,7 @@ func main() {
 	http.Handle("/privacy", wrapHandler("privacy", privacyHandler))
 	http.Handle("/terms", wrapHandler("terms", termsHandler))
 	http.Handle("/import", wrapHandler("import", importHandler))
+	http.Handle("/weekly-email", wrapHandler("weekly_email", weeklyEmailHandler))
 	http.Handle("/pricing", wrapHandler("pricing_redirect", pricingRedirectHandler))
 	http.Handle("/roadmap", wrapHandler("roadmap", roadmapHandler))
 	http.Handle("/about", wrapHandler("about", aboutHandler))
