@@ -145,10 +145,11 @@ EOF
 
 ## Current Focus
 
-1. Fix dashboard duplicate league names (add year indicator)
-2. Ensure all features are tested and working
-3. Clean up any remaining emoji overuse
-4. Verify responsive design on all breakpoints
+1. Ensure all features are tested and working
+2. Clean up any remaining emoji overuse
+3. Verify responsive design on all breakpoints
+4. Hold an in-depth feature/polish planning conversation with the user to identify what would make SleeperPy extremely useful
+5. Defer feature gating + LLM-focused rollout work to a future phase
 
 ---
 

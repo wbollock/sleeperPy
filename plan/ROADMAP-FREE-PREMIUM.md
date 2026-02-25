@@ -4,6 +4,7 @@
 - Make the free tier extremely useful week-to-week.
 - Build clear premium value without blocking core workflows.
 - De-risk platform dependency (cross-platform last).
+- Keep LLM/premium monetization work as a later phase; prioritize core utility and product polish first.
 
 ## Phase 1 — Free Core Utility (MVP)
 **Focus:** Daily usefulness + trade clarity
@@ -18,6 +19,9 @@
 - No UI truncation or overflow.
 - Results appear in <3s on typical leagues.
 - Users can identify 3+ actions in under 60 seconds.
+
+**Next Step After Current Quality Sweep:**
+- Run an in-depth planning conversation with the user on missing features and polish priorities to maximize practical weekly usefulness.
 
 ## Ordered Feature List (All Phases)
 1. Cross‑League Dashboard
@@ -171,6 +175,10 @@
 - Feature gating with usage limits.
 - Account linking for multiple Sleeper usernames.
 - Public status page with sanitized operational metrics.
+
+**Priority Note (2026):**
+- Feature gating and LLM-dependent rollout are intentionally deferred for now.
+- Focus remains on free-tier usefulness, stability, and UX polish before monetization controls.
 
 18) **Public Status Page (Ops/Public)**
 - **User Story:** “Let me quickly see if SleeperPy is healthy without exposing admin internals.”
