@@ -93,7 +93,7 @@
 <div class="league-selector-container">
     <div class="league-selector">
         <button class="league-dropdown-btn" onclick="toggleLeagueDropdown()">
-            <span class="current-league-name" id="currentLeagueName">{{(index .Leagues 0).LeagueName}}</span>
+            <span class="current-league-name" id="currentLeagueName">{{(index .Leagues 0).LeagueName}}{{if (index .Leagues 0).Season}} ({{(index .Leagues 0).Season}}){{end}}</span>
             <span class="league-count">({{$leagueCount}} leagues)</span>
             <span class="dropdown-arrow">▼</span>
         </button>
@@ -110,12 +110,12 @@
                     <div class="league-group-header">🏆 Dynasty Leagues</div>
                     {{range $i, $l := .Leagues}}
                         {{if $l.IsDynasty}}
-                        <button class="league-option {{if eq $i 0}}active{{end}}" data-league-id="league{{$i}}" data-league-name="{{$l.LeagueName}}" onclick="selectLeague(event, 'league{{$i}}', '{{$l.LeagueName}}')">
-                            <span class="league-option-name">{{$l.LeagueName}}</span>
+                        <button class="league-option {{if eq $i 0}}active{{end}}" data-league-id="league{{$i}}" data-league-name="{{$l.LeagueName}}{{if $l.Season}} ({{$l.Season}}){{end}}" onclick="selectLeague(event, 'league{{$i}}', '{{$l.LeagueName}}{{if $l.Season}} ({{$l.Season}}){{end}}')">
+                            <span class="league-option-name">{{$l.LeagueName}}{{if $l.Season}} ({{$l.Season}}){{end}}</span>
                             <span class="league-option-meta">{{$l.LeagueSize}} teams · {{$l.Scoring}}</span>
                             <span class="league-option-actions">
                                 <span class="league-option-type">({{$l.Scoring}})</span>
-                                <span class="favorite-star" onclick="toggleFavorite(event, 'league{{$i}}', '{{$l.LeagueName}}')" title="Add to favorites">☆</span>
+                                <span class="favorite-star" onclick="toggleFavorite(event, 'league{{$i}}', '{{$l.LeagueName}}{{if $l.Season}} ({{$l.Season}}){{end}}')" title="Add to favorites">☆</span>
                             </span>
                         </button>
                         {{end}}
@@ -127,12 +127,12 @@
                     <div class="league-group-header">📊 Redraft Leagues</div>
                     {{range $i, $l := .Leagues}}
                         {{if not $l.IsDynasty}}
-                        <button class="league-option {{if eq $i 0}}active{{end}}" data-league-id="league{{$i}}" data-league-name="{{$l.LeagueName}}" onclick="selectLeague(event, 'league{{$i}}', '{{$l.LeagueName}}')">
-                            <span class="league-option-name">{{$l.LeagueName}}</span>
+                        <button class="league-option {{if eq $i 0}}active{{end}}" data-league-id="league{{$i}}" data-league-name="{{$l.LeagueName}}{{if $l.Season}} ({{$l.Season}}){{end}}" onclick="selectLeague(event, 'league{{$i}}', '{{$l.LeagueName}}{{if $l.Season}} ({{$l.Season}}){{end}}')">
+                            <span class="league-option-name">{{$l.LeagueName}}{{if $l.Season}} ({{$l.Season}}){{end}}</span>
                             <span class="league-option-meta">{{$l.LeagueSize}} teams · {{$l.Scoring}}</span>
                             <span class="league-option-actions">
                                 <span class="league-option-type">({{$l.Scoring}})</span>
-                                <span class="favorite-star" onclick="toggleFavorite(event, 'league{{$i}}', '{{$l.LeagueName}}')" title="Add to favorites">☆</span>
+                                <span class="favorite-star" onclick="toggleFavorite(event, 'league{{$i}}', '{{$l.LeagueName}}{{if $l.Season}} ({{$l.Season}}){{end}}')" title="Add to favorites">☆</span>
                             </span>
                         </button>
                         {{end}}

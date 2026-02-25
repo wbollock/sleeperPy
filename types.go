@@ -312,6 +312,7 @@ type RookieDraftNeed struct {
 
 type LeagueData struct {
 	LeagueName            string
+	Season                string
 	Scoring               string
 	IsDynasty             bool
 	HasMatchups           bool
