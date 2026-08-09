@@ -40,6 +40,14 @@ type dynastyCache struct {
 	ttl       time.Duration
 }
 
+// Cache for Sleeper trending add/drop data, keyed by trend type ("add"/"drop")
+type trendingCache struct {
+	sync.RWMutex
+	data      map[string]map[string]int // trend type -> player_id -> count
+	timestamp map[string]time.Time
+	ttl       time.Duration
+}
+
 // Cache for Sleeper players API response
 type playersCache struct {
 	sync.RWMutex

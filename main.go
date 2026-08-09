@@ -51,6 +51,12 @@ var sleeperPlayersCache = &playersCache{
 	ttl: 1 * time.Hour, // Cache players data for 1 hour
 }
 
+var sleeperTrendingCache = &trendingCache{
+	data:      make(map[string]map[string]int),
+	timestamp: make(map[string]time.Time),
+	ttl:       1 * time.Hour, // Sleeper docs say no need to call more than once/day
+}
+
 var rosterValueTrendCache = &valueTrendCache{
 	data: make(map[string]CachedRosterValue),
 	ttl:  24 * time.Hour, // Compare values over 24 hours

@@ -41,6 +41,52 @@ func fetchPlayers() (map[string]interface{}, error) {
 	return players, nil
 }
 
+// fetchTrendingPlayers returns Sleeper's trending add/drop counts (player_id
+// -> count of adds/drops in the last 24h). trendType is "add" or "drop". This
+// is a behavioral signal (what managers are actually doing), independent of
+// any expert-consensus ranking source -- complementary to Boris Chen tiers,
+// not a replacement for them.
+var fetchTrendingPlayers = func(trendType string) map[string]int {
+	sleeperTrendingCache.RLock()
+	if cached, exists := sleeperTrendingCache.data[trendType]; exists {
+		if time.Since(sleeperTrendingCache.timestamp[trendType]) < sleeperTrendingCache.ttl {
+			sleeperTrendingCache.RUnlock()
+			return cached
+		}
+	}
+	sleeperTrendingCache.RUnlock()
+
+	url := fmt.Sprintf("https://api.sleeper.app/v1/players/nfl/trending/%s?lookback_hours=24&limit=100", trendType)
+	resp, err := httpClient.Get(url)
+	if err != nil {
+		debugLog("[DEBUG] Failed to fetch trending %s players: %v", trendType, err)
+		return nil
+	}
+	defer resp.Body.Close()
+
+	var entries []struct {
+		PlayerID string `json:"player_id"`
+		Count    int    `json:"count"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&entries); err != nil {
+		debugLog("[DEBUG] Failed to decode trending %s players: %v", trendType, err)
+		return nil
+	}
+
+	out := make(map[string]int, len(entries))
+	for _, e := range entries {
+		out[e.PlayerID] = e.Count
+	}
+
+	sleeperTrendingCache.Lock()
+	sleeperTrendingCache.data[trendType] = out
+	sleeperTrendingCache.timestamp[trendType] = time.Now()
+	sleeperTrendingCache.Unlock()
+
+	debugLog("[DEBUG] Loaded %d trending-%s players", len(out), trendType)
+	return out
+}
+
 func fetchJSON(url string) (map[string]interface{}, error) {
 	resp, err := httpClient.Get(url)
 	if err != nil {
