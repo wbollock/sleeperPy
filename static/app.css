@@ -364,6 +364,106 @@ body {
 	color: var(--qt-border);
 }
 
+/* ---- Page container + prose (about/faq/roadmap/legal pages) ---- */
+
+.qt-page {
+	max-width: 860px;
+	margin: 0 auto;
+	padding: 32px 20px 56px;
+}
+
+.qt-page-title {
+	font-size: 1.5rem;
+	font-weight: 700;
+	margin: 0 0 8px 0;
+}
+
+.qt-page-subtitle {
+	color: var(--qt-text-muted);
+	margin: 0 0 28px 0;
+}
+
+.qt-prose {
+	margin-bottom: 16px;
+}
+
+.qt-prose h3 {
+	font-size: 1rem;
+	font-weight: 700;
+	margin: 0 0 10px 0;
+}
+
+.qt-prose p {
+	margin: 0 0 10px 0;
+	line-height: 1.55;
+	color: var(--qt-text);
+}
+
+.qt-prose p:last-child {
+	margin-bottom: 0;
+}
+
+.qt-prose ul {
+	margin: 0 0 10px 0;
+	padding-left: 20px;
+	line-height: 1.55;
+}
+
+.qt-prose li {
+	margin-bottom: 6px;
+}
+
+.qt-prose a {
+	color: var(--qt-accent);
+}
+
+.qt-back-link {
+	display: inline-block;
+	margin-top: 24px;
+	color: var(--qt-accent);
+	text-decoration: none;
+	font-weight: 600;
+}
+
+.qt-back-link:hover {
+	text-decoration: underline;
+}
+
+/* ---- Stat tiles (status/admin pages) ---- */
+
+.qt-stat-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 12px;
+	margin-bottom: 16px;
+}
+
+.qt-stat-tile {
+	background: var(--qt-base);
+	border: 1px solid var(--qt-border);
+	border-radius: var(--qt-radius);
+	padding: 14px;
+}
+
+.qt-stat-label {
+	font-size: 0.75rem;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	color: var(--qt-text-muted);
+}
+
+.qt-stat-value {
+	font-size: 1.3rem;
+	font-weight: 700;
+	margin-top: 4px;
+}
+
+.qt-stat-sub {
+	font-size: 0.78rem;
+	color: var(--qt-text-muted);
+	margin-top: 4px;
+}
+
 @media (max-width: 768px) {
 	.qt-titlebar-row {
 		padding: 8px 14px;
