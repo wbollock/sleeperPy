@@ -1689,10 +1689,18 @@ func buildDashboardPage(username string) (*DashboardPage, error) {
 			continue
 		}
 
+		// Cross-league trade actions. Dynasty-value-based, so unlike swap/
+		// waiver this doesn't need active matchups -- it can surface in the
+		// offseason too, when it's arguably more relevant (no games to
+		// optimize a lineup for, but rosters can still be reshaped).
+		if isDynasty && dynastyValues != nil {
+			if tradeAction := buildDashboardTradeAction(leagueID, leagueName, userRoster, rosters, players, dynastyValues, isSuperFlex); tradeAction != nil {
+				actionFeed = append(actionFeed, *tradeAction)
+			}
+		}
+
 		// Cross-league start/sit and waiver actions, using the same tier
-		// logic as the per-league page. Trade actions stay per-league only
-		// for now (findTradeTargets needs every other roster's dynasty
-		// value breakdown, which isn't computed on the dashboard).
+		// logic as the per-league page.
 		if week > 0 {
 			if matchups, err := appProvider.FetchLeagueMatchups(leagueID, week); err == nil && len(matchups) > 0 {
 				var leagueRosterPositions []string

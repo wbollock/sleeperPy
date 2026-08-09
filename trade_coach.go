@@ -78,6 +78,115 @@ func generateTradeProposal(
 	return proposal
 }
 
+// buildRosterValueRows builds skill-position PlayerRows with dynasty value
+// attached, for callers that only care about position + value (not tier).
+// Deliberately not buildRowsWithPositions: that function routes anything
+// without a tier match into an "unranked" bucket that loses the player's
+// real position (set to "?"), which is fine for its tier-table UI but wrong
+// for a pure value calculation like calculatePositionalKTC.
+func buildRosterValueRows(playerIDs []string, players map[string]interface{}, dynastyValues map[string]DynastyValue, isSuperFlex bool) []PlayerRow {
+	rows := make([]PlayerRow, 0, len(playerIDs))
+	for _, pid := range playerIDs {
+		p, ok := players[pid].(map[string]interface{})
+		if !ok {
+			continue
+		}
+		pos, _ := p["position"].(string)
+		if pos != "QB" && pos != "RB" && pos != "WR" && pos != "TE" {
+			continue // calculatePositionalKTC only tracks these positions
+		}
+		rows = append(rows, PlayerRow{Pos: pos, Name: getPlayerName(p)})
+	}
+	enrichRowsWithDynastyValues(rows, dynastyValues, isSuperFlex)
+	return rows
+}
+
+// buildDashboardTradeAction finds the single best trade opportunity for a
+// league (if any) and formats it as a dashboard Action. Dynasty-value-based,
+// so it works regardless of Boris Chen tier availability.
+func buildDashboardTradeAction(leagueID, leagueName string, userRoster map[string]interface{}, rosters []map[string]interface{}, players map[string]interface{}, dynastyValues map[string]DynastyValue, isSuperFlex bool) *Action {
+	userRosterID, _ := userRoster["roster_id"].(float64)
+
+	userNames := map[string]string{}
+	if leagueUsers, err := appProvider.FetchLeagueUsers(leagueID); err == nil {
+		for _, u := range leagueUsers {
+			uid, _ := u["user_id"].(string)
+			if uid == "" {
+				continue
+			}
+			if dn, ok := u["display_name"].(string); ok && dn != "" {
+				userNames[uid] = dn
+			} else if un, ok := u["username"].(string); ok {
+				userNames[uid] = un
+			}
+		}
+	}
+
+	allRosters := make(map[int][]PlayerRow)
+	teamNames := make(map[int]string)
+	for _, r := range rosters {
+		rosterID, _ := r["roster_id"].(float64)
+		rows := buildRosterValueRows(toStringSlice(r["players"]), players, dynastyValues, isSuperFlex)
+		allRosters[int(rosterID)] = rows
+
+		teamName := fmt.Sprintf("Team %d", int(rosterID))
+		if ownerID, ok := r["owner_id"].(string); ok {
+			if name, exists := userNames[ownerID]; exists && name != "" {
+				teamName = name
+			}
+		}
+		if metadata, ok := r["metadata"].(map[string]interface{}); ok {
+			if tn, ok := metadata["team_name"].(string); ok && tn != "" {
+				teamName = tn
+			}
+		}
+		teamNames[int(rosterID)] = teamName
+	}
+
+	userFullRoster, ok := allRosters[int(userRosterID)]
+	if !ok || len(userFullRoster) == 0 {
+		return nil
+	}
+
+	targets := findTradeTargets(userFullRoster, allRosters, teamNames, int(userRosterID))
+	if len(targets) == 0 {
+		return nil
+	}
+	target := targets[0]
+
+	targetRosterID := -1
+	for rosterID, name := range teamNames {
+		if name == target.TeamName {
+			targetRosterID = rosterID
+			break
+		}
+	}
+	targetRoster, ok := allRosters[targetRosterID]
+	if !ok {
+		return nil
+	}
+
+	// premiumEnabled=false: always use the template draft message, never the
+	// LLM path -- the dashboard action feed only needs the offer/return/
+	// fairness data, not a drafted message, so there's no reason to spend an
+	// LLM call (or add a network dependency) generating one.
+	proposal := generateTradeProposal(userFullRoster, targetRoster, target.TeamName, target.YourSurplus, target.TheirSurplus, dynastyValues, isSuperFlex, false)
+	if len(proposal.YourOffer) == 0 || len(proposal.TheirReturn) == 0 {
+		return nil
+	}
+
+	return &Action{
+		Priority:    3,
+		Category:    "trade",
+		Title:       "Trade Opportunity",
+		Description: fmt.Sprintf("Trade %s for %s (%s)", formatPlayerList(proposal.YourOffer), formatPlayerList(proposal.TheirReturn), target.TeamName),
+		Impact:      fmt.Sprintf("%s, %s risk", proposal.Fairness, proposal.RiskLevel),
+		Link:        "#trade-targets",
+		LeagueID:    leagueID,
+		LeagueName:  leagueName,
+	}
+}
+
 func findSurplusPlayers(roster []PlayerRow, position string, dynastyValues map[string]DynastyValue, isSuperFlex bool) []ProposalPlayer {
 	candidates := []ProposalPlayer{}
 
