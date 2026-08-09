@@ -7,6 +7,31 @@ import (
 	"strings"
 )
 
+// isOffseasonMode reports whether we're in the window from the end of the
+// previous fantasy season through about a week before regular-season
+// kickoff. During this window, weekly matchup-dependent content (tiers,
+// swap/waiver suggestions) has nothing to show; dynasty tools (trade
+// targets, season plan, draft strategy) are the focus instead.
+//
+// Deliberately uses season_type/week, not season_start_date: verified
+// against the live API that season_start_date marks the start of Sleeper's
+// fantasy year (roster resets, ~early August), not the regular-season
+// opener (~early September) -- using it directly would end offseason mode
+// a month early, right as preseason starts. NFL preseason runs 3 weeks;
+// treat the last one (kickoff about a week out) as no longer offseason.
+func isOffseasonMode(nflState map[string]interface{}) bool {
+	seasonType, _ := nflState["season_type"].(string)
+	switch seasonType {
+	case "off":
+		return true
+	case "pre":
+		week, ok := nflState["week"].(float64)
+		return !ok || week < 3
+	default: // "regular", "post", or unrecognized
+		return false
+	}
+}
+
 // toStringSlice converts interface{} to []string safely
 func toStringSlice(val interface{}) []string {
 	arr := []string{}

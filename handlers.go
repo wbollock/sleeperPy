@@ -354,6 +354,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	week := int(state["week"].(float64))
+	isOffseason := isOffseasonMode(state)
 
 	// 4. Get players data (cached for 1 hour)
 	players, err := fetchPlayers()
@@ -1477,10 +1478,11 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = templates.ExecuteTemplate(w, "tiers.html", TiersPage{
-		Leagues:    leagueResults,
-		Username:   username,
-		AIEnabled:  aiEnabled,
-		AIOverview: aiOverview,
+		Leagues:     leagueResults,
+		Username:    username,
+		AIEnabled:   aiEnabled,
+		AIOverview:  aiOverview,
+		IsOffseason: isOffseason,
 	}); err != nil {
 		log.Printf("[ERROR] Template execution error: %v", err)
 	}
@@ -1586,10 +1588,12 @@ func buildDashboardPage(username string) (*DashboardPage, error) {
 	// 5. Get current NFL week so we can compute cross-league actions below.
 	// If this fails, the dashboard still renders -- just without the action feed.
 	week := 0
+	isOffseason := false
 	if state, err := appProvider.FetchNFLState(); err == nil {
 		if w, ok := state["week"].(float64); ok {
 			week = int(w)
 		}
+		isOffseason = isOffseasonMode(state)
 	}
 
 	// 6. Build summary for each league
@@ -1866,6 +1870,7 @@ func buildDashboardPage(username string) (*DashboardPage, error) {
 		TotalLeagues:    len(summaries),
 		DynastyCount:    dynastyCount,
 		RedraftCount:    redraftCount,
+		IsOffseason:     isOffseason,
 		ActionFeed:      actionFeed,
 	}, nil
 }

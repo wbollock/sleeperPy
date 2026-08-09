@@ -182,7 +182,11 @@
             </div>
             {{else}}
             <div class="actions-banner qt-panel" style="margin-bottom:20px;">
+                {{if $.IsOffseason}}
+                <span style="font-weight:600;color:var(--qt-text-muted);">Offseason -- no active matchups. Weekly start/sit and waiver advice returns once the season kicks off.</span>
+                {{else}}
                 <span style="font-weight:600;color:var(--qt-ok);">Looking good -- no urgent actions this week.</span>
+                {{end}}
             </div>
             {{end}}
 

@@ -377,11 +377,12 @@ type LeagueData struct {
 }
 
 type TiersPage struct {
-	Error      string
-	Leagues    []LeagueData
-	Username   string
-	AIEnabled  bool   // true if OPENROUTER_API_KEY is configured
-	AIOverview string // AI-generated all-teams overview, if requested
+	Error       string
+	Leagues     []LeagueData
+	Username    string
+	AIEnabled   bool   // true if OPENROUTER_API_KEY is configured
+	AIOverview  string // AI-generated all-teams overview, if requested
+	IsOffseason bool   // more than a week out from the regular season start
 }
 
 type IndexPage struct {
@@ -423,9 +424,11 @@ type DashboardPage struct {
 	TotalLeagues    int
 	DynastyCount    int
 	RedraftCount    int
+	IsOffseason     bool // more than a week out from the regular season start
 
-	// Cross-league action feed: start/sit swaps (and more, over time) from
-	// every league, sorted by priority. Each Action carries LeagueName/ID.
+	// Cross-league action feed: start/sit swaps, waiver targets, and trade
+	// opportunities from every league, sorted by priority. Each Action
+	// carries LeagueName/ID.
 	ActionFeed []Action
 }
 

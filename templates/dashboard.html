@@ -201,7 +201,10 @@
 
         {{if .ActionFeed}}
         <div class="qt-panel" style="margin-bottom:20px;">
-            <h3 class="qt-panel-title">This Week Across Your Leagues</h3>
+            <h3 class="qt-panel-title">{{if .IsOffseason}}Dynasty Opportunities{{else}}This Week Across Your Leagues{{end}}</h3>
+            {{if .IsOffseason}}
+            <p class="qt-stat-sub" style="margin:0 0 10px 0;">Offseason -- no weekly lineups to optimize yet, but dynasty trade opportunities still apply.</p>
+            {{end}}
             <div class="action-feed">
                 {{range .ActionFeed}}
                 <a class="action-feed-item" href="/lookup?username={{$.Username}}#league-{{.LeagueID}}">
@@ -213,6 +216,11 @@
                 </a>
                 {{end}}
             </div>
+        </div>
+        {{else if .IsOffseason}}
+        <div class="qt-panel" style="margin-bottom:20px;">
+            <h3 class="qt-panel-title">Offseason</h3>
+            <p class="qt-stat-sub" style="margin:0;">No dynasty trade opportunities right now. Weekly start/sit and waiver advice returns once the regular season kicks off.</p>
         </div>
         {{end}}
 
