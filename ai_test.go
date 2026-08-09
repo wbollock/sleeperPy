@@ -10,20 +10,6 @@ import (
 	"time"
 )
 
-func TestIsPremiumUsername(t *testing.T) {
-	t.Setenv("PREMIUM_USERS", "wboll, Alice ,Bob")
-
-	if !isPremiumUsername("wboll") {
-		t.Fatalf("expected wboll to be premium")
-	}
-	if !isPremiumUsername("ALICE") {
-		t.Fatalf("expected alice (case-insensitive) to be premium")
-	}
-	if isPremiumUsername("charlie") {
-		t.Fatalf("expected charlie to be non-premium")
-	}
-}
-
 func TestBuildLeagueSummaryIncludesKeyFields(t *testing.T) {
 	league := LeagueData{
 		LeagueName:       "Test League",
@@ -106,7 +92,7 @@ func TestCallOpenRouterMissingKey(t *testing.T) {
 }
 
 func TestConsumeLLMBudget(t *testing.T) {
-	t.Setenv("PREMIUM_LLM_DAILY_LIMIT", "3")
+	t.Setenv("LLM_DAILY_LIMIT", "3")
 
 	llmUsageState.Lock()
 	llmUsageState.data = map[string]llmUsageEntry{}

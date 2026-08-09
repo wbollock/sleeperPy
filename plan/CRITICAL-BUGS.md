@@ -279,31 +279,27 @@ After redesign:
 
 ✅ **Critical bugs resolved** - Ready for new features!
 
-See `plan/ROADMAP-FREE-PREMIUM.md` for detailed phased feature roadmap:
+Everything below has since shipped, and the app has no premium/paywalled
+tier -- every feature is free (see git history for when the premium
+allowlist was removed):
 
-**Phase 1 - Free Core Utility (MVP)**
 1. Cross-League Dashboard
 2. Weekly Action List
 3. Trade Fairness + "Fleeced" Flag
 4. News Signal Compression
-
-**Phase 2 - Free Depth + Retrospective**
 5. Trade Retrospective Analyzer
 6. League Context Cards
 7. Value Change Tracker
-
-**Phase 3 - Premium SaaS Layer**
-8. LLM Strategy Studio Enhancements (base already implemented!)
+8. LLM-powered team talks / all-teams overview (available to everyone when
+   the server operator configures `OPENROUTER_API_KEY`, rate-limited via
+   `LLM_DAILY_LIMIT`, not gated per-user)
 9. Trade Negotiation Coach
 10. Advanced Waiver Model
 11. Season Planner
 12. Rookie Draft Needs
 
-**Phase 4 - Monetization & Ops**
-13-15. Feature gating, account linking, billing
-
-**Phase 5 - Cross-Platform (Last)**
-16-18. Provider abstraction, ESP/Yahoo support, CSV import
+Remaining open ideas: cross-platform provider abstraction (ESPN import
+exists, Yahoo import is a stub), league trend tracking across seasons.
 
 ---
 

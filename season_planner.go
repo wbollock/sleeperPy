@@ -11,11 +11,7 @@ import (
 )
 
 // Generate season plan for a league
-func generateSeasonPlan(league LeagueData, isPremium bool) SeasonPlan {
-	if !isPremium {
-		return SeasonPlan{} // Premium feature
-	}
-
+func generateSeasonPlan(league LeagueData) SeasonPlan {
 	now := time.Now()
 	plan := SeasonPlan{
 		KeyDates:        []KeyDate{},

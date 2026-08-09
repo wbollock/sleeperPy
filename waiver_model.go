@@ -13,13 +13,7 @@ func generateWaiverRecommendations(
 	league LeagueData,
 	freeAgentsByPos map[string][]PlayerRow,
 	maxRecommendations int,
-	isPremium bool,
 ) []WaiverRecommendation {
-
-	if !isPremium {
-		return nil // Feature gated to premium users
-	}
-
 	recommendations := []WaiverRecommendation{}
 
 	// Analyze each free agent

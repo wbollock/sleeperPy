@@ -378,9 +378,10 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		dynastyValues, dynastyValueDate = fetchDynastyValues(players)
 	}
 
-	// Check if user has premium access and if premium features are enabled
-	isPremium := isPremiumUsername(username)
-	premiumEnabled := hasOpenRouterKey()
+	// AI-generated content (team talks, all-teams overview) only runs if the
+	// server operator has configured an LLM API key -- available to everyone,
+	// not gated per-user.
+	aiEnabled := hasOpenRouterKey()
 
 	// 5. Process each league
 	var leagueResults []LeagueData
@@ -1308,7 +1309,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 							target.TheirSurplus,
 							dynastyValues,
 							isSuperFlex,
-							premiumEnabled,
+							aiEnabled,
 						)
 						target.Proposal = &proposal
 						debugLog("[DEBUG] Generated trade proposal for %s", target.TeamName)
@@ -1409,21 +1410,21 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Generate waiver recommendations (Feature #10)
 		if len(freeAgentsByPos) > 0 {
-			waiverRecs := generateWaiverRecommendations(leagueData, freeAgentsByPos, 10, isPremium)
+			waiverRecs := generateWaiverRecommendations(leagueData, freeAgentsByPos, 10)
 			leagueData.WaiverRecommendations = waiverRecs
 			debugLog("[DEBUG] Generated %d waiver recommendations", len(waiverRecs))
 		}
 
 		// Generate season plan (Feature #11)
 		if isDynasty {
-			seasonPlan := generateSeasonPlan(leagueData, isPremium)
+			seasonPlan := generateSeasonPlan(leagueData)
 			leagueData.SeasonPlan = seasonPlan
 			debugLog("[DEBUG] Generated season plan: %s strategy", seasonPlan.Strategy)
 		}
 
 		// Generate rookie draft needs (Feature #12)
 		if isDynasty && len(draftPicks) > 0 {
-			draftStrategy := generateRookieDraftNeeds(leagueData, isPremium)
+			draftStrategy := generateRookieDraftNeeds(leagueData)
 			leagueData.DraftStrategy = draftStrategy
 			debugLog("[DEBUG] Generated draft strategy: %s", draftStrategy.OverallApproach)
 		}
@@ -1451,12 +1452,12 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, cookie)
 	writeSavedUsernames(w, r, username)
 
-	premiumOverview := ""
+	aiOverview := ""
 
-	if isPremium && premiumEnabled && llmMode != "" {
+	if aiEnabled && llmMode != "" {
 		allowed, remaining := consumeLLMBudget(username, llmMode)
 		if !allowed {
-			premiumOverview = fmt.Sprintf("Daily AI limit reached. Try again tomorrow. Remaining today: %d", remaining)
+			aiOverview = fmt.Sprintf("Daily AI limit reached. Try again tomorrow. Remaining today: %d", remaining)
 		} else {
 			if llmMode == "overview" || llmMode == "all" || llmMode == "1" {
 				ctx, cancel := context.WithTimeout(r.Context(), 20*time.Second)
@@ -1465,7 +1466,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 				if err != nil {
 					debugLog("[DEBUG] OpenRouter overview error: %v", err)
 				} else {
-					premiumOverview = overview
+					aiOverview = overview
 				}
 			}
 
@@ -1476,11 +1477,10 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = templates.ExecuteTemplate(w, "tiers.html", TiersPage{
-		Leagues:         leagueResults,
-		Username:        username,
-		IsPremium:       isPremium,
-		PremiumEnabled:  premiumEnabled,
-		PremiumOverview: premiumOverview,
+		Leagues:    leagueResults,
+		Username:   username,
+		AIEnabled:  aiEnabled,
+		AIOverview: aiOverview,
 	}); err != nil {
 		log.Printf("[ERROR] Template execution error: %v", err)
 	}

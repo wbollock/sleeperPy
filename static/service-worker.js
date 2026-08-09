@@ -124,7 +124,7 @@ async function syncLeagues() {
   console.log('[Service Worker] Syncing leagues in background');
 }
 
-// Push notification support (for future premium features)
+// Push notification support (for future use)
 self.addEventListener('push', (event) => {
   console.log('[Service Worker] Push notification received');
   const data = event.data ? event.data.json() : {};

@@ -366,7 +366,7 @@ type LeagueData struct {
 	RecentTransactions    []Transaction
 	TopRookies            []RookieProspect
 	LeagueTrends          LeagueTrends
-	PremiumTeamTalk       string
+	TeamTalk              string                 // AI-generated team talk (only set if OPENROUTER_API_KEY is configured)
 	WeeklyActions         []Action               // Feature #2: Weekly Action List
 	CompressedNews        CompressedNews         // Feature #4: News Signal Compression
 	ContextCards          []ContextCard          // Feature #6: League Context Cards
@@ -377,12 +377,11 @@ type LeagueData struct {
 }
 
 type TiersPage struct {
-	Error           string
-	Leagues         []LeagueData
-	Username        string
-	IsPremium       bool
-	PremiumEnabled  bool
-	PremiumOverview string
+	Error      string
+	Leagues    []LeagueData
+	Username   string
+	AIEnabled  bool   // true if OPENROUTER_API_KEY is configured
+	AIOverview string // AI-generated all-teams overview, if requested
 }
 
 type IndexPage struct {

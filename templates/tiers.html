@@ -107,24 +107,20 @@
         </div>
     </div>
 </div>
-{{if .IsPremium}}
-<div class="premium-controls">
-    {{if .PremiumEnabled}}
-    <form method="get" action="/lookup" class="premium-actions">
+{{if .AIEnabled}}
+<div class="ai-controls">
+    <form method="get" action="/lookup" class="ai-actions">
         <input type="hidden" name="username" value="{{.Username}}">
-        <button class="premium-btn" type="submit" name="llm" value="overview">All Teams Overview</button>
-        <button class="premium-btn" type="submit" name="llm" value="team">Generate Team Talks</button>
-        <button class="premium-btn" type="submit" name="llm" value="all">Overview + Team Talks</button>
+        <button class="qt-btn" type="submit" name="llm" value="overview">All Teams Overview</button>
+        <button class="qt-btn" type="submit" name="llm" value="team">Generate Team Talks</button>
+        <button class="qt-btn" type="submit" name="llm" value="all">Overview + Team Talks</button>
     </form>
-    {{else}}
-    <div class="premium-disabled">Premium AI is enabled for your username, but `OPENROUTER_API_KEY` is not set on the server.</div>
-    {{end}}
 </div>
 {{end}}
-{{if .PremiumOverview}}
-<div class="premium-overview-card">
-    <div class="premium-overview-title">All Teams Overview</div>
-    <div class="premium-overview-text">{{.PremiumOverview}}</div>
+{{if .AIOverview}}
+<div class="ai-overview-card qt-panel">
+    <div class="ai-overview-title">All Teams Overview</div>
+    <div class="ai-overview-text">{{.AIOverview}}</div>
 </div>
 {{end}}
 <div class="league-contents">
@@ -299,23 +295,23 @@
                 </tfoot>
             </table>
             </div>
-            {{if and (not $l.IsDynasty) $l.PremiumTeamTalk}}
-            <div class="premium-roster-talk">
-                <div class="premium-roster-title">Team Talk (Premium)</div>
-                <div class="premium-text">{{$l.PremiumTeamTalk}}</div>
+            {{if and (not $l.IsDynasty) $l.TeamTalk}}
+            <div class="ai-roster-talk qt-panel">
+                <div class="ai-roster-title">Team Talk</div>
+                <div class="ai-text">{{$l.TeamTalk}}</div>
             </div>
             {{end}}
 
                 </div>
                 {{if $l.IsDynasty}}
                 <div class="dynasty-toolkit dynasty-only">
-                    {{if $l.PremiumTeamTalk}}
-                    <div class="toolkit-card premium-card">
+                    {{if $l.TeamTalk}}
+                    <div class="toolkit-card ai-card">
                         <div class="card-header">
-                            <span class="card-title">Team Talk (Premium)</span>
+                            <span class="card-title">Team Talk</span>
                         </div>
                         <div class="card-content">
-                            <div class="premium-text">{{$l.PremiumTeamTalk}}</div>
+                            <div class="ai-text">{{$l.TeamTalk}}</div>
                         </div>
                     </div>
                     {{end}}

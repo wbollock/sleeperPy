@@ -9,8 +9,8 @@ import (
 )
 
 // Generate rookie draft needs analysis
-func generateRookieDraftNeeds(league LeagueData, isPremium bool) DraftStrategy {
-	if !isPremium || !league.IsDynasty {
+func generateRookieDraftNeeds(league LeagueData) DraftStrategy {
+	if !league.IsDynasty {
 		return DraftStrategy{}
 	}
 

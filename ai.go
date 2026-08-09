@@ -51,26 +51,12 @@ type llmUsageEntry struct {
 	Count int
 }
 
-func isPremiumUsername(username string) bool {
-	allowlist := strings.TrimSpace(os.Getenv("PREMIUM_USERS"))
-	if allowlist == "" || username == "" {
-		return false
-	}
-	normalized := strings.ToLower(strings.TrimSpace(username))
-	for _, entry := range strings.Split(allowlist, ",") {
-		if strings.ToLower(strings.TrimSpace(entry)) == normalized {
-			return true
-		}
-	}
-	return false
-}
-
 func hasOpenRouterKey() bool {
 	return strings.TrimSpace(os.Getenv("OPENROUTER_API_KEY")) != ""
 }
 
 func dailyLLMLimit() int {
-	raw := strings.TrimSpace(os.Getenv("PREMIUM_LLM_DAILY_LIMIT"))
+	raw := strings.TrimSpace(os.Getenv("LLM_DAILY_LIMIT"))
 	if raw == "" {
 		return 12
 	}
@@ -336,7 +322,7 @@ func applyTeamTalks(ctx context.Context, leagues []LeagueData) []LeagueData {
 			debugLog("[DEBUG] OpenRouter team talk error for %s: %v", leagues[i].LeagueName, err)
 			continue
 		}
-		leagues[i].PremiumTeamTalk = talk
+		leagues[i].TeamTalk = talk
 	}
 	return leagues
 }

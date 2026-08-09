@@ -20,7 +20,7 @@ func generateTradeProposal(
 	targetSurplus string,
 	dynastyValues map[string]DynastyValue,
 	isSuperFlex bool,
-	premiumEnabled bool,
+	aiEnabled bool,
 ) TradeProposal {
 
 	// Find user's surplus players
@@ -68,8 +68,8 @@ func generateTradeProposal(
 	// Generate rationale
 	proposal.Rationale = buildRationale(proposal, userSurplus, targetSurplus)
 
-	// Generate draft message (LLM if premium, template otherwise)
-	if premiumEnabled && hasOpenRouterKey() {
+	// Generate draft message (LLM-drafted if configured, template otherwise)
+	if aiEnabled && hasOpenRouterKey() {
 		proposal.DraftMessage = generateLLMTradeMessage(proposal, userSurplus, targetSurplus)
 	} else {
 		proposal.DraftMessage = generateTemplateMessage(proposal)
@@ -166,10 +166,10 @@ func buildDashboardTradeAction(leagueID, leagueName string, userRoster map[strin
 		return nil
 	}
 
-	// premiumEnabled=false: always use the template draft message, never the
-	// LLM path -- the dashboard action feed only needs the offer/return/
-	// fairness data, not a drafted message, so there's no reason to spend an
-	// LLM call (or add a network dependency) generating one.
+	// aiEnabled=false: always use the template draft message, never the LLM
+	// path -- the dashboard action feed only needs the offer/return/fairness
+	// data, not a drafted message, so there's no reason to spend an LLM call
+	// (or add a network dependency) generating one.
 	proposal := generateTradeProposal(userFullRoster, targetRoster, target.TeamName, target.YourSurplus, target.TheirSurplus, dynastyValues, isSuperFlex, false)
 	if len(proposal.YourOffer) == 0 || len(proposal.TheirReturn) == 0 {
 		return nil
