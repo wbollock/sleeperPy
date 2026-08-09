@@ -38,7 +38,7 @@ func (a *APIClient) FetchBorisChenTiers(ctx context.Context, scoring string) (ma
 
 // FetchDynastyValues fetches KTC dynasty values
 func (a *APIClient) FetchDynastyValues(ctx context.Context) (map[string]interface{}, string, error) {
-	rawValues, scrapeDate := fetchDynastyValues()
+	rawValues, scrapeDate := fetchDynastyValues(nil)
 	if rawValues == nil {
 		return nil, "", fmt.Errorf("failed to fetch dynasty values")
 	}

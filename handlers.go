@@ -375,7 +375,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if hasDynasty {
-		dynastyValues, dynastyValueDate = fetchDynastyValues()
+		dynastyValues, dynastyValueDate = fetchDynastyValues(players)
 	}
 
 	// Check if user has premium access and if premium features are enabled
@@ -1564,7 +1564,7 @@ func buildDashboardPage(username string) (*DashboardPage, error) {
 		}
 	}
 	if hasDynasty {
-		dynastyValues, _ = fetchDynastyValues()
+		dynastyValues, _ = fetchDynastyValues(players)
 	}
 
 	// 5. Get current NFL week so we can compute cross-league actions below.

@@ -20,9 +20,16 @@ type tiersCache struct {
 type DynastyValue struct {
 	Name       string
 	Position   string
-	Value1QB   int
+	Value1QB   int // blended across available sources
 	Value2QB   int
 	ScrapeDate string
+
+	// Per-source breakdown, used to flag agreement/disagreement between
+	// sources rather than presenting one blended number as gospel.
+	DynastyProcessValue1QB int
+	DynastyProcessValue2QB int
+	FantasyCalcValue1QB    int
+	FantasyCalcValue2QB    int
 }
 
 // Cache for dynasty values

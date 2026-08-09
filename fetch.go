@@ -63,7 +63,12 @@ func fetchJSONArray(url string) ([]map[string]interface{}, error) {
 	return out, err
 }
 
-func fetchDynastyValues() (map[string]DynastyValue, string) {
+// fetchDynastyValues returns blended dynasty values from DynastyProcess and
+// FantasyCalc. players (Sleeper player_id -> player object, as returned by
+// fetchPlayers) is used to cross-reference FantasyCalc's sleeperId field
+// against DynastyProcess's name-keyed data; pass nil to skip the FantasyCalc
+// blend (e.g. from callers that don't already have the players map handy).
+func fetchDynastyValues(players map[string]interface{}) (map[string]DynastyValue, string) {
 	// Check cache first
 	dynastyValuesCache.RLock()
 	if time.Since(dynastyValuesCache.timestamp) < dynastyValuesCache.ttl && len(dynastyValuesCache.data) > 0 {
@@ -122,12 +127,18 @@ func fetchDynastyValues() (map[string]DynastyValue, string) {
 		// Store with normalized name as key
 		normalizedName := normalizeName(playerName)
 		values[normalizedName] = DynastyValue{
-			Name:       playerName,
-			Position:   position,
-			Value1QB:   value1QB,
-			Value2QB:   value2QB,
-			ScrapeDate: date,
+			Name:                   playerName,
+			Position:               position,
+			Value1QB:               value1QB,
+			Value2QB:               value2QB,
+			ScrapeDate:             date,
+			DynastyProcessValue1QB: value1QB,
+			DynastyProcessValue2QB: value2QB,
 		}
+	}
+
+	if players != nil {
+		blendFantasyCalcValues(values, players)
 	}
 
 	// Update cache
@@ -138,6 +149,98 @@ func fetchDynastyValues() (map[string]DynastyValue, string) {
 
 	debugLog("[DEBUG] Loaded %d dynasty values (last updated: %s)", len(values), scrapeDate)
 	return values, scrapeDate
+}
+
+// fetchFantasyCalcValuesImpl fetches FantasyCalc's current dynasty values for
+// the given QB format (1 for single-QB, 2 for superflex), keyed by Sleeper
+// player_id (FantasyCalc includes it directly, so no name matching needed).
+var fetchFantasyCalcValues = func(numQBs int) map[string]int {
+	url := fmt.Sprintf("https://api.fantasycalc.com/values/current?isDynasty=true&numQbs=%d&ppr=1", numQBs)
+	resp, err := httpClient.Get(url)
+	if err != nil {
+		debugLog("[DEBUG] Failed to fetch FantasyCalc values (numQbs=%d): %v", numQBs, err)
+		return nil
+	}
+	defer resp.Body.Close()
+
+	var entries []struct {
+		Player struct {
+			SleeperID string `json:"sleeperId"`
+		} `json:"player"`
+		Value int `json:"value"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&entries); err != nil {
+		debugLog("[DEBUG] Failed to decode FantasyCalc values (numQbs=%d): %v", numQBs, err)
+		return nil
+	}
+
+	out := make(map[string]int, len(entries))
+	for _, e := range entries {
+		if e.Player.SleeperID == "" {
+			continue
+		}
+		out[e.Player.SleeperID] = e.Value
+	}
+	return out
+}
+
+// blendFantasyCalcValues merges FantasyCalc values into an existing
+// DynastyProcess-keyed values map (keyed by normalized player name), matching
+// players via Sleeper player_id, then recomputes Value1QB/Value2QB as the
+// average of whichever sources are available for each player.
+func blendFantasyCalcValues(values map[string]DynastyValue, players map[string]interface{}) {
+	fc1QB := fetchFantasyCalcValues(1)
+	fc2QB := fetchFantasyCalcValues(2)
+	if fc1QB == nil && fc2QB == nil {
+		debugLog("[DEBUG] FantasyCalc values unavailable, using DynastyProcess only")
+		return
+	}
+
+	for playerID, p := range players {
+		player, ok := p.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		v1, has1 := fc1QB[playerID]
+		v2, has2 := fc2QB[playerID]
+		if !has1 && !has2 {
+			continue
+		}
+
+		fullName, _ := player["full_name"].(string)
+		if fullName == "" {
+			continue
+		}
+		normName := normalizeName(fullName)
+
+		entry, exists := values[normName]
+		if !exists {
+			position, _ := player["position"].(string)
+			entry = DynastyValue{Name: fullName, Position: position}
+		}
+		if has1 {
+			entry.FantasyCalcValue1QB = v1
+		}
+		if has2 {
+			entry.FantasyCalcValue2QB = v2
+		}
+		entry.Value1QB = blendValue(entry.DynastyProcessValue1QB, entry.FantasyCalcValue1QB)
+		entry.Value2QB = blendValue(entry.DynastyProcessValue2QB, entry.FantasyCalcValue2QB)
+		values[normName] = entry
+	}
+}
+
+// blendValue averages two source values, falling back to whichever one is
+// available (a zero value means that source had no data for this player).
+func blendValue(a, b int) int {
+	switch {
+	case a > 0 && b > 0:
+		return (a + b) / 2
+	case a > 0:
+		return a
+	default:
+		return b
+	}
 }
 
 var borisURLs = map[string]map[string]string{
