@@ -6,7 +6,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"log"
 	"net"
 	"net/http"
@@ -124,8 +123,7 @@ func publicStatusHandler(w http.ResponseWriter, r *http.Request) {
 		LeaguesPerHour: leaguesPerHour,
 	}
 
-	tmpl := template.Must(template.ParseFiles("templates/status.html"))
-	if err := tmpl.Execute(w, data); err != nil {
+	if err := templates.ExecuteTemplate(w, "status.html", data); err != nil {
 		http.Error(w, "Error rendering status page", http.StatusInternalServerError)
 		log.Printf("Error rendering status.html: %v", err)
 	}
@@ -134,8 +132,7 @@ func publicStatusHandler(w http.ResponseWriter, r *http.Request) {
 func adminHandler(w http.ResponseWriter, r *http.Request) {
 	if !adminAccessAllowed(r) {
 		w.WriteHeader(http.StatusUnauthorized)
-		tmpl := template.Must(template.ParseFiles("templates/admin_unauthorized.html"))
-		_ = tmpl.Execute(w, map[string]string{
+		_ = templates.ExecuteTemplate(w, "admin_unauthorized.html", map[string]string{
 			"ServerTime": time.Now().Format("2006-01-02 15:04:05 MST"),
 		})
 		return
@@ -210,8 +207,7 @@ func adminHandler(w http.ResponseWriter, r *http.Request) {
 	adminMetrics.RUnlock()
 
 	// Render template
-	tmpl := template.Must(template.ParseFiles("templates/admin.html"))
-	if err := tmpl.Execute(w, data); err != nil {
+	if err := templates.ExecuteTemplate(w, "admin.html", data); err != nil {
 		http.Error(w, "Error rendering admin dashboard", http.StatusInternalServerError)
 		log.Printf("Error rendering admin.html: %v", err)
 	}

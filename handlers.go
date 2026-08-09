@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"log"
 	"net/http"
 	"sort"
@@ -119,24 +118,21 @@ func writeSavedUsernames(w http.ResponseWriter, r *http.Request, username string
 
 func privacyHandler(w http.ResponseWriter, r *http.Request) {
 	trackPageView(r.URL.Path)
-	tmpl := template.Must(template.ParseFiles("templates/privacy.html"))
-	if err := tmpl.Execute(w, nil); err != nil {
+	if err := templates.ExecuteTemplate(w, "privacy.html", nil); err != nil {
 		http.Error(w, "Error rendering privacy policy", http.StatusInternalServerError)
 		log.Printf("Error rendering privacy.html: %v", err)
 	}
 }
 
 func termsHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl := template.Must(template.ParseFiles("templates/terms.html"))
-	if err := tmpl.Execute(w, nil); err != nil {
+	if err := templates.ExecuteTemplate(w, "terms.html", nil); err != nil {
 		http.Error(w, "Error rendering terms of service", http.StatusInternalServerError)
 		log.Printf("Error rendering terms.html: %v", err)
 	}
 }
 
 func roadmapHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl := template.Must(template.ParseFiles("templates/roadmap.html"))
-	if err := tmpl.Execute(w, nil); err != nil {
+	if err := templates.ExecuteTemplate(w, "roadmap.html", nil); err != nil {
 		http.Error(w, "Error rendering planned features page", http.StatusInternalServerError)
 		log.Printf("Error rendering roadmap.html: %v", err)
 	}
@@ -147,16 +143,14 @@ func pricingRedirectHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func aboutHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl := template.Must(template.ParseFiles("templates/about.html"))
-	if err := tmpl.Execute(w, nil); err != nil {
+	if err := templates.ExecuteTemplate(w, "about.html", nil); err != nil {
 		http.Error(w, "Error rendering about page", http.StatusInternalServerError)
 		log.Printf("Error rendering about.html: %v", err)
 	}
 }
 
 func faqHandler(w http.ResponseWriter, r *http.Request) {
-	tmpl := template.Must(template.ParseFiles("templates/faq.html"))
-	if err := tmpl.Execute(w, nil); err != nil {
+	if err := templates.ExecuteTemplate(w, "faq.html", nil); err != nil {
 		http.Error(w, "Error rendering FAQ page", http.StatusInternalServerError)
 		log.Printf("Error rendering faq.html: %v", err)
 	}
