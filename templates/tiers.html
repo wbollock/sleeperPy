@@ -653,6 +653,42 @@
                     </div>
 
                     <div class="toolkit-card collapseable">
+                        <div class="card-header" onclick="toggleSection('cut-candidates-{{$i}}')">
+                            <span class="card-title">
+                                Cut Candidates
+                                <span class="cut-count">{{len $l.CutCandidates}}</span>
+                            </span>
+                            <span class="collapse-icon" id="cut-candidates-{{$i}}-icon">▼</span>
+                        </div>
+                        <div class="card-content" id="cut-candidates-{{$i}}-content">
+                            {{if $l.CutCandidates}}
+                            <div class="breakout-desc">Low dynasty value, not close to starting, and not trending up on waivers elsewhere -- reasonable to drop for roster churn or a waiver claim.</div>
+                            <div class="player-list">
+                                {{range $l.CutCandidates}}
+                                <div class="player-card cut-card">
+                                    <div class="player-card-header">
+                                        <span class="player-card-name">{{.Name | safe}}</span>
+                                    </div>
+                                    <div class="player-card-details">
+                                        <span class="player-card-pos">{{.Pos}}</span>
+                                        <span class="player-card-value">Value: {{.DynastyValue}}</span>
+                                    </div>
+                                </div>
+                                {{end}}
+                            </div>
+                            {{else}}
+                            <div class="empty-state">
+                                <div class="empty-state-icon">🔒</div>
+                                <div class="empty-state-title">No Obvious Cut Candidates</div>
+                                <div class="empty-state-text">
+                                    Every bench player either has real value, is close to starting, or is trending up on waivers elsewhere right now.
+                                </div>
+                            </div>
+                            {{end}}
+                        </div>
+                    </div>
+
+                    <div class="toolkit-card collapseable">
                         <div class="card-header" onclick="toggleSection('aging-{{$i}}')">
                             <span class="card-title">
                                 Aging Players Alert

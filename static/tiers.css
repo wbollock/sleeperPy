@@ -412,6 +412,7 @@
 .count-badge,
 .news-count,
 .breakout-count,
+.cut-count,
 .aging-count,
 .transactions-count {
 	display: inline-flex;
@@ -575,6 +576,10 @@
 
 .aging-card {
 	border-left: 3px solid var(--qt-warn);
+}
+
+.cut-card {
+	border-left: 3px solid var(--qt-danger);
 }
 
 .player-card-header {

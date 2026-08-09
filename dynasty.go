@@ -161,6 +161,65 @@ func findBreakoutCandidates(benchRows []PlayerRow) []PlayerRow {
 	return candidates
 }
 
+// buildTrendingByName converts Sleeper's player_id-keyed trending-add counts
+// into a normalized-name-keyed map, so it can be looked up the same way
+// dynasty values are (PlayerRow only carries a display name, not the
+// player_id it was built from).
+func buildTrendingByName(players map[string]interface{}) map[string]int {
+	adds := fetchTrendingPlayers("add")
+	if len(adds) == 0 {
+		return nil
+	}
+	byName := make(map[string]int, len(adds))
+	for playerID, count := range adds {
+		p, ok := players[playerID].(map[string]interface{})
+		if !ok {
+			continue
+		}
+		name := getPlayerName(p)
+		if name == "" {
+			continue
+		}
+		byName[normalizeName(name)] = count
+	}
+	return byName
+}
+
+// findCutCandidates identifies bench players who are reasonable drop
+// candidates: low dynasty value, not good enough to actually start, and not
+// currently trending up on waivers elsewhere. A spike in adds usually means
+// something changed (injury ahead of them, role change) that's worth
+// checking before cutting, so trending players are excluded even if their
+// dynasty value is low.
+func findCutCandidates(benchRows []PlayerRow, trendingAddsByName map[string]int) []PlayerRow {
+	const lowValueThreshold = 200
+
+	candidates := []PlayerRow{}
+	for _, row := range benchRows {
+		if row.ShouldSwapIn {
+			continue // good enough to start over someone -- not a cut candidate
+		}
+		if row.DynastyValue <= 0 || row.DynastyValue >= lowValueThreshold {
+			continue
+		}
+		if trendingAddsByName != nil {
+			normName := normalizeName(stripHTML(row.Name))
+			if trendingAddsByName[normName] > 0 {
+				continue
+			}
+		}
+		candidates = append(candidates, row)
+	}
+
+	sort.Slice(candidates, func(i, j int) bool {
+		return candidates[i].DynastyValue < candidates[j].DynastyValue
+	})
+	if len(candidates) > 10 {
+		candidates = candidates[:10]
+	}
+	return candidates
+}
+
 func findAgingPlayers(startersRows, benchRows []PlayerRow) []PlayerRow {
 	aging := []PlayerRow{}
 	allPlayers := append([]PlayerRow{}, startersRows...)

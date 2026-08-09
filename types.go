@@ -359,6 +359,7 @@ type LeagueData struct {
 	PositionalBreakdown   PositionalKTC
 	PlayerNewsFeed        []PlayerNews
 	BreakoutCandidates    []PlayerRow
+	CutCandidates         []PlayerRow
 	AgingPlayers          []PlayerRow
 	RecentTransactions    []Transaction
 	TopRookies            []RookieProspect

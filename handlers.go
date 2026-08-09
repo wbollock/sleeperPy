@@ -1179,6 +1179,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		// Aggregate player news for dynasty leagues
 		var playerNewsFeed []PlayerNews
 		var breakoutCandidates []PlayerRow
+		var cutCandidates []PlayerRow
 		var agingPlayers []PlayerRow
 		var recentTransactions []Transaction
 		if isDynasty {
@@ -1189,6 +1190,11 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			if dynastyValues != nil {
 				breakoutCandidates = findBreakoutCandidates(benchRows)
 				debugLog("[DEBUG] Found %d breakout candidates", len(breakoutCandidates))
+
+				// Find cut candidates: low dynasty value, not trending up elsewhere
+				trendingAddsByName := buildTrendingByName(players)
+				cutCandidates = findCutCandidates(benchRows, trendingAddsByName)
+				debugLog("[DEBUG] Found %d cut candidates", len(cutCandidates))
 
 				// Find aging players from starters and bench
 				agingPlayers = findAgingPlayers(startersRows, benchRows)
@@ -1373,6 +1379,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			PositionalBreakdown:  positionalBreakdown,
 			PlayerNewsFeed:       playerNewsFeed,
 			BreakoutCandidates:   breakoutCandidates,
+			CutCandidates:        cutCandidates,
 			AgingPlayers:         agingPlayers,
 			RecentTransactions:   recentTransactions,
 			TopRookies:           topRookies,
