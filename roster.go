@@ -88,6 +88,118 @@ func buildRowsWithPositions(ids []string, players map[string]interface{}, tiers 
 	return rows, unranked, tierNums
 }
 
+// splitRosterForTiering returns a roster's starter IDs, bench IDs (including
+// IR players merged in), and IR IDs, ready for buildTieredRoster.
+func splitRosterForTiering(userRoster map[string]interface{}) (starters, bench, irPlayers []string) {
+	starters = toStringSlice(userRoster["starters"])
+	allPlayers := toStringSlice(userRoster["players"])
+	irPlayers = toStringSlice(userRoster["reserve"])
+	bench = diff(allPlayers, starters)
+	for _, ir := range irPlayers {
+		found := false
+		for _, b := range bench {
+			if b == ir {
+				found = true
+				break
+			}
+		}
+		if !found {
+			bench = append(bench, ir)
+		}
+	}
+	return starters, bench, irPlayers
+}
+
+// TieredRoster is a user's starters and bench with Boris Chen tiers assigned,
+// including FLEX/SUPERFLEX re-ranking. Shared by the per-league tiers page and
+// the cross-league dashboard action feed so tier logic only lives in one place.
+type TieredRoster struct {
+	StartersRows      []PlayerRow
+	UnrankedRows      []PlayerRow
+	BenchRows         []PlayerRow
+	BenchUnrankedRows []PlayerRow
+	StarterTiers      []int
+	IsSuperFlex       bool
+}
+
+// buildTieredRoster takes an already-computed starters/bench/IR split (see
+// splitRosterForTiering) and assigns Boris Chen tiers to it.
+func buildTieredRoster(starters, bench, irPlayers []string, players map[string]interface{}, borisTiers map[string][][]string, leagueRosterPositions []string) TieredRoster {
+	firstPassBench, _, _ := buildRowsWithPositions(bench, players, borisTiers, false, nil, irPlayers, nil)
+	bestBenchTier := make(map[string]int)
+	for _, row := range firstPassBench {
+		tier, ok := row.Tier.(int)
+		if ok && tier > 0 {
+			if best, exists := bestBenchTier[row.Pos]; !exists || tier < best {
+				bestBenchTier[row.Pos] = tier
+			}
+		}
+	}
+
+	startersRows, unrankedRows, _ := buildRowsWithPositions(starters, players, borisTiers, true, leagueRosterPositions, irPlayers, bestBenchTier)
+
+	// FLEX/SUPERFLEX: re-rank RB/WR/TE occupying a FLEX slot using the FLEX tier table.
+	for i, row := range startersRows {
+		if row.Pos != "FLEX" && row.Pos != "SUPER_FLEX" {
+			continue
+		}
+		pid := starters[i]
+		p, ok := players[pid].(map[string]interface{})
+		if !ok {
+			continue
+		}
+		name := getPlayerName(p)
+		actualPos, _ := p["position"].(string)
+		isFlexEligible := actualPos == "RB" || actualPos == "WR" || actualPos == "TE"
+
+		if row.Pos == "FLEX" {
+			startersRows[i].IsFlex = true
+		} else {
+			startersRows[i].IsSuperflex = true
+		}
+
+		flxTier := findTier(borisTiers["FLX"], name)
+		if flxTier > 0 && isFlexEligible {
+			startersRows[i].Tier = flxTier
+		}
+	}
+
+	starterTiers := []int{}
+	for _, row := range startersRows {
+		if t, ok := row.Tier.(int); ok && t > 0 {
+			starterTiers = append(starterTiers, t)
+		}
+	}
+
+	worstStarterTier := make(map[string]int)
+	for _, row := range startersRows {
+		tier, ok := row.Tier.(int)
+		if ok && tier > 0 {
+			if worst, exists := worstStarterTier[row.Pos]; !exists || tier > worst {
+				worstStarterTier[row.Pos] = tier
+			}
+		}
+	}
+	benchRows, benchUnrankedRows, _ := buildRowsWithPositions(bench, players, borisTiers, false, nil, irPlayers, worstStarterTier)
+
+	isSuperFlex := false
+	for _, pos := range leagueRosterPositions {
+		if pos == "SUPER_FLEX" {
+			isSuperFlex = true
+			break
+		}
+	}
+
+	return TieredRoster{
+		StartersRows:      startersRows,
+		UnrankedRows:      unrankedRows,
+		BenchRows:         benchRows,
+		BenchUnrankedRows: benchUnrankedRows,
+		StarterTiers:      starterTiers,
+		IsSuperFlex:       isSuperFlex,
+	}
+}
+
 func getPlayerName(p map[string]interface{}) string {
 	// Handle DST/DEF players
 	if pos, ok := p["position"].(string); ok && (pos == "DEF" || pos == "DST") {

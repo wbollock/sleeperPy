@@ -460,23 +460,8 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		starters := toStringSlice(userRoster["starters"])
+		starters, bench, irPlayers := splitRosterForTiering(userRoster)
 		allPlayers := toStringSlice(userRoster["players"])
-		irPlayers := toStringSlice(userRoster["reserve"])
-		bench := diff(allPlayers, starters)
-		// Add IR players to bench if not already present
-		for _, ir := range irPlayers {
-			found := false
-			for _, b := range bench {
-				if b == ir {
-					found = true
-					break
-				}
-			}
-			if !found {
-				bench = append(bench, ir)
-			}
-		}
 		debugLog("[DEBUG] After IR merge, Bench: %v", bench)
 
 		// Find opponent (only if we have matchups)
@@ -521,103 +506,14 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		debugLog("[DEBUG] Parsed roster positions for league: %v", leagueRosterPositions)
 
-		// Build rows for roster
-		var benchUnrankedRows []PlayerRow
-		benchRows, _, _ := buildRowsWithPositions(bench, players, borisTiers, false, nil, irPlayers, nil)
-		debugLog("[DEBUG] Built benchRows: %v", benchRows)
-		bestBenchTier := make(map[string]int)
-		for _, row := range benchRows {
-			pos := row.Pos
-			tier, ok := row.Tier.(int)
-			if ok && tier > 0 {
-				if best, exists := bestBenchTier[pos]; !exists || tier < best {
-					bestBenchTier[pos] = tier
-				}
-			}
-		}
-		debugLog("[DEBUG] Best bench tier map: %v", bestBenchTier)
-
-		// Debug: Log starters with their designated positions
-		for i, pid := range starters {
-			if i < len(leagueRosterPositions) {
-				if p, ok := players[pid].(map[string]interface{}); ok {
-					name := getPlayerName(p)
-					debugLog("[DEBUG] Starter %d: %s -> Designated position: %s", i, name, leagueRosterPositions[i])
-				}
-			}
-		}
-
-		startersRows, unrankedRows, starterTiers := buildRowsWithPositions(starters, players, borisTiers, true, leagueRosterPositions, irPlayers, bestBenchTier)
-		debugLog("[DEBUG] Built startersRows: %v", startersRows)
-		for i, row := range startersRows {
-			debugLog("[DEBUG]   Row %d: Pos=%s, Name=%s, Tier=%v", i, row.Pos, row.Name, row.Tier)
-		}
-
-		// --- FLEX/SUPERFLEX MARKING ---
-		// Mark FLEX and SUPERFLEX positions based on league roster configuration
-		// and re-rank them using FLEX tiers (only for FLEX-eligible positions: RB/WR/TE)
-		for i, row := range startersRows {
-			if row.Pos == "FLEX" || row.Pos == "SUPER_FLEX" {
-				pid := starters[i]
-				if p, ok := players[pid].(map[string]interface{}); ok {
-					name := getPlayerName(p)
-					actualPos, _ := p["position"].(string)
-					isFlexEligible := actualPos == "RB" || actualPos == "WR" || actualPos == "TE"
-
-					flxTier := findTier(borisTiers["FLX"], name)
-					if flxTier > 0 && isFlexEligible {
-						// Re-rank FLEX-eligible positions (RB/WR/TE) using FLEX tier
-						if row.Pos == "FLEX" {
-							startersRows[i].IsFlex = true
-							debugLog("[DEBUG] FLEX position: %s, re-ranking from tier %v to FLX tier %d", name, row.Tier, flxTier)
-						} else {
-							startersRows[i].IsSuperflex = true
-							debugLog("[DEBUG] SUPERFLEX position: %s, re-ranking from tier %v to FLX tier %d", name, row.Tier, flxTier)
-						}
-						startersRows[i].Tier = flxTier
-					} else {
-						// For QBs or players without FLEX tier, just mark the slot but keep position tier
-						if row.Pos == "FLEX" {
-							startersRows[i].IsFlex = true
-							debugLog("[DEBUG] FLEX position: %s, keeping position tier %v (pos: %s)", name, row.Tier, actualPos)
-						} else {
-							startersRows[i].IsSuperflex = true
-							debugLog("[DEBUG] SUPERFLEX position: %s, keeping position tier %v (pos: %s)", name, row.Tier, actualPos)
-						}
-					}
-				}
-			}
-		}
-
-		// Recalculate starterTiers after FLEX re-ranking (whether from API or heuristic)
-		starterTiers = []int{}
-		for _, row := range startersRows {
-			if t, ok := row.Tier.(int); ok && t > 0 {
-				starterTiers = append(starterTiers, t)
-			}
-		}
-
-		worstStarterTier := make(map[string]int)
-		for _, row := range startersRows {
-			pos := row.Pos
-			tier, ok := row.Tier.(int)
-			if ok && tier > 0 {
-				if worst, exists := worstStarterTier[pos]; !exists || tier > worst {
-					worstStarterTier[pos] = tier
-				}
-			}
-		}
-		debugLog("[DEBUG] Worst starter tier map: %v", worstStarterTier)
-		benchRows, benchUnrankedRows, _ = buildRowsWithPositions(bench, players, borisTiers, false, nil, irPlayers, worstStarterTier)
-
-		// Detect if this is a superflex league
-		isSuperFlex := false
-		for _, pos := range leagueRosterPositions {
-			if pos == "SUPER_FLEX" {
-				isSuperFlex = true
-				break
-			}
-		}
+		// Build tiered rows for roster (starters/bench with FLEX/SUPERFLEX re-ranking)
+		tiered := buildTieredRoster(starters, bench, irPlayers, players, borisTiers, leagueRosterPositions)
+		startersRows := tiered.StartersRows
+		unrankedRows := tiered.UnrankedRows
+		benchRows := tiered.BenchRows
+		benchUnrankedRows := tiered.BenchUnrankedRows
+		starterTiers := tiered.StarterTiers
+		isSuperFlex := tiered.IsSuperFlex
 		debugLog("[DEBUG] League is superflex: %v", isSuperFlex)
 
 		// Enrich rows with dynasty values (if this is a dynasty league)
