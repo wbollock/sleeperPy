@@ -67,12 +67,12 @@
             <div class="league-options" id="leagueOptions">
                 {{/* Favorites group */}}
                 <div class="league-group" id="favorites-group" style="display:none;">
-                    <div class="league-group-header">⭐ Favorites</div>
+                    <div class="league-group-header">Favorites</div>
                 </div>
 
                 {{/* Group dynasty leagues */}}
                 <div class="league-group" id="dynasty-group">
-                    <div class="league-group-header">🏆 Dynasty Leagues</div>
+                    <div class="league-group-header">Dynasty Leagues</div>
                     {{range $i, $l := .Leagues}}
                         {{if $l.IsDynasty}}
                         <button class="league-option {{if eq $i 0}}active{{end}}" data-league-id="league{{$i}}" data-league-name="{{$l.LeagueName}}" onclick="selectLeague(event, 'league{{$i}}', '{{$l.LeagueName}}')">
@@ -89,7 +89,7 @@
 
                 {{/* Group redraft leagues */}}
                 <div class="league-group" id="redraft-group">
-                    <div class="league-group-header">📊 Redraft Leagues</div>
+                    <div class="league-group-header">Redraft Leagues</div>
                     {{range $i, $l := .Leagues}}
                         {{if not $l.IsDynasty}}
                         <button class="league-option {{if eq $i 0}}active{{end}}" data-league-id="league{{$i}}" data-league-name="{{$l.LeagueName}}" onclick="selectLeague(event, 'league{{$i}}', '{{$l.LeagueName}}')">
@@ -156,21 +156,21 @@
             {{end}}
 
             {{if $l.WeeklyActions}}
-            <div class="actions-banner" style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:12px;padding:16px;margin-bottom:20px;">
+            <div class="actions-banner qt-panel" style="margin-bottom:20px;">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-                    <h3 style="margin:0;font-size:1.1rem;display:flex;align-items:center;gap:8px;">
-                        ⚡ {{len $l.WeeklyActions}} Action{{if gt (len $l.WeeklyActions) 1}}s{{end}} This Week
+                    <h3 style="margin:0;font-size:1.1rem;">
+                        {{len $l.WeeklyActions}} Action{{if gt (len $l.WeeklyActions) 1}}s{{end}} This Week
                     </h3>
                 </div>
                 <div style="display:flex;flex-direction:column;gap:10px;">
                     {{range $idx, $action := $l.WeeklyActions}}
                     {{if lt $idx 3}}
-                    <div class="action-item" style="display:flex;align-items:start;gap:10px;padding:10px;background:var(--card-bg-alt);border-radius:8px;">
+                    <div class="action-item" style="display:flex;align-items:start;gap:10px;padding:10px;background:var(--card-bg-alt);border-radius:var(--qt-radius);">
                         <input type="checkbox" id="action-{{$i}}-{{$idx}}" class="action-checkbox" style="margin-top:2px;">
                         <label for="action-{{$i}}-{{$idx}}" style="flex:1;cursor:pointer;">
                             <div style="font-weight:600;margin-bottom:2px;">{{add $idx 1}}. {{$action.Title}}</div>
                             <div style="font-size:0.875rem;color:var(--text-secondary);">{{$action.Description}}</div>
-                            <div style="font-size:0.8rem;color:#10b981;margin-top:4px;">Impact: {{$action.Impact}}</div>
+                            <div style="font-size:0.8rem;color:var(--qt-ok);margin-top:4px;">Impact: {{$action.Impact}}</div>
                         </label>
                     </div>
                     {{end}}
@@ -178,17 +178,15 @@
                 </div>
                 {{if gt (len $l.WeeklyActions) 3}}
                 <div style="margin-top:12px;text-align:center;">
-                    <button class="toggle-btn" onclick="toggleAllActions({{$i}})" style="padding:6px 16px;background:var(--accent-color);color:white;border:none;border-radius:6px;cursor:pointer;font-size:0.875rem;">
+                    <button class="qt-btn" onclick="toggleAllActions({{$i}})">
                         View All {{len $l.WeeklyActions}} Actions
                     </button>
                 </div>
                 {{end}}
             </div>
             {{else}}
-            <div class="actions-banner" style="background:var(--card-bg);border:1px solid #10b981;border-radius:12px;padding:16px;margin-bottom:20px;">
-                <div style="display:flex;align-items:center;gap:8px;color:#10b981;">
-                    ✅ <span style="font-weight:600;">Looking good! No urgent actions this week.</span>
-                </div>
+            <div class="actions-banner qt-panel" style="margin-bottom:20px;">
+                <span style="font-weight:600;color:var(--qt-ok);">Looking good -- no urgent actions this week.</span>
             </div>
             {{end}}
 
@@ -508,7 +506,7 @@
                     <div class="toolkit-card collapseable">
                         <div class="card-header" onclick="toggleSection('player-news-{{$i}}')">
                             <span class="card-title">
-                                📰 {{$l.CompressedNews.TimeWindow}} - Your Players
+                                {{$l.CompressedNews.TimeWindow}} - Your Players
                                 <span class="news-count">Top {{len $l.CompressedNews.TopHeadlines}}/{{$l.CompressedNews.TotalItems}}</span>
                             </span>
                             <span class="collapse-icon" id="player-news-{{$i}}-icon">▼</span>
@@ -520,15 +518,9 @@
                                     <div class="news-rank">{{add $idx 1}}.</div>
                                     <div class="news-content-compressed">
                                         <div class="news-header-compressed">
-                                            <span class="news-icon">
-                                                {{if or (eq $news.InjuryStatus "Out") (eq $news.InjuryStatus "IR")}}🔴
-                                                {{else if eq $news.InjuryStatus "Doubtful"}}🟡
-                                                {{else if eq $news.InjuryStatus "Questionable"}}⚠️
-                                                {{else}}💬{{end}}
-                                            </span>
                                             <span class="news-player-compressed">
                                                 {{$news.PlayerName}}
-                                                {{if $news.IsStarter}}<span class="starter-badge">⭐</span>{{end}}
+                                                {{if $news.IsStarter}}<span class="starter-badge">Starting</span>{{end}}
                                             </span>
                                             {{if $news.InjuryStatus}}
                                             <span class="news-injury-badge">{{$news.InjuryStatus}}</span>
@@ -573,7 +565,7 @@
                                     <div class="news-header">
                                         <span class="news-player">
                                             {{.PlayerName}} ({{.Position}})
-                                            {{if .IsStarter}}<span class="starter-badge">⭐</span>{{end}}
+                                            {{if .IsStarter}}<span class="starter-badge">Starting</span>{{end}}
                                         </span>
                                         <span class="news-time">{{formatTime .Timestamp}}</span>
                                     </div>
@@ -594,14 +586,13 @@
                     <div class="toolkit-card collapseable">
                         <div class="card-header" onclick="toggleSection('player-news-{{$i}}')">
                             <span class="card-title">
-                                📰 Player News
+                                Player News
                                 <span class="news-count">0</span>
                             </span>
                             <span class="collapse-icon" id="player-news-{{$i}}-icon">▼</span>
                         </div>
                         <div class="card-content" id="player-news-{{$i}}-content">
                             <div class="empty-state">
-                                <div class="empty-state-icon">📰</div>
                                 <div class="empty-state-title">No Recent News</div>
                                 <div class="empty-state-text">
                                     {{if eq $l.CompressedNews.TimeWindow "Last 3 Months"}}
@@ -642,7 +633,6 @@
                             </div>
                             {{else}}
                             <div class="empty-state">
-                                <div class="empty-state-icon">🌟</div>
                                 <div class="empty-state-title">No Breakout Candidates</div>
                                 <div class="empty-state-text">
                                     You don't have young bench players (age &lt; 25) with significant value (&gt; 500). Consider adding high-upside rookies or young players to your roster!
@@ -678,7 +668,6 @@
                             </div>
                             {{else}}
                             <div class="empty-state">
-                                <div class="empty-state-icon">🔒</div>
                                 <div class="empty-state-title">No Obvious Cut Candidates</div>
                                 <div class="empty-state-text">
                                     Every bench player either has real value, is close to starting, or is trending up on waivers elsewhere right now.
@@ -711,9 +700,9 @@
                                         <span class="player-card-value">Value: {{.DynastyValue}}</span>
                                     </div>
                                     <div class="aging-warning">
-                                        {{if eq .Pos "RB"}}⚠️ RBs decline sharply after age 28
-                                        {{else if or (eq .Pos "WR") (eq .Pos "TE")}}⚠️ Pass catchers typically decline after 30
-                                        {{else if eq .Pos "QB"}}⚠️ QBs can play longer but decline risk increases
+                                        {{if eq .Pos "RB"}}RBs decline sharply after age 28
+                                        {{else if or (eq .Pos "WR") (eq .Pos "TE")}}Pass catchers typically decline after 30
+                                        {{else if eq .Pos "QB"}}QBs can play longer but decline risk increases
                                         {{end}}
                                     </div>
                                 </div>
@@ -721,7 +710,6 @@
                             </div>
                             {{else}}
                             <div class="empty-state">
-                                <div class="empty-state-icon">✅</div>
                                 <div class="empty-state-title">No Aging Concerns</div>
                                 <div class="empty-state-text">
                                     Your valuable players are in their prime! No players currently flagged as approaching decline based on position-specific age thresholds.
@@ -743,15 +731,15 @@
                             {{if $l.RecentTransactions}}
                             <div class="transaction-filters">
                                 <button class="filter-btn active" onclick="filterTransactions(event, {{$i}}, 'all')">All</button>
-                                <button class="filter-btn" onclick="filterTransactions(event, {{$i}}, 'trade')">📊 Trades</button>
-                                <button class="filter-btn" onclick="filterTransactions(event, {{$i}}, 'waiver')">📋 Waivers</button>
-                                <button class="filter-btn" onclick="filterTransactions(event, {{$i}}, 'free_agent')">➕ Free Agents</button>
+                                <button class="filter-btn" onclick="filterTransactions(event, {{$i}}, 'trade')">Trades</button>
+                                <button class="filter-btn" onclick="filterTransactions(event, {{$i}}, 'waiver')">Waivers</button>
+                                <button class="filter-btn" onclick="filterTransactions(event, {{$i}}, 'free_agent')">Free Agents</button>
                             </div>
                             <div class="transactions-list" id="transactions-list-{{$i}}">
                                 {{range $l.RecentTransactions}}
                                 <div class="transaction-item transaction-{{.Type}}">
                                     <div class="transaction-header">
-                                        <span class="transaction-type">{{if eq .Type "trade"}}📊 Trade{{else if eq .Type "waiver"}}📋 Waiver{{else}}➕ Free Agent{{end}}</span>
+                                        <span class="transaction-type">{{if eq .Type "trade"}}Trade{{else if eq .Type "waiver"}}Waiver{{else}}Free Agent{{end}}</span>
                                         <span class="transaction-time">{{formatTime .Timestamp}}</span>
                                     </div>
 
@@ -780,7 +768,7 @@
                                                 {{end}}
                                                 {{if and (gt .Team1GaveValue 0) (gt .Team2GaveValue 0)}}
                                                 <div class="trade-net-value {{if gt .NetValue 0}}positive{{else if lt .NetValue 0}}negative{{else}}neutral{{end}}">
-                                                    {{if gt .NetValue 0}}✅ Gained {{.NetValue}} value{{else if lt .NetValue 0}}❌ Lost {{absInt .NetValue}} value{{else}}➡️ Even trade{{end}}
+                                                    {{if gt .NetValue 0}}Gained {{.NetValue}} value{{else if lt .NetValue 0}}Lost {{absInt .NetValue}} value{{else}}Even trade{{end}}
                                                 </div>
                                                 {{end}}
                                             </div>
@@ -807,7 +795,7 @@
                                                 {{end}}
                                                 {{if and (gt .Team1GaveValue 0) (gt .Team2GaveValue 0)}}
                                                 <div class="trade-net-value {{if lt .NetValue 0}}positive{{else if gt .NetValue 0}}negative{{else}}neutral{{end}}">
-                                                    {{if lt .NetValue 0}}✅ Gained {{absInt .NetValue}} value{{else if gt .NetValue 0}}❌ Lost {{.NetValue}} value{{else}}➡️ Even trade{{end}}
+                                                    {{if lt .NetValue 0}}Gained {{absInt .NetValue}} value{{else if gt .NetValue 0}}Lost {{.NetValue}} value{{else}}Even trade{{end}}
                                                 </div>
                                                 {{end}}
                                             </div>
@@ -849,11 +837,11 @@
                                             <div class="waiver-team">{{index .TeamNames 0}}</div>
                                             {{end}}
                                             <div class="waiver-action">
-                                                <span class="waiver-label got">✅ Added:</span> {{.AddedPlayer}}
+                                                <span class="waiver-label got">Added:</span> {{.AddedPlayer}}
                                             </div>
                                             {{if .DroppedPlayer}}
                                             <div class="waiver-action">
-                                                <span class="waiver-label gave">❌ Dropped:</span> {{.DroppedPlayer}}
+                                                <span class="waiver-label gave">Dropped:</span> {{.DroppedPlayer}}
                                             </div>
                                             {{end}}
                                         </div>
@@ -863,11 +851,11 @@
                                             <div class="waiver-team">{{index .TeamNames 0}}</div>
                                             {{end}}
                                             <div class="waiver-action">
-                                                <span class="waiver-label got">✅ Added:</span> {{.AddedPlayer}}
+                                                <span class="waiver-label got">Added:</span> {{.AddedPlayer}}
                                             </div>
                                             {{if .DroppedPlayer}}
                                             <div class="waiver-action">
-                                                <span class="waiver-label gave">❌ Dropped:</span> {{.DroppedPlayer}}
+                                                <span class="waiver-label gave">Dropped:</span> {{.DroppedPlayer}}
                                             </div>
                                             {{end}}
                                         </div>
@@ -877,7 +865,6 @@
                             </div>
                             {{else}}
                             <div class="empty-state">
-                                <div class="empty-state-icon">📋</div>
                                 <div class="empty-state-title">No Recent Activity</div>
                                 <div class="empty-state-text">
                                     Your league has been quiet lately. No trades, waiver claims, or free agent moves in the past 4 weeks.
@@ -1268,8 +1255,8 @@
                                         </div>
 
                                         <div style="margin-bottom:12px;display:flex;gap:8px;font-size:0.8rem;">
-                                            <span style="padding:4px 8px;background:var(--card-bg);border-radius:4px;">
-                                                {{if gt .Proposal.ValueDelta 0}}✓{{else if lt .Proposal.ValueDelta 0}}⚠{{else}}→{{end}} {{.Proposal.Fairness}}
+                                            <span class="qt-tag">
+                                                {{.Proposal.Fairness}}
                                             </span>
                                             <span style="padding:4px 8px;background:var(--card-bg);border-radius:4px;">Risk: {{.Proposal.RiskLevel}}</span>
                                         </div>
@@ -1284,7 +1271,6 @@
                                 {{end}}
                             {{else}}
                                 <div class="empty-state">
-                                    <div class="empty-state-icon">🤝</div>
                                     <div class="empty-state-title">No Trade Recommendations</div>
                                     <div class="empty-state-text">
                                         Your roster is well-balanced! Trade targets appear when you have a clear positional surplus (>30% of total value) and deficit (<15% of total value).
