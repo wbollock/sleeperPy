@@ -1832,6 +1832,7 @@ func buildDashboardPage(username string) (*DashboardPage, error) {
 		return summaries[i].LeagueName < summaries[j].LeagueName
 	})
 
+	actionFeed = mergeActionsAcrossLeagues(actionFeed)
 	sort.Slice(actionFeed, func(i, j int) bool {
 		return actionFeed[i].Priority < actionFeed[j].Priority
 	})

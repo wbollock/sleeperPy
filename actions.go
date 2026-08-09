@@ -238,6 +238,38 @@ func deduplicateActions(actions []Action) []Action {
 	return result
 }
 
+// mergeActionsAcrossLeagues combines actions from the dashboard's cross-league
+// feed that have the same category+description (e.g. the user owns the same
+// two players in two leagues, producing the identical swap suggestion in
+// both) into one entry citing every applicable league, instead of showing
+// the same recommendation once per league.
+func mergeActionsAcrossLeagues(actions []Action) []Action {
+	type key struct{ category, description string }
+
+	order := []key{}
+	merged := make(map[key]Action)
+	leagueNames := make(map[key][]string)
+
+	for _, a := range actions {
+		k := key{a.Category, a.Description}
+		if _, exists := merged[k]; !exists {
+			merged[k] = a
+			order = append(order, k)
+		}
+		leagueNames[k] = append(leagueNames[k], a.LeagueName)
+	}
+
+	out := make([]Action, 0, len(order))
+	for _, k := range order {
+		a := merged[k]
+		if names := leagueNames[k]; len(names) > 1 {
+			a.LeagueName = strings.Join(names, ", ")
+		}
+		out = append(out, a)
+	}
+	return out
+}
+
 func getCurrentWeekID() string {
 	// Get current NFL week (simplified - just use calendar week for now)
 	now := time.Now()
