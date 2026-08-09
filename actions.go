@@ -67,15 +67,34 @@ func findStarterSwaps(league LeagueData, weekID string) []Action {
 	seen := make(map[string]bool)
 
 	for _, starter := range league.Starters {
+		isFlexSlot := starter.Pos == "FLEX" || starter.Pos == "SUPER_FLEX"
+
+		// Boris Chen tiers only rank within a position (a Tier 4 RB isn't
+		// worse than a Tier 3 WR just because 4 > 3 -- RB is deep at the top
+		// this year, so plenty of clear starters land in Tier 4). A FLEX
+		// starter's Tier is already FLX-based (set during FLEX re-ranking),
+		// so it's comparable to bench players' FlexTier; anyone else needs
+		// an exact position match.
 		starterTier := parseTierFloat(starter.Tier)
 		if starterTier == 0 {
 			continue // Skip unranked starters
 		}
 
 		for _, bench := range league.Bench {
-			benchTier := parseTierFloat(bench.Tier)
-			if benchTier == 0 {
-				continue // Skip unranked bench
+			var benchTier float64
+			if isFlexSlot {
+				if bench.FlexTier <= 0 {
+					continue // not flex-eligible (RB/WR/TE) or unranked on the FLX table
+				}
+				benchTier = float64(bench.FlexTier)
+			} else {
+				if starter.Pos != bench.Pos {
+					continue
+				}
+				benchTier = parseTierFloat(bench.Tier)
+				if benchTier == 0 {
+					continue // Skip unranked bench
+				}
 			}
 
 			// Only suggest if bench player is significantly better
@@ -93,7 +112,7 @@ func findStarterSwaps(league LeagueData, weekID string) []Action {
 					Category:    "swap",
 					Title:       "Swap Starter",
 					Description: fmt.Sprintf("Start %s over %s", bench.Name, starter.Name),
-					Impact:      fmt.Sprintf("+%.1f tier upgrade", tierDiff),
+					Impact:      fmt.Sprintf("Tier %.0f vs Tier %.0f (+%.1f)", benchTier, starterTier, tierDiff),
 					Link:        fmt.Sprintf("#player-%s", normalizeAnchor(bench.Name)),
 					WeekID:      weekID,
 				})
@@ -117,17 +136,29 @@ func findWaiverTargets(league LeagueData, weekID string) []Action {
 
 		// Check if this FA would upgrade any starter
 		for _, starter := range league.Starters {
-			// Must be same position
-			if fa.Pos != starter.Pos {
-				continue
-			}
+			isFlexSlot := starter.Pos == "FLEX" || starter.Pos == "SUPER_FLEX"
 
-			starterTier := parseTierFloat(starter.Tier)
+			var faTierForComparison, starterTier float64
+			if isFlexSlot {
+				// Starter.Tier is already FLX-based for a FLEX slot; compare
+				// against the FA's FLX tier, not their positional tier.
+				if fa.FlexTier <= 0 {
+					continue // FA isn't flex-eligible (RB/WR/TE) or unranked on the FLX table
+				}
+				faTierForComparison = float64(fa.FlexTier)
+				starterTier = parseTierFloat(starter.Tier)
+			} else {
+				if fa.Pos != starter.Pos {
+					continue
+				}
+				faTierForComparison = faTier
+				starterTier = parseTierFloat(starter.Tier)
+			}
 			if starterTier == 0 {
 				continue
 			}
 
-			tierDiff := starterTier - faTier // Lower tier number is better
+			tierDiff := starterTier - faTierForComparison // Lower tier number is better
 			if tierDiff >= TIER_THRESHOLD_WAIVER {
 				key := fmt.Sprintf("waiver-%s", fa.Name)
 				if seen[key] {
@@ -140,7 +171,7 @@ func findWaiverTargets(league LeagueData, weekID string) []Action {
 					Category:    "waiver",
 					Title:       "Check Waiver Wire",
 					Description: fmt.Sprintf("%s available (would start over %s)", fa.Name, starter.Name),
-					Impact:      fmt.Sprintf("+%.1f tier upgrade", tierDiff),
+					Impact:      fmt.Sprintf("Tier %.0f vs Tier %.0f (+%.1f)", faTierForComparison, starterTier, tierDiff),
 					Link:        fmt.Sprintf("#fa-%s", normalizeAnchor(fa.Name)),
 					WeekID:      weekID,
 				})

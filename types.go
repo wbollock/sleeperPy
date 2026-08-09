@@ -68,6 +68,7 @@ type PlayerRow struct {
 	UpgradeType          string // "Starter" or "Bench" or ""
 	IsFlex               bool   // Heuristic FLEX indicator
 	IsSuperflex          bool   // Heuristic SUPERFLEX indicator
+	FlexTier             int    // Tier from the FLX table, for RB/WR/TE only (0 if not flex-eligible or unranked). Only comparable to other FlexTier values -- never to a positional Tier.
 	DynastyValue         int    // Blended dynasty value (DynastyProcess + FantasyCalc average)
 	DynastyValueLowConf  bool   // True when the two dynasty value sources disagree by 30%+
 	Age                  int    // Player age from Sleeper API

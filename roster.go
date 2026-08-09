@@ -35,11 +35,10 @@ func buildRowsWithPositions(ids []string, players map[string]interface{}, tiers 
 		name := getPlayerName(p)
 
 		// For FLEX and SUPER_FLEX, use actual position for tier lookup
+		actualPos, _ := p["position"].(string)
 		lookupPos := pos
 		if pos == "FLEX" || pos == "SUPER_FLEX" {
-			if realPos, ok := p["position"].(string); ok {
-				lookupPos = realPos
-			}
+			lookupPos = actualPos
 		}
 		// Always use DST for DEF/DST for Boris Chen mapping
 		if lookupPos == "DEF" {
@@ -47,6 +46,16 @@ func buildRowsWithPositions(ids []string, players map[string]interface{}, tiers 
 		}
 
 		tier := findTier(tiers[lookupPos], name)
+
+		// FLX tier, keyed by the player's real position (not roster slot), so
+		// a FLEX starter and an RB/WR/TE bench player can be compared on the
+		// same scale. Positional tiers (e.g. RB Tier 4 vs WR Tier 3) are NOT
+		// comparable to each other -- Boris Chen's tiers only rank within a
+		// position, not across positions.
+		flexTier := 0
+		if actualPos == "RB" || actualPos == "WR" || actualPos == "TE" {
+			flexTier = findTier(tiers["FLX"], name)
+		}
 
 		// IR indicator will be added to displayName
 		displayName := name
@@ -79,10 +88,10 @@ func buildRowsWithPositions(ids []string, players map[string]interface{}, tiers 
 		}
 
 		if tier > 0 {
-			rows = append(rows, PlayerRow{Pos: pos, Name: displayName, Tier: tier, IsTierWorseThanBench: isWorse, ShouldSwapIn: shouldSwapIn, Age: age})
+			rows = append(rows, PlayerRow{Pos: pos, Name: displayName, Tier: tier, FlexTier: flexTier, IsTierWorseThanBench: isWorse, ShouldSwapIn: shouldSwapIn, Age: age})
 			tierNums = append(tierNums, tier)
 		} else {
-			unranked = append(unranked, PlayerRow{Pos: "?", Name: displayName, Tier: "Not Ranked", IsTierWorseThanBench: false, ShouldSwapIn: false, Age: age})
+			unranked = append(unranked, PlayerRow{Pos: "?", Name: displayName, Tier: "Not Ranked", FlexTier: flexTier, IsTierWorseThanBench: false, ShouldSwapIn: false, Age: age})
 		}
 	}
 	return rows, unranked, tierNums
