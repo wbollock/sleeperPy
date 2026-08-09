@@ -1,0 +1,379 @@
+/*
+ * Qt Fusion-inspired design system.
+ * Flat panels, real borders, no gradients/blur/glow/keyframe motion.
+ * Loaded after main.css/theme.css so its rules win without !important.
+ */
+
+:root {
+	--qt-window: #efefef;
+	--qt-base: #ffffff;
+	--qt-alt-base: #f5f5f5;
+	--qt-text: #202020;
+	--qt-text-muted: #6b6b6b;
+	--qt-text-disabled: #a0a0a0;
+	--qt-border: #b7b7b7;
+	--qt-border-light: #d8d8d8;
+	--qt-button: #e4e4e4;
+	--qt-button-hover: #dcdcdc;
+	--qt-button-pressed: #cfcfcf;
+	--qt-accent: #3a6ea5;
+	--qt-accent-hover: #2f5a87;
+	--qt-accent-fg: #ffffff;
+	--qt-focus: #3a6ea5;
+	--qt-danger: #a03e3e;
+	--qt-ok: #3a7d4f;
+	--qt-warn: #8a6d1d;
+	--qt-radius: 3px;
+	--qt-font: -apple-system, "Segoe UI", "Noto Sans", system-ui, sans-serif;
+	--qt-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--qt-window: #353535;
+		--qt-base: #232323;
+		--qt-alt-base: #2a2a2a;
+		--qt-text: #e2e2e2;
+		--qt-text-muted: #a3a3a3;
+		--qt-text-disabled: #6e6e6e;
+		--qt-border: #1e1e1e;
+		--qt-border-light: #4a4a4a;
+		--qt-button: #454545;
+		--qt-button-hover: #4f4f4f;
+		--qt-button-pressed: #3a3a3a;
+		--qt-accent: #5b8dc4;
+		--qt-accent-hover: #6f9ed0;
+		--qt-accent-fg: #0f1a24;
+		--qt-focus: #5b8dc4;
+		--qt-danger: #d17c7c;
+		--qt-ok: #7fbf95;
+		--qt-warn: #d1b25c;
+	}
+}
+
+:root[data-theme="light"] {
+	--qt-window: #efefef;
+	--qt-base: #ffffff;
+	--qt-alt-base: #f5f5f5;
+	--qt-text: #202020;
+	--qt-text-muted: #6b6b6b;
+	--qt-text-disabled: #a0a0a0;
+	--qt-border: #b7b7b7;
+	--qt-border-light: #d8d8d8;
+	--qt-button: #e4e4e4;
+	--qt-button-hover: #dcdcdc;
+	--qt-button-pressed: #cfcfcf;
+	--qt-accent: #3a6ea5;
+	--qt-accent-hover: #2f5a87;
+	--qt-accent-fg: #ffffff;
+	--qt-focus: #3a6ea5;
+	--qt-danger: #a03e3e;
+	--qt-ok: #3a7d4f;
+	--qt-warn: #8a6d1d;
+}
+
+:root[data-theme="dark"] {
+	--qt-window: #353535;
+	--qt-base: #232323;
+	--qt-alt-base: #2a2a2a;
+	--qt-text: #e2e2e2;
+	--qt-text-muted: #a3a3a3;
+	--qt-text-disabled: #6e6e6e;
+	--qt-border: #1e1e1e;
+	--qt-border-light: #4a4a4a;
+	--qt-button: #454545;
+	--qt-button-hover: #4f4f4f;
+	--qt-button-pressed: #3a3a3a;
+	--qt-accent: #5b8dc4;
+	--qt-accent-hover: #6f9ed0;
+	--qt-accent-fg: #0f1a24;
+	--qt-focus: #5b8dc4;
+	--qt-danger: #d17c7c;
+	--qt-ok: #7fbf95;
+	--qt-warn: #d1b25c;
+}
+
+html[data-theme], html:not([data-theme]) {
+	background: var(--qt-window) !important;
+}
+
+body {
+	font-family: var(--qt-font);
+	color: var(--qt-text);
+}
+
+/* ---- Title bar + menu bar (replaces .app-header) ---- */
+
+.qt-titlebar {
+	background: var(--qt-window);
+	border-bottom: 1px solid var(--qt-border);
+}
+
+.qt-titlebar-row {
+	max-width: 1400px;
+	margin: 0 auto;
+	padding: 10px 20px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+}
+
+.qt-brand {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	text-decoration: none;
+	color: var(--qt-text);
+}
+
+.qt-brand-mark {
+	width: 22px;
+	height: 22px;
+	border: 1px solid var(--qt-border);
+	border-radius: var(--qt-radius);
+	background: var(--qt-accent);
+	color: var(--qt-accent-fg);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 700;
+	font-size: 0.75rem;
+	flex: none;
+}
+
+.qt-brand-name {
+	font-size: 1rem;
+	font-weight: 600;
+	letter-spacing: 0.01em;
+}
+
+.qt-menubar {
+	max-width: 1400px;
+	margin: 0 auto;
+	padding: 0 20px;
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	border-top: 1px solid var(--qt-border-light);
+	overflow-x: auto;
+}
+
+.qt-menubar a {
+	display: block;
+	padding: 7px 12px;
+	font-size: 0.85rem;
+	color: var(--qt-text);
+	text-decoration: none;
+	white-space: nowrap;
+	border: 1px solid transparent;
+}
+
+.qt-menubar a:hover {
+	background: var(--qt-button-hover);
+	border-color: var(--qt-border-light);
+}
+
+.qt-menubar a.active {
+	background: var(--qt-base);
+	border-color: var(--qt-border-light);
+	border-bottom-color: var(--qt-base);
+	margin-bottom: -1px;
+	font-weight: 600;
+}
+
+.qt-titlebar-actions {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex: none;
+}
+
+/* ---- Theme switcher: flat segmented control ---- */
+
+.qt-theme-switch {
+	display: inline-flex;
+	border: 1px solid var(--qt-border);
+	border-radius: var(--qt-radius);
+	overflow: hidden;
+}
+
+.qt-theme-switch button {
+	font-family: var(--qt-font);
+	font-size: 0.72rem;
+	font-weight: 600;
+	letter-spacing: 0.02em;
+	text-transform: uppercase;
+	padding: 5px 9px;
+	border: none;
+	border-right: 1px solid var(--qt-border);
+	background: var(--qt-button);
+	color: var(--qt-text-muted);
+	cursor: pointer;
+}
+
+.qt-theme-switch button:last-child {
+	border-right: none;
+}
+
+.qt-theme-switch button:hover {
+	background: var(--qt-button-hover);
+}
+
+.qt-theme-switch button.active {
+	background: var(--qt-accent);
+	color: var(--qt-accent-fg);
+}
+
+/* ---- User / session controls ---- */
+
+.qt-user {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 0.82rem;
+}
+
+.qt-user-name {
+	color: var(--qt-text-muted);
+}
+
+/* ---- Buttons ---- */
+
+.qt-btn {
+	font-family: var(--qt-font);
+	font-size: 0.85rem;
+	font-weight: 500;
+	padding: 7px 14px;
+	border: 1px solid var(--qt-border);
+	border-radius: var(--qt-radius);
+	background: var(--qt-button);
+	color: var(--qt-text);
+	cursor: pointer;
+	text-decoration: none;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	line-height: 1.2;
+}
+
+.qt-btn:hover {
+	background: var(--qt-button-hover);
+}
+
+.qt-btn:active {
+	background: var(--qt-button-pressed);
+}
+
+.qt-btn:focus-visible {
+	outline: 2px solid var(--qt-focus);
+	outline-offset: 1px;
+}
+
+.qt-btn-primary {
+	background: var(--qt-accent);
+	border-color: var(--qt-accent);
+	color: var(--qt-accent-fg);
+}
+
+.qt-btn-primary:hover {
+	background: var(--qt-accent-hover);
+	border-color: var(--qt-accent-hover);
+}
+
+/* ---- Panels (group-box style) ---- */
+
+.qt-panel {
+	background: var(--qt-base);
+	border: 1px solid var(--qt-border);
+	border-radius: var(--qt-radius);
+	padding: 16px;
+}
+
+.qt-panel-title {
+	font-size: 0.78rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--qt-text-muted);
+	margin: 0 0 10px 0;
+	padding-bottom: 8px;
+	border-bottom: 1px solid var(--qt-border-light);
+}
+
+/* ---- Tags (replaces gradient badges) ---- */
+
+.qt-tag {
+	display: inline-block;
+	font-size: 0.72rem;
+	font-weight: 600;
+	padding: 2px 7px;
+	border: 1px solid var(--qt-border);
+	border-radius: var(--qt-radius);
+	background: var(--qt-alt-base);
+	color: var(--qt-text-muted);
+}
+
+.qt-tag-accent {
+	background: var(--qt-accent);
+	border-color: var(--qt-accent);
+	color: var(--qt-accent-fg);
+}
+
+/* ---- Status bar footer (replaces .site-footer) ---- */
+
+.qt-statusbar {
+	border-top: 1px solid var(--qt-border);
+	background: var(--qt-window);
+	color: var(--qt-text-muted);
+	font-size: 0.78rem;
+	margin-top: 40px;
+}
+
+.qt-statusbar-row {
+	max-width: 1400px;
+	margin: 0 auto;
+	padding: 10px 20px;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px 16px;
+}
+
+.qt-statusbar-links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	align-items: center;
+}
+
+.qt-statusbar-links a {
+	color: var(--qt-text-muted);
+	text-decoration: none;
+	padding: 2px 4px;
+}
+
+.qt-statusbar-links a:hover {
+	color: var(--qt-text);
+	text-decoration: underline;
+}
+
+.qt-statusbar-sep {
+	color: var(--qt-border);
+}
+
+@media (max-width: 768px) {
+	.qt-titlebar-row {
+		padding: 8px 14px;
+	}
+	.qt-menubar {
+		padding: 0 14px;
+	}
+	.qt-statusbar-row {
+		padding: 10px 14px;
+		flex-direction: column;
+		align-items: flex-start;
+	}
+}
