@@ -5,76 +5,86 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - SleeperPy</title>
     <meta name="robots" content="noindex">
-    <link rel="stylesheet" href="/static/main.css?v=20260211d">
-    <link rel="stylesheet" href="/static/theme.css?v=20260211d">
+    <link rel="stylesheet" href="/static/app.css?v=20260809a">
+    <style>
+        .admin-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .admin-refresh {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 8px;
+        }
+    </style>
 </head>
 <body>
-    <div class="admin-shell">
-        <header class="admin-header">
-            <h1>🔐 Admin Dashboard</h1>
-            <p class="subtitle">Server: {{.ServerTime}} | Uptime: {{.Uptime}}</p>
-        </header>
+    {{template "qt-header" (dict "Username" "" "Active" "")}}
 
-        <!-- Key Metrics -->
+    <main class="qt-page" style="max-width:1100px;">
+        <h2 class="qt-page-title">Admin Dashboard</h2>
+        <p class="qt-page-subtitle">Server: {{.ServerTime}} &middot; Uptime: {{.Uptime}}</p>
+
         <div class="admin-grid">
-            <div class="admin-card">
-                <div class="card-title">Total Visitors</div>
-                <div class="metric-value">{{printf "%.0f" .TotalVisitors}}</div>
-                <div class="metric-label">All-time unique visitors</div>
+            <div class="qt-stat-tile">
+                <div class="qt-stat-label">Total Visitors</div>
+                <div class="qt-stat-value">{{printf "%.0f" .TotalVisitors}}</div>
+                <div class="qt-stat-sub">All-time unique visitors</div>
             </div>
 
-            <div class="admin-card">
-                <div class="card-title">Lookups</div>
-                <div class="metric-value">{{printf "%.0f" .TotalLookups}}</div>
-                <div class="metric-label">{{printf "%.1f" .LookupsPerHour}} per hour</div>
+            <div class="qt-stat-tile">
+                <div class="qt-stat-label">Lookups</div>
+                <div class="qt-stat-value">{{printf "%.0f" .TotalLookups}}</div>
+                <div class="qt-stat-sub">{{printf "%.1f" .LookupsPerHour}} per hour</div>
             </div>
 
-            <div class="admin-card">
-                <div class="card-title">Leagues Analyzed</div>
-                <div class="metric-value">{{printf "%.0f" .TotalLeagues}}</div>
-                <div class="metric-label">{{printf "%.1f" .LeaguesPerHour}} per hour</div>
+            <div class="qt-stat-tile">
+                <div class="qt-stat-label">Leagues Analyzed</div>
+                <div class="qt-stat-value">{{printf "%.0f" .TotalLeagues}}</div>
+                <div class="qt-stat-sub">{{printf "%.1f" .LeaguesPerHour}} per hour</div>
             </div>
 
-            <div class="admin-card">
-                <div class="card-title">Total Errors</div>
-                <div class="metric-value">{{printf "%.0f" .TotalErrors}}</div>
-                <div class="metric-label">
+            <div class="qt-stat-tile">
+                <div class="qt-stat-label">Total Errors</div>
+                <div class="qt-stat-value">{{printf "%.0f" .TotalErrors}}</div>
+                <div class="qt-stat-sub">
                     {{if gt .TotalErrors 0.0}}
-                        <span class="badge badge-warning">Review needed</span>
+                        <span class="qt-tag qt-tag-warn">Review needed</span>
                     {{else}}
-                        <span class="badge badge-success">All clear</span>
+                        <span class="qt-tag qt-tag-ok">All clear</span>
                     {{end}}
                 </div>
             </div>
         </div>
 
-        <!-- Server Health -->
-        <div class="admin-card admin-section">
-            <h2 class="card-title">Server Health</h2>
-            <div class="stat-row">
-                <span class="stat-label">Go Version</span>
-                <span class="stat-value">{{.GoVersion}}</span>
+        <div class="qt-panel" style="margin-bottom:12px;">
+            <h3 class="qt-panel-title">Server Health</h3>
+            <div class="qt-kv-row">
+                <span class="qt-kv-key">Go Version</span>
+                <span class="qt-kv-value">{{.GoVersion}}</span>
             </div>
-            <div class="stat-row">
-                <span class="stat-label">Goroutines</span>
-                <span class="stat-value">{{.Goroutines}}</span>
+            <div class="qt-kv-row">
+                <span class="qt-kv-key">Goroutines</span>
+                <span class="qt-kv-value">{{.Goroutines}}</span>
             </div>
-            <div class="stat-row">
-                <span class="stat-label">Memory Usage</span>
-                <span class="stat-value">{{.MemoryUsage}}</span>
+            <div class="qt-kv-row">
+                <span class="qt-kv-key">Memory Usage</span>
+                <span class="qt-kv-value">{{.MemoryUsage}}</span>
             </div>
-            <div class="stat-row">
-                <span class="stat-label">Dynasty League %</span>
-                <span class="stat-value">{{printf "%.1f%%" .DynastyPercent}}</span>
+            <div class="qt-kv-row">
+                <span class="qt-kv-key">Dynasty League %</span>
+                <span class="qt-kv-value">{{printf "%.1f%%" .DynastyPercent}}</span>
             </div>
         </div>
 
-        <!-- Page Views -->
-        <div class="admin-card admin-section">
-            <h2 class="card-title">Page Views</h2>
+        <div class="qt-panel" style="margin-bottom:12px;">
+            <h3 class="qt-panel-title">Page Views</h3>
             {{if .PageViews}}
-            <div class="table-scroll">
-            <table class="admin-table">
+            <div class="qt-table-scroll">
+            <table class="qt-table">
                 <thead>
                     <tr>
                         <th>Path</th>
@@ -92,16 +102,15 @@
             </table>
             </div>
             {{else}}
-            <div class="empty-state">No page view data yet</div>
+            <div class="qt-empty">No page view data yet</div>
             {{end}}
         </div>
 
-        <!-- Top User Agents -->
-        <div class="admin-card admin-section">
-            <h2 class="card-title">Top Browsers</h2>
+        <div class="qt-panel" style="margin-bottom:12px;">
+            <h3 class="qt-panel-title">Top Browsers</h3>
             {{if .TopUserAgents}}
-            <div class="table-scroll">
-            <table class="admin-table">
+            <div class="qt-table-scroll">
+            <table class="qt-table">
                 <thead>
                     <tr>
                         <th>Browser</th>
@@ -119,16 +128,15 @@
             </table>
             </div>
             {{else}}
-            <div class="empty-state">No user agent data yet</div>
+            <div class="qt-empty">No user agent data yet</div>
             {{end}}
         </div>
 
-        <!-- Recent Errors -->
-        <div class="admin-card admin-section">
-            <h2 class="card-title">Recent Errors</h2>
+        <div class="qt-panel" style="margin-bottom:12px;">
+            <h3 class="qt-panel-title">Recent Errors</h3>
             {{if .RecentErrors}}
-            <div class="table-scroll">
-            <table class="admin-table">
+            <div class="qt-table-scroll">
+            <table class="qt-table">
                 <thead>
                     <tr>
                         <th>Time</th>
@@ -140,9 +148,9 @@
                 <tbody>
                     {{range .RecentErrors}}
                     <tr>
-                        <td class="timestamp">{{.Timestamp.Format "15:04:05"}}</td>
+                        <td style="font-family:var(--qt-font-mono);white-space:nowrap;">{{.Timestamp.Format "15:04:05"}}</td>
                         <td>{{.Path}}</td>
-                        <td><span class="error-log">{{.Error}}</span></td>
+                        <td style="font-family:var(--qt-font-mono);">{{.Error}}</td>
                         <td>{{.UserAgent}}</td>
                     </tr>
                     {{end}}
@@ -150,45 +158,17 @@
             </table>
             </div>
             {{else}}
-            <div class="empty-state">
-                <span class="badge badge-success">No errors logged</span>
-            </div>
+            <div class="qt-empty"><span class="qt-tag qt-tag-ok">No errors logged</span></div>
             {{end}}
         </div>
 
-        <!-- Auto-refresh -->
         <div class="admin-refresh">
-            <button class="refresh-btn" onclick="location.reload()">🔄 Refresh Dashboard</button>
-            <p class="metric-label">Auto-refresh in <span id="countdown">30</span>s</p>
+            <button class="qt-btn" onclick="location.reload()">Refresh Dashboard</button>
+            <span class="qt-stat-sub">Auto-refresh in <span id="countdown">30</span>s</span>
         </div>
-    </div>
+    </main>
 
     <script>
-        async function clearAppCache() {
-            try {
-                if ('serviceWorker' in navigator) {
-                    const registrations = await navigator.serviceWorker.getRegistrations();
-                    for (const registration of registrations) {
-                        registration.active?.postMessage({ type: 'CLEAR_CACHE' });
-                        await registration.unregister();
-                    }
-                }
-
-                if ('caches' in window) {
-                    const cacheNames = await caches.keys();
-                    await Promise.all(cacheNames.map((name) => caches.delete(name)));
-                }
-
-                const url = new URL(window.location.href);
-                url.searchParams.set('cachebust', Date.now().toString());
-                window.location.replace(url.toString());
-            } catch (error) {
-                console.error('[CACHE] Failed to clear cache:', error);
-                window.location.reload();
-            }
-        }
-
-        // Auto-refresh every 30 seconds
         let countdown = 30;
         const countdownEl = document.getElementById('countdown');
 

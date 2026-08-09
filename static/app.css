@@ -321,6 +321,57 @@ body {
 	color: var(--qt-accent-fg);
 }
 
+.qt-tag-ok {
+	background: var(--qt-ok);
+	border-color: var(--qt-ok);
+	color: var(--qt-accent-fg);
+}
+
+.qt-tag-warn {
+	background: var(--qt-warn);
+	border-color: var(--qt-warn);
+	color: var(--qt-accent-fg);
+}
+
+/* ---- Tables (list-view style) ---- */
+
+.qt-table-scroll {
+	overflow-x: auto;
+}
+
+.qt-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.85rem;
+}
+
+.qt-table th {
+	text-align: left;
+	font-size: 0.72rem;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	color: var(--qt-text-muted);
+	padding: 6px 10px;
+	border-bottom: 1px solid var(--qt-border);
+	white-space: nowrap;
+}
+
+.qt-table td {
+	padding: 6px 10px;
+	border-bottom: 1px solid var(--qt-border-light);
+	vertical-align: top;
+}
+
+.qt-table tbody tr:nth-child(even) td {
+	background: var(--qt-alt-base);
+}
+
+.qt-empty {
+	color: var(--qt-text-muted);
+	font-size: 0.85rem;
+	padding: 8px 0;
+}
+
 /* ---- Status bar footer (replaces .site-footer) ---- */
 
 .qt-statusbar {
