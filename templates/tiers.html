@@ -1209,7 +1209,7 @@
                         <div class="card-header" onclick="toggleSection('trade-targets-{{$i}}')">
                             <span class="card-title">
                                 Trade Targets
-                                <span class="info-icon" title="Shows teams with complementary needs based on positional value distribution. Requires clear surplus (>30%) and deficit (<15%) positions.">?</span>
+                                <span class="info-icon" title="Shows teams with complementary needs based on positional value distribution. Requires clear surplus (>25%) and deficit (<20%) positions.">?</span>
                             </span>
                             <span class="collapse-icon" id="trade-targets-{{$i}}-icon">▼</span>
                         </div>
@@ -1273,7 +1273,7 @@
                                 <div class="empty-state">
                                     <div class="empty-state-title">No Trade Recommendations</div>
                                     <div class="empty-state-text">
-                                        Your roster is well-balanced! Trade targets appear when you have a clear positional surplus (>30% of total value) and deficit (<15% of total value).
+                                        Your roster is well-balanced. Trade targets appear when you have a clear positional surplus (over 25% of total value) and deficit (under 20% of total value).
                                     </div>
                                     {{if gt $l.TotalRosterValue 0}}
                                     <div class="positional-breakdown">

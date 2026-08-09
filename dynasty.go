@@ -380,6 +380,15 @@ func calculatePositionalKTC(rows []PlayerRow) PositionalKTC {
 	return posKTC
 }
 
+// A perfectly bidirectional 30%/15% surplus/deficit match (both sides) is
+// rare enough in practice that it can produce zero trade targets for a
+// perfectly normal roster. 25%/20% still requires a real imbalance, just not
+// an extreme one.
+const (
+	tradeSurplusThreshold = 0.25
+	tradeDeficitThreshold = 0.20
+)
+
 func findTradeTargets(userRows []PlayerRow, allRosters map[int][]PlayerRow, teamNames map[int]string, userRosterID int) []TradeTarget {
 	userKTC := calculatePositionalKTC(userRows)
 	userTotal := userKTC.QB + userKTC.RB + userKTC.WR + userKTC.TE
@@ -404,27 +413,27 @@ func findTradeTargets(userRows []PlayerRow, allRosters map[int][]PlayerRow, team
 	userSurplus := []posNeed{}
 	userDeficit := []posNeed{}
 
-	if userQBPct > 0.30 {
+	if userQBPct > tradeSurplusThreshold {
 		userSurplus = append(userSurplus, posNeed{"QB", userKTC.QB, userQBPct})
-	} else if userQBPct < 0.15 {
+	} else if userQBPct < tradeDeficitThreshold {
 		userDeficit = append(userDeficit, posNeed{"QB", userKTC.QB, userQBPct})
 	}
 
-	if userRBPct > 0.30 {
+	if userRBPct > tradeSurplusThreshold {
 		userSurplus = append(userSurplus, posNeed{"RB", userKTC.RB, userRBPct})
-	} else if userRBPct < 0.15 {
+	} else if userRBPct < tradeDeficitThreshold {
 		userDeficit = append(userDeficit, posNeed{"RB", userKTC.RB, userRBPct})
 	}
 
-	if userWRPct > 0.30 {
+	if userWRPct > tradeSurplusThreshold {
 		userSurplus = append(userSurplus, posNeed{"WR", userKTC.WR, userWRPct})
-	} else if userWRPct < 0.15 {
+	} else if userWRPct < tradeDeficitThreshold {
 		userDeficit = append(userDeficit, posNeed{"WR", userKTC.WR, userWRPct})
 	}
 
-	if userTEPct > 0.30 {
+	if userTEPct > tradeSurplusThreshold {
 		userSurplus = append(userSurplus, posNeed{"TE", userKTC.TE, userTEPct})
-	} else if userTEPct < 0.15 {
+	} else if userTEPct < tradeDeficitThreshold {
 		userDeficit = append(userDeficit, posNeed{"TE", userKTC.TE, userTEPct})
 	}
 
@@ -435,7 +444,7 @@ func findTradeTargets(userRows []PlayerRow, allRosters map[int][]PlayerRow, team
 
 	// If no clear surplus/deficit, no trade recommendations
 	if len(userSurplus) == 0 || len(userDeficit) == 0 {
-		debugLog("[DEBUG] No trade targets - need both surplus (>30%%) and deficit (<15%%) positions")
+		debugLog("[DEBUG] No trade targets - need both surplus (>25%%) and deficit (<20%%) positions")
 		return nil
 	}
 
@@ -506,7 +515,7 @@ func findTradeTargets(userRows []PlayerRow, allRosters map[int][]PlayerRow, team
 				}
 
 				// Check for complementarity: they have surplus where you need, you have surplus where they need
-				if teamSurPct > 0.30 && teamDefPct < 0.15 {
+				if teamSurPct > tradeSurplusThreshold && teamDefPct < tradeDeficitThreshold {
 					complementarity := (userSur.pct - teamDefPct) + (teamSurPct - userDef.pct)
 
 					if bestMatch == nil || complementarity > bestMatch.complementarity {
