@@ -1,0 +1,1151 @@
+/*
+ * Qt Fusion-styled components for the tiers page (league selector, dynasty
+ * toolkit, tables, transactions). Loaded alongside app.css.
+ *
+ * Semantic status colors (win/loss, riser/faller, priority, injury) are kept
+ * as literal hex in the template markup on purpose -- those are functional
+ * data-viz coding, not decorative chrome, so they aren't tokenized here.
+ */
+
+/* Bridge: dozens of inline style="...var(--x)..." attributes in tiers.html
+   reference the old theme.css variable names. Alias them to app.css tokens
+   instead of touching every inline style individually. */
+:root {
+	--card-bg: var(--qt-base);
+	--card-bg-alt: var(--qt-alt-base);
+	--text-secondary: var(--qt-text-muted);
+	--border-color: var(--qt-border);
+	--accent-color: var(--qt-accent);
+}
+
+/* ---- League selector ---- */
+
+.league-selector-container {
+	margin-bottom: 16px;
+}
+
+.league-selector {
+	position: relative;
+	max-width: 480px;
+}
+
+.league-dropdown-btn {
+	width: 100%;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 9px 12px;
+	background: var(--qt-base);
+	border: 1px solid var(--qt-border);
+	border-radius: var(--qt-radius);
+	color: var(--qt-text);
+	font-family: var(--qt-font);
+	font-size: 0.9rem;
+	cursor: pointer;
+	text-align: left;
+}
+
+.league-dropdown-btn:hover {
+	background: var(--qt-alt-base);
+}
+
+.current-league-name {
+	font-weight: 600;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.league-count {
+	color: var(--qt-text-muted);
+	font-size: 0.8rem;
+	white-space: nowrap;
+}
+
+.dropdown-arrow {
+	margin-left: auto;
+	color: var(--qt-text-muted);
+	font-size: 0.75em;
+}
+
+.league-dropdown-menu {
+	position: absolute;
+	top: calc(100% + 4px);
+	left: 0;
+	right: 0;
+	z-index: 20;
+	background: var(--qt-base);
+	border: 1px solid var(--qt-border);
+	border-radius: var(--qt-radius);
+	max-height: 420px;
+	overflow-y: auto;
+}
+
+.league-search {
+	width: 100%;
+	padding: 8px 12px;
+	border: none;
+	border-bottom: 1px solid var(--qt-border-light);
+	background: var(--qt-base);
+	color: var(--qt-text);
+	font-family: var(--qt-font);
+	font-size: 0.85rem;
+}
+
+.league-group-header {
+	padding: 6px 12px;
+	font-size: 0.72rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	color: var(--qt-text-muted);
+	background: var(--qt-alt-base);
+}
+
+.league-option {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	width: 100%;
+	padding: 8px 12px;
+	border: none;
+	border-bottom: 1px solid var(--qt-border-light);
+	background: transparent;
+	color: var(--qt-text);
+	font-family: var(--qt-font);
+	font-size: 0.85rem;
+	text-align: left;
+	cursor: pointer;
+}
+
+.league-option:hover,
+.league-option.active {
+	background: var(--qt-alt-base);
+}
+
+.league-option-name {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.league-option-meta {
+	color: var(--qt-text-muted);
+	font-size: 0.78rem;
+	white-space: nowrap;
+}
+
+.league-option-actions {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	flex: none;
+}
+
+.league-option-type {
+	display: none;
+}
+
+.favorite-star {
+	color: var(--qt-text-muted);
+	cursor: pointer;
+}
+
+.favorite-star:hover {
+	color: var(--qt-warn);
+}
+
+/* ---- Premium controls ---- */
+
+.premium-controls {
+	margin-bottom: 16px;
+}
+
+.premium-actions {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.premium-btn {
+	padding: 7px 14px;
+	border: 1px solid var(--qt-border);
+	border-radius: var(--qt-radius);
+	background: var(--qt-button);
+	color: var(--qt-text);
+	font-family: var(--qt-font);
+	font-size: 0.85rem;
+	cursor: pointer;
+}
+
+.premium-btn:hover {
+	background: var(--qt-button-hover);
+}
+
+.premium-disabled {
+	padding: 10px;
+	color: var(--qt-text-muted);
+	font-size: 0.85rem;
+	border: 1px solid var(--qt-border);
+	border-radius: var(--qt-radius);
+}
+
+.premium-overview-card,
+.premium-roster-talk {
+	background: var(--qt-base);
+	border: 1px solid var(--qt-border);
+	border-radius: var(--qt-radius);
+	padding: 16px;
+	margin-bottom: 16px;
+}
+
+.premium-overview-title,
+.premium-roster-title {
+	font-weight: 700;
+	font-size: 0.85rem;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	color: var(--qt-text-muted);
+	margin-bottom: 8px;
+}
+
+.premium-text,
+.premium-overview-text {
+	white-space: pre-wrap;
+	line-height: 1.6;
+	font-size: 0.92em;
+}
+
+/* ---- League info bar ---- */
+
+.league-info-bar {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 16px;
+}
+
+.league-meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+	font-size: 0.85rem;
+	color: var(--qt-text-muted);
+}
+
+.league-meta > span {
+	padding: 2px 8px;
+	border: 1px solid var(--qt-border);
+	border-radius: var(--qt-radius);
+	background: var(--qt-alt-base);
+}
+
+.dynasty-badge {
+	background: var(--qt-accent) !important;
+	color: var(--qt-accent-fg);
+	border-color: var(--qt-accent) !important;
+	font-weight: 600;
+}
+
+.player-search-container {
+	flex: none;
+}
+
+.player-search,
+.league-search {
+	padding: 7px 10px;
+	border: 1px solid var(--qt-border);
+	border-radius: var(--qt-radius);
+	background: var(--qt-base);
+	color: var(--qt-text);
+	font-family: var(--qt-font);
+	font-size: 0.85rem;
+}
+
+/* ---- Mode toggle (in-season / dynasty) ---- */
+
+.mode-toggle-container {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+	margin-bottom: 16px;
+}
+
+.mode-toggle {
+	display: inline-flex;
+	border: 1px solid var(--qt-border);
+	border-radius: var(--qt-radius);
+	overflow: hidden;
+}
+
+.mode-btn {
+	padding: 6px 12px;
+	border: none;
+	border-right: 1px solid var(--qt-border);
+	background: var(--qt-button);
+	color: var(--qt-text-muted);
+	font-family: var(--qt-font);
+	font-size: 0.82rem;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.mode-btn:last-child {
+	border-right: none;
+}
+
+.mode-btn.active {
+	background: var(--qt-accent);
+	color: var(--qt-accent-fg);
+}
+
+.mode-description {
+	font-size: 0.82rem;
+	color: var(--qt-text-muted);
+}
+
+/* ---- Grid layout ---- */
+
+.league-grid-container {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: 20px;
+	width: 100%;
+	align-items: start;
+}
+
+@media (min-width: 1100px) {
+	.league-grid-container {
+		grid-template-columns: minmax(0, 1.6fr) minmax(360px, 1fr);
+	}
+	.league-grid-container.single-column {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+.roster-card {
+	min-width: 0;
+	background: var(--qt-base);
+	border: 1px solid var(--qt-border);
+	border-radius: var(--qt-radius);
+	padding: 16px;
+	display: flex;
+	flex-direction: column;
+}
+
+.dynasty-toolkit {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	min-width: 0;
+}
+
+.dynasty-source-info {
+	font-size: 0.8em;
+	color: var(--qt-text-muted);
+	text-align: center;
+}
+
+.dynasty-source-info a {
+	color: var(--qt-accent);
+}
+
+/* ---- Toolkit cards ---- */
+
+.toolkit-card {
+	background: var(--qt-base);
+	border: 1px solid var(--qt-border);
+	border-radius: var(--qt-radius);
+}
+
+.card-header {
+	padding: 12px 16px;
+	cursor: pointer;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+	user-select: none;
+	background: var(--qt-alt-base);
+	border-bottom: 1px solid var(--qt-border-light);
+}
+
+.premium-card .card-header {
+	cursor: default;
+}
+
+.card-header:hover {
+	background: var(--qt-button-hover);
+}
+
+.card-title {
+	font-size: 0.85rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-width: 0;
+	flex-wrap: wrap;
+}
+
+.collapse-icon {
+	color: var(--qt-text-muted);
+	font-size: 1em;
+}
+
+.card-content {
+	padding: 16px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.count-badge,
+.news-count,
+.breakout-count,
+.aging-count,
+.transactions-count {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 22px;
+	height: 20px;
+	padding: 0 7px;
+	background: var(--qt-alt-base);
+	border: 1px solid var(--qt-border);
+	border-radius: var(--qt-radius);
+	font-size: 0.75em;
+	font-weight: 700;
+	color: var(--qt-text-muted);
+}
+
+/* ---- News feed ---- */
+
+.news-feed,
+.news-feed-compressed,
+.transactions-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.news-item,
+.news-item-compressed,
+.transaction-item {
+	padding: 12px;
+	background: var(--qt-alt-base);
+	border: 1px solid var(--qt-border-light);
+	border-left: 3px solid var(--qt-border);
+	border-radius: var(--qt-radius);
+}
+
+.news-item.news-injury,
+.news-item-compressed.news-injury {
+	border-left-color: var(--qt-danger);
+}
+
+.news-item-compressed {
+	display: flex;
+	gap: 10px;
+}
+
+.news-rank {
+	color: var(--qt-text-muted);
+	font-size: 0.8em;
+	flex: none;
+}
+
+.news-content-compressed {
+	flex: 1;
+	min-width: 0;
+}
+
+.news-header,
+.transaction-header,
+.news-header-compressed {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	gap: 10px;
+	flex-wrap: wrap;
+	margin-bottom: 4px;
+}
+
+.news-player,
+.transaction-type,
+.news-player-compressed {
+	font-weight: 600;
+	font-size: 0.9em;
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
+.starter-badge {
+	font-size: 0.85em;
+	margin-left: 4px;
+}
+
+.news-time,
+.transaction-time,
+.news-time-compressed {
+	font-size: 0.78em;
+	color: var(--qt-text-muted);
+	white-space: nowrap;
+}
+
+.news-injury-status,
+.news-injury-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	font-size: 0.75em;
+	font-weight: 600;
+	background: var(--qt-alt-base);
+	border: 1px solid var(--qt-danger);
+	color: var(--qt-danger);
+	border-radius: var(--qt-radius);
+}
+
+.news-text,
+.transaction-desc,
+.news-text-compressed {
+	color: var(--qt-text);
+	line-height: 1.55;
+	font-size: 0.88em;
+	word-wrap: break-word;
+}
+
+.news-footer-compressed {
+	display: flex;
+	justify-content: space-between;
+	gap: 8px;
+	font-size: 0.75em;
+	color: var(--qt-text-muted);
+	margin-top: 4px;
+}
+
+.news-view-all {
+	margin-top: 8px;
+	text-align: center;
+	padding-top: 8px;
+	border-top: 1px solid var(--qt-border-light);
+}
+
+.toggle-btn {
+	padding: 6px 14px;
+	background: var(--qt-accent);
+	color: var(--qt-accent-fg);
+	border: 1px solid var(--qt-accent);
+	border-radius: var(--qt-radius);
+	cursor: pointer;
+	font-size: 0.85em;
+	font-family: var(--qt-font);
+}
+
+.toggle-btn:hover {
+	background: var(--qt-accent-hover);
+}
+
+/* ---- Player cards (breakout / aging) ---- */
+
+.player-list {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 8px;
+}
+
+.player-card {
+	background: var(--qt-alt-base);
+	border: 1px solid var(--qt-border-light);
+	border-radius: var(--qt-radius);
+	padding: 12px;
+}
+
+.breakout-card {
+	border-left: 3px solid var(--qt-ok);
+}
+
+.aging-card {
+	border-left: 3px solid var(--qt-warn);
+}
+
+.player-card-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 8px;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+.player-card-name {
+	font-weight: 600;
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
+.player-card-age {
+	font-size: 0.8em;
+	font-weight: 700;
+	background: var(--qt-base);
+	border: 1px solid var(--qt-ok);
+	color: var(--qt-ok);
+	padding: 2px 8px;
+	border-radius: var(--qt-radius);
+}
+
+.aging-age {
+	border-color: var(--qt-warn);
+	color: var(--qt-warn);
+}
+
+.player-card-details {
+	display: flex;
+	justify-content: space-between;
+	font-size: 0.85em;
+}
+
+.player-card-pos {
+	color: var(--qt-text-muted);
+	font-weight: 600;
+}
+
+.player-card-value {
+	color: var(--qt-text-muted);
+}
+
+.aging-warning {
+	margin-top: 8px;
+	padding: 6px 10px;
+	font-size: 0.82em;
+	color: var(--qt-warn);
+	background: var(--qt-base);
+	border-radius: var(--qt-radius);
+	border-left: 3px solid var(--qt-warn);
+}
+
+/* ---- Draft picks ---- */
+
+.draft-picks-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+	gap: 10px;
+}
+
+.draft-pick-card {
+	background: var(--qt-alt-base);
+	border: 1px solid var(--qt-border);
+	border-radius: var(--qt-radius);
+	padding: 12px;
+	text-align: center;
+}
+
+.draft-pick-card.traded-pick {
+	border-color: var(--qt-ok);
+}
+
+.pick-year {
+	font-size: 1.3em;
+	font-weight: 800;
+}
+
+.pick-round {
+	font-size: 0.95em;
+	color: var(--qt-text-muted);
+	font-weight: 600;
+}
+
+.pick-origin {
+	font-size: 0.82em;
+	color: var(--qt-ok);
+	margin-top: 6px;
+}
+
+/* ---- Trade targets ---- */
+
+.trade-target-item {
+	background: var(--qt-alt-base);
+	border: 1px solid var(--qt-border);
+	border-radius: var(--qt-radius);
+	padding: 14px;
+	margin-bottom: 12px;
+}
+
+.trade-target-item:last-child {
+	margin-bottom: 0;
+}
+
+.target-team {
+	font-size: 1.05em;
+	font-weight: 700;
+	margin-bottom: 8px;
+}
+
+.target-reason {
+	font-size: 0.9em;
+	color: var(--qt-ok);
+	margin-bottom: 10px;
+}
+
+.target-details {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.surplus-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	font-size: 0.85em;
+	padding: 8px 10px;
+	background: var(--qt-base);
+	border-radius: var(--qt-radius);
+	border-left: 3px solid var(--qt-border);
+}
+
+.surplus-label {
+	color: var(--qt-text-muted);
+	font-weight: 600;
+}
+
+.surplus-value {
+	font-weight: 600;
+}
+
+/* ---- Empty states ---- */
+
+.empty-state {
+	text-align: center;
+	padding: 32px 16px;
+}
+
+.empty-state-icon {
+	font-size: 2.4em;
+	margin-bottom: 12px;
+	opacity: 0.6;
+}
+
+.empty-state-title {
+	font-size: 1.05em;
+	font-weight: 700;
+	margin-bottom: 8px;
+}
+
+.empty-state-text {
+	font-size: 0.9em;
+	color: var(--qt-text-muted);
+	line-height: 1.6;
+	max-width: 420px;
+	margin: 0 auto;
+}
+
+/* ---- Tables (list-view style, shared with app.css .qt-table) ---- */
+
+.pretty-table,
+.sortable-table,
+.age-chart-table,
+.rookies-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.88em;
+}
+
+.pretty-table th,
+.pretty-table td,
+.age-chart-table th,
+.age-chart-table td,
+.rookies-table th,
+.rookies-table td {
+	padding: 8px 10px;
+	border-bottom: 1px solid var(--qt-border-light);
+	text-align: center;
+}
+
+.pretty-table td:first-child,
+.pretty-table td:nth-child(2) {
+	text-align: left;
+}
+
+.pretty-table th,
+.age-chart-table th,
+.rookies-table th {
+	background: var(--qt-alt-base);
+	font-size: 0.78em;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+	color: var(--qt-text-muted);
+	border-bottom: 1px solid var(--qt-border);
+}
+
+.pretty-table tbody tr:nth-child(even) td,
+.age-chart-table tbody tr:nth-child(even) td,
+.rookies-table tbody tr:nth-child(even) td {
+	background: var(--qt-alt-base);
+}
+
+.pretty-table tbody tr:hover td,
+.age-chart-table tbody tr:hover td,
+.rookies-table tbody tr:hover td {
+	background: var(--qt-button-hover);
+}
+
+.pretty-table .summary,
+.pretty-table td.summary {
+	text-align: left;
+	background: transparent;
+}
+
+.pretty-table .bench-header {
+	text-align: left;
+	background: var(--qt-alt-base);
+	font-weight: 700;
+	text-transform: uppercase;
+	font-size: 0.78em;
+	letter-spacing: 0.02em;
+	color: var(--qt-text-muted);
+}
+
+.pretty-table th.asc:after { content: ' \25B2'; }
+.pretty-table th:not(.asc):after { content: ' \25BC'; opacity: 0.3; }
+
+.table-scroll,
+.table-wrapper {
+	overflow-x: auto;
+	max-width: 100%;
+}
+
+/* ---- Tier / lineup highlighting ---- */
+
+.tier1 td {
+	background: var(--qt-alt-base) !important;
+	font-weight: 700;
+}
+
+.tier1-star {
+	color: var(--qt-warn);
+	margin-right: 2px;
+}
+
+.tier-worse td {
+	border-left: 3px solid var(--qt-danger) !important;
+}
+
+.swap-candidate td {
+	border-left: 3px solid var(--qt-ok) !important;
+	font-weight: 700;
+}
+
+.swap-icon {
+	color: var(--qt-ok);
+	margin-right: 4px;
+}
+
+/* ---- Win probability ---- */
+
+.winprob-row {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	justify-content: center;
+	margin: 12px auto;
+	padding: 12px;
+	max-width: 600px;
+}
+
+.winprob-label {
+	font-weight: 700;
+	font-size: 0.85em;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	color: var(--qt-text-muted);
+	white-space: nowrap;
+}
+
+.winprob-bar-wrap {
+	flex: 1 1 200px;
+	max-width: 300px;
+}
+
+.winprob-bar-bg {
+	background: var(--qt-alt-base);
+	border: 1px solid var(--qt-border);
+	border-radius: var(--qt-radius);
+	width: 100%;
+	height: 18px;
+	overflow: hidden;
+}
+
+.winprob-bar {
+	display: block;
+	height: 100%;
+}
+
+.winprob-badge {
+	padding: 3px 8px;
+	border-radius: var(--qt-radius);
+	font-weight: 700;
+	font-size: 0.85em;
+	color: #0f1a24;
+}
+
+.winprob-emoji {
+	font-size: 1.1em;
+}
+
+/* ---- Free agents ---- */
+
+.fa-section {
+	margin-top: 16px;
+}
+
+.fa-header {
+	font-weight: 700;
+	font-size: 0.85em;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+	color: var(--qt-text-muted);
+	margin-bottom: 8px;
+}
+
+.fa-upgrade td {
+	border-left: 3px solid var(--qt-ok) !important;
+}
+
+.fa-upgrade-icon {
+	color: var(--qt-ok);
+}
+
+/* ---- Positional breakdown ---- */
+
+.positional-breakdown {
+	background: var(--qt-alt-base);
+	border: 1px solid var(--qt-border);
+	border-radius: var(--qt-radius);
+	padding: 14px;
+	margin-top: 14px;
+}
+
+.breakdown-title {
+	font-size: 0.82em;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	color: var(--qt-text-muted);
+	margin-bottom: 10px;
+}
+
+.breakdown-grid {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.breakdown-item {
+	display: grid;
+	grid-template-columns: 40px 1fr 55px;
+	align-items: center;
+	gap: 10px;
+}
+
+.breakdown-pos {
+	font-weight: 700;
+	font-size: 0.9em;
+}
+
+.breakdown-bar-wrap {
+	background: var(--qt-base);
+	border: 1px solid var(--qt-border);
+	border-radius: var(--qt-radius);
+	height: 16px;
+	overflow: hidden;
+}
+
+.breakdown-bar {
+	display: block;
+	height: 100%;
+	background: var(--qt-accent);
+}
+
+.breakdown-pct {
+	font-size: 0.9em;
+	font-weight: 700;
+	text-align: right;
+}
+
+/* ---- Transaction filters / trade details ---- */
+
+.transaction-filters {
+	display: flex;
+	gap: 6px;
+	margin-bottom: 12px;
+	flex-wrap: wrap;
+}
+
+.filter-btn {
+	padding: 6px 12px;
+	background: var(--qt-button);
+	border: 1px solid var(--qt-border);
+	border-radius: var(--qt-radius);
+	color: var(--qt-text-muted);
+	font-size: 0.85em;
+	font-family: var(--qt-font);
+	cursor: pointer;
+}
+
+.filter-btn:hover {
+	background: var(--qt-button-hover);
+}
+
+.filter-btn.active {
+	background: var(--qt-accent);
+	border-color: var(--qt-accent);
+	color: var(--qt-accent-fg);
+}
+
+.trade-details {
+	display: flex;
+	gap: 12px;
+	align-items: stretch;
+	margin-top: 10px;
+	flex-wrap: wrap;
+}
+
+.trade-side {
+	flex: 1;
+	min-width: 0;
+	background: var(--qt-base);
+	border: 1px solid var(--qt-border-light);
+	border-radius: var(--qt-radius);
+	padding: 12px;
+}
+
+.trade-team {
+	font-weight: 700;
+	font-size: 0.9em;
+	margin-bottom: 10px;
+	padding-bottom: 6px;
+	border-bottom: 1px solid var(--qt-border-light);
+	overflow-wrap: anywhere;
+}
+
+.trade-action {
+	margin-top: 8px;
+}
+
+.trade-label {
+	display: inline-block;
+	font-size: 0.78em;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+	padding: 2px 8px;
+	border-radius: var(--qt-radius);
+	margin-bottom: 6px;
+}
+
+.trade-label.gave {
+	background: var(--qt-alt-base);
+	color: var(--qt-danger);
+	border: 1px solid var(--qt-danger);
+}
+
+.trade-label.got {
+	background: var(--qt-alt-base);
+	color: var(--qt-ok);
+	border: 1px solid var(--qt-ok);
+}
+
+.trade-player {
+	padding: 4px 8px;
+	margin: 3px 0;
+	background: var(--qt-alt-base);
+	border-radius: var(--qt-radius);
+	font-size: 0.88em;
+	border-left: 2px solid var(--qt-border);
+	overflow-wrap: anywhere;
+}
+
+.trade-divider {
+	font-size: 1.2em;
+	font-weight: 700;
+	color: var(--qt-text-muted);
+	align-self: center;
+}
+
+@media (max-width: 768px) {
+	.trade-details {
+		flex-direction: column;
+	}
+	.trade-divider {
+		display: none;
+	}
+}
+
+.waiver-details {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-top: 8px;
+	font-size: 0.9em;
+}
+
+.waiver-team {
+	font-weight: 600;
+}
+
+.waiver-label {
+	font-weight: 700;
+	margin-right: 4px;
+}
+
+/* ---- Legend ---- */
+
+.legend {
+	margin-top: 24px;
+	margin-bottom: 16px;
+	font-size: 0.85em;
+	color: var(--qt-text-muted);
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px;
+	align-items: center;
+	justify-content: center;
+	padding: 12px;
+	background: var(--qt-base);
+	border: 1px solid var(--qt-border);
+	border-radius: var(--qt-radius);
+}
+
+.info-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 16px;
+	height: 16px;
+	border: 1px solid var(--qt-border);
+	border-radius: 50%;
+	font-size: 0.7em;
+	color: var(--qt-text-muted);
+	cursor: help;
+}
+
+/* ---- Mobile ---- */
+
+@media (max-width: 768px) {
+	.card-header { padding: 10px 12px; }
+	.card-content { padding: 12px; }
+	.news-item, .transaction-item { padding: 10px; }
+	.news-header, .transaction-header { flex-direction: column; align-items: flex-start; gap: 4px; }
+	.draft-picks-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+	.breakdown-item { grid-template-columns: 36px 1fr 50px; }
+}
