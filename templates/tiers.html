@@ -211,7 +211,7 @@
                 {{range $l.Starters}}
                     <tr{{if eq .Tier 1}} class="tier1"{{else if .IsTierWorseThanBench}} class="tier-worse"{{end}}>
                         <td>{{.Pos}}</td>
-                        <td>{{if eq .Tier 1}}<span class="tier1-star">★</span> {{end}}{{.Name | safe}}</td>
+                        <td>{{if eq .Tier 1}}<span class="tier1-star">★</span> {{end}}{{.Name | safe}}{{if .OnBye}}<span class="bye-badge" title="On bye this week">BYE</span>{{end}}{{if .InjuryStatus}}<span class="injury-badge" title="Injury status">{{.InjuryStatus}}</span>{{end}}</td>
                         {{if $l.IsDynasty}}
                         <td class="inseason-only" style="display:none;">{{.Tier}}{{if .IsFlex}} <span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">FLEX</span>{{else if .IsSuperflex}} <span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">SF</span>{{end}}</td>
                         <td class="dynasty-only">{{if .Age}}{{.Age}}{{else}}-{{end}}</td>
@@ -226,7 +226,7 @@
                         <td>
                             {{if eq .Pos "FLEX"}}<span style="color:#7bb0ff;font-weight:bold;">FLEX</span>{{else if eq .Pos "SUPERFLEX"}}<span style="color:#7bb0ff;font-weight:bold;">SUPERFLEX</span>{{else}}{{.Pos}}{{end}}
                         </td>
-                        <td>{{.Name | safe}}</td>
+                        <td>{{.Name | safe}}{{if .OnBye}}<span class="bye-badge" title="On bye this week">BYE</span>{{end}}{{if .InjuryStatus}}<span class="injury-badge" title="Injury status">{{.InjuryStatus}}</span>{{end}}</td>
                         {{if $l.IsDynasty}}
                         <td class="inseason-only" style="display:none;">{{.Tier}}</td>
                         <td class="dynasty-only">{{if .Age}}{{.Age}}{{else}}-{{end}}</td>
@@ -272,7 +272,7 @@
                     {{range $l.Bench}}
                         <tr{{if eq .Tier 1}} class="tier1"{{else if .ShouldSwapIn}} class="swap-candidate"{{end}}>
                             <td>{{.Pos}}</td>
-                            <td>{{if eq .Tier 1}}<span class="tier1-star">★</span> {{end}}{{if .ShouldSwapIn}}<span class="swap-icon">⇄</span> {{end}}{{.Name | safe}}</td>
+                            <td>{{if eq .Tier 1}}<span class="tier1-star">★</span> {{end}}{{if .ShouldSwapIn}}<span class="swap-icon">⇄</span> {{end}}{{.Name | safe}}{{if .OnBye}}<span class="bye-badge" title="On bye this week">BYE</span>{{end}}{{if .InjuryStatus}}<span class="injury-badge" title="Injury status">{{.InjuryStatus}}</span>{{end}}</td>
                             {{if $l.IsDynasty}}
                             <td class="inseason-only" style="display:none;">{{.Tier}}{{if .IsFlex}} <span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">FLEX</span>{{end}}</td>
                             <td class="dynasty-only">{{if .Age}}{{.Age}}{{else}}-{{end}}</td>
@@ -285,7 +285,7 @@
                     {{range $l.BenchUnranked}}
                         <tr>
                             <td>{{.Pos}}</td>
-                            <td>{{.Name | safe}}</td>
+                            <td>{{.Name | safe}}{{if .OnBye}}<span class="bye-badge" title="On bye this week">BYE</span>{{end}}{{if .InjuryStatus}}<span class="injury-badge" title="Injury status">{{.InjuryStatus}}</span>{{end}}</td>
                             {{if $l.IsDynasty}}
                             <td class="inseason-only">{{.Tier}}</td>
                             <td class="dynasty-only" style="display:none;">{{if .Age}}{{.Age}}{{else}}-{{end}}</td>

@@ -355,6 +355,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	week := int(state["week"].(float64))
 	isOffseason := isOffseasonMode(state)
+	byeWeeks := fetchSeasonByeWeeks(state)
 
 	// 4. Get players data (cached for 1 hour)
 	players, err := fetchPlayers()
@@ -526,6 +527,12 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			enrichRowsWithDynastyValues(benchUnrankedRows, dynastyValues, isSuperFlex)
 			debugLog("[DEBUG] Enriched starter and bench rows with dynasty values")
 		}
+
+		// Flag players whose team is on bye this week
+		enrichRowsWithByeWeek(startersRows, byeWeeks, week)
+		enrichRowsWithByeWeek(unrankedRows, byeWeeks, week)
+		enrichRowsWithByeWeek(benchRows, byeWeeks, week)
+		enrichRowsWithByeWeek(benchUnrankedRows, byeWeeks, week)
 
 		// Don't re-rank bench TEs to FLEX tier - keep them at their position-specific tier for display
 		// Bench RB/WR/TE comparison with FLEX starters happens in free agent logic using FLEX tier lookup,
@@ -1589,11 +1596,13 @@ func buildDashboardPage(username string) (*DashboardPage, error) {
 	// If this fails, the dashboard still renders -- just without the action feed.
 	week := 0
 	isOffseason := false
+	var byeWeeks map[string]int
 	if state, err := appProvider.FetchNFLState(); err == nil {
 		if w, ok := state["week"].(float64); ok {
 			week = int(w)
 		}
 		isOffseason = isOffseasonMode(state)
+		byeWeeks = fetchSeasonByeWeeks(state)
 	}
 
 	// 6. Build summary for each league
@@ -1718,6 +1727,8 @@ func buildDashboardPage(username string) (*DashboardPage, error) {
 				borisTiers := fetchBorisTiers(scoring)
 				starters, bench, irPlayers := splitRosterForTiering(userRoster)
 				tiered := buildTieredRoster(starters, bench, irPlayers, players, borisTiers, leagueRosterPositions)
+				enrichRowsWithByeWeek(tiered.StartersRows, byeWeeks, week)
+				enrichRowsWithByeWeek(tiered.BenchRows, byeWeeks, week)
 
 				rostered := make(map[string]bool)
 				for _, r := range rosters {

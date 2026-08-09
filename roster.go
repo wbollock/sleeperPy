@@ -10,6 +10,21 @@ import (
 	"strings"
 )
 
+// enrichRowsWithByeWeek sets OnBye for any row whose Team has a bye in
+// currentWeek. Safe to call with a nil/empty byeWeeks map (e.g. schedule
+// fetch failed) -- every row simply stays OnBye=false.
+func enrichRowsWithByeWeek(rows []PlayerRow, byeWeeks map[string]int, currentWeek int) {
+	if len(byeWeeks) == 0 || currentWeek <= 0 {
+		return
+	}
+	for i := range rows {
+		if rows[i].Team == "" {
+			continue
+		}
+		rows[i].OnBye = byeWeeks[rows[i].Team] == currentWeek
+	}
+}
+
 func buildRowsWithPositions(ids []string, players map[string]interface{}, tiers map[string][][]string, isStarter bool, rosterPositions []string, irList []string, bestOtherTier map[string]int) ([]PlayerRow, []PlayerRow, []int) {
 	rows := []PlayerRow{}
 	unranked := []PlayerRow{}
@@ -87,11 +102,18 @@ func buildRowsWithPositions(ids []string, players map[string]interface{}, tiers 
 			age = int(ageVal)
 		}
 
+		team, _ := p["team"].(string)
+		injuryStatus, _ := p["injury_status"].(string)
+		depthChartOrder := 0
+		if dco, ok := p["depth_chart_order"].(float64); ok {
+			depthChartOrder = int(dco)
+		}
+
 		if tier > 0 {
-			rows = append(rows, PlayerRow{Pos: pos, Name: displayName, Tier: tier, FlexTier: flexTier, IsTierWorseThanBench: isWorse, ShouldSwapIn: shouldSwapIn, Age: age})
+			rows = append(rows, PlayerRow{Pos: pos, Name: displayName, Tier: tier, FlexTier: flexTier, IsTierWorseThanBench: isWorse, ShouldSwapIn: shouldSwapIn, Age: age, Team: team, InjuryStatus: injuryStatus, DepthChartOrder: depthChartOrder})
 			tierNums = append(tierNums, tier)
 		} else {
-			unranked = append(unranked, PlayerRow{Pos: "?", Name: displayName, Tier: "Not Ranked", FlexTier: flexTier, IsTierWorseThanBench: false, ShouldSwapIn: false, Age: age})
+			unranked = append(unranked, PlayerRow{Pos: "?", Name: displayName, Tier: "Not Ranked", FlexTier: flexTier, IsTierWorseThanBench: false, ShouldSwapIn: false, Age: age, Team: team, InjuryStatus: injuryStatus, DepthChartOrder: depthChartOrder})
 		}
 	}
 	return rows, unranked, tierNums

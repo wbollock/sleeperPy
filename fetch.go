@@ -87,6 +87,95 @@ var fetchTrendingPlayers = func(trendType string) map[string]int {
 	return out
 }
 
+// fetchSeasonByeWeeks reads the season year out of an NFL state response
+// (as returned by FetchNFLState) and fetches that season's bye weeks.
+func fetchSeasonByeWeeks(nflState map[string]interface{}) map[string]int {
+	seasonStr, _ := nflState["league_season"].(string)
+	year, err := strconv.Atoi(seasonStr)
+	if err != nil {
+		debugLog("[DEBUG] Could not parse league_season %q for bye weeks", seasonStr)
+		return nil
+	}
+	return fetchByeWeeks(year)
+}
+
+// fetchByeWeeks returns each NFL team's bye week number for the given
+// season, derived from Sleeper's schedule endpoint (undocumented, but real
+// and live -- there's no dedicated bye-week field on the player object or a
+// documented bye-week endpoint). A team's bye week is whichever week it
+// doesn't appear as home or away in the full schedule.
+var fetchByeWeeks = func(year int) map[string]int {
+	byeWeeksCache.RLock()
+	if cached, exists := byeWeeksCache.data[year]; exists {
+		if time.Since(byeWeeksCache.timestamp[year]) < byeWeeksCache.ttl {
+			byeWeeksCache.RUnlock()
+			return cached
+		}
+	}
+	byeWeeksCache.RUnlock()
+
+	url := fmt.Sprintf("https://api.sleeper.app/schedule/nfl/regular/%d", year)
+	resp, err := httpClient.Get(url)
+	if err != nil {
+		debugLog("[DEBUG] Failed to fetch NFL schedule for %d: %v", year, err)
+		return nil
+	}
+	defer resp.Body.Close()
+
+	var games []scheduleGame
+	if err := json.NewDecoder(resp.Body).Decode(&games); err != nil {
+		debugLog("[DEBUG] Failed to decode NFL schedule for %d: %v", year, err)
+		return nil
+	}
+
+	byeWeeks := deriveByeWeeks(games)
+
+	byeWeeksCache.Lock()
+	byeWeeksCache.data[year] = byeWeeks
+	byeWeeksCache.timestamp[year] = time.Now()
+	byeWeeksCache.Unlock()
+
+	debugLog("[DEBUG] Loaded bye weeks for %d teams (season %d)", len(byeWeeks), year)
+	return byeWeeks
+}
+
+type scheduleGame struct {
+	Week int    `json:"week"`
+	Home string `json:"home"`
+	Away string `json:"away"`
+}
+
+// deriveByeWeeks finds each team's bye week: the one week (1..maxWeek) where
+// it doesn't appear as home or away in any game.
+func deriveByeWeeks(games []scheduleGame) map[string]int {
+	allTeams := map[string]bool{}
+	teamsPlayingByWeek := map[int]map[string]bool{}
+	maxWeek := 0
+	for _, g := range games {
+		allTeams[g.Home] = true
+		allTeams[g.Away] = true
+		if teamsPlayingByWeek[g.Week] == nil {
+			teamsPlayingByWeek[g.Week] = map[string]bool{}
+		}
+		teamsPlayingByWeek[g.Week][g.Home] = true
+		teamsPlayingByWeek[g.Week][g.Away] = true
+		if g.Week > maxWeek {
+			maxWeek = g.Week
+		}
+	}
+
+	byeWeeks := make(map[string]int, len(allTeams))
+	for team := range allTeams {
+		for week := 1; week <= maxWeek; week++ {
+			if !teamsPlayingByWeek[week][team] {
+				byeWeeks[team] = week
+				break
+			}
+		}
+	}
+	return byeWeeks
+}
+
 func fetchJSON(url string) (map[string]interface{}, error) {
 	resp, err := httpClient.Get(url)
 	if err != nil {

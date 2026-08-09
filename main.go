@@ -57,6 +57,12 @@ var sleeperTrendingCache = &trendingCache{
 	ttl:       1 * time.Hour, // Sleeper docs say no need to call more than once/day
 }
 
+var byeWeeksCache = &byeWeekCache{
+	data:      make(map[int]map[string]int),
+	timestamp: make(map[int]time.Time),
+	ttl:       24 * time.Hour, // The schedule essentially never changes mid-season
+}
+
 var rosterValueTrendCache = &valueTrendCache{
 	data: make(map[string]CachedRosterValue),
 	ttl:  24 * time.Hour, // Compare values over 24 hours

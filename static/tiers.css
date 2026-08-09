@@ -485,7 +485,8 @@
 }
 
 .news-injury-status,
-.news-injury-badge {
+.news-injury-badge,
+.injury-badge {
 	display: inline-block;
 	padding: 2px 8px;
 	font-size: 0.75em;
@@ -494,6 +495,22 @@
 	border: 1px solid var(--qt-danger);
 	color: var(--qt-danger);
 	border-radius: var(--qt-radius);
+}
+
+.bye-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	font-size: 0.75em;
+	font-weight: 600;
+	background: var(--qt-alt-base);
+	border: 1px solid var(--qt-text-muted);
+	color: var(--qt-text-muted);
+	border-radius: var(--qt-radius);
+}
+
+.injury-badge,
+.bye-badge {
+	margin-left: 6px;
 }
 
 .news-text,

@@ -48,6 +48,14 @@ type trendingCache struct {
 	ttl       time.Duration
 }
 
+// Cache for NFL bye weeks, keyed by season year
+type byeWeekCache struct {
+	sync.RWMutex
+	data      map[int]map[string]int // year -> team abbreviation -> bye week number
+	timestamp map[int]time.Time
+	ttl       time.Duration
+}
+
 // Cache for Sleeper players API response
 type playersCache struct {
 	sync.RWMutex
@@ -73,6 +81,10 @@ type PlayerRow struct {
 	DynastyValueLowConf  bool   // True when the two dynasty value sources disagree by 30%+
 	Age                  int    // Player age from Sleeper API
 	RosterPercent        float64
+	Team                 string // NFL team abbreviation
+	InjuryStatus         string // "Out", "Doubtful", "Questionable", "IR", etc. (empty if healthy)
+	DepthChartOrder      int    // Sleeper's depth chart rank at this position on this team (0 if unknown)
+	OnBye                bool   // True if Team has a bye this week
 }
 
 type TeamAgeData struct {

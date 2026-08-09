@@ -54,9 +54,17 @@ func buildFreeAgentCandidates(players map[string]interface{}, rostered map[strin
 		if pos == "RB" || pos == "WR" || pos == "TE" {
 			flexTier = findTier(borisTiers["FLX"], name)
 		}
+		injuryStatus, _ := pm["injury_status"].(string)
+		depthChartOrder := 0
+		if dco, ok := pm["depth_chart_order"].(float64); ok {
+			depthChartOrder = int(dco)
+		}
 
 		byPos[pos] = append(byPos[pos], candidate{
-			row:  PlayerRow{Pos: pos, Name: name, Tier: tier, FlexTier: flexTier, IsFreeAgent: true},
+			row: PlayerRow{
+				Pos: pos, Name: name, Tier: tier, FlexTier: flexTier, IsFreeAgent: true,
+				Team: team, InjuryStatus: injuryStatus, DepthChartOrder: depthChartOrder,
+			},
 			tier: tier,
 		})
 	}
@@ -78,25 +86,26 @@ func buildWeeklyActions(league LeagueData) []Action {
 	var actions []Action
 	weekID := getCurrentWeekID()
 
-	// 1. Injury alerts (highest priority - starters only)
-	// TODO: Add injury status to PlayerRow in future
-	// for _, starter := range league.Starters {
-	//     if starter.InjuryStatus == "Out" || starter.InjuryStatus == "Doubtful" {
-	//         // Create injury alert action
-	//     }
-	// }
-
-	// 2. Lineup optimization (in-season only) - swap starters with better bench players
+	// All of the below need an active matchup week to make sense (there's no
+	// "this week's lineup" to fix in the offseason).
 	if league.HasMatchups {
+		// 1. Bye week alerts (highest priority - a bye starter scores 0)
+		actions = append(actions, findByeAlerts(league, weekID)...)
+
+		// 2. Injury alerts (highest priority - starters only)
+		actions = append(actions, findInjuryAlerts(league, weekID)...)
+
+		// 3. Lineup optimization - swap starters with better bench players
 		actions = append(actions, findStarterSwaps(league, weekID)...)
-	}
 
-	// 3. Waiver wire opportunities
-	if league.HasMatchups {
+		// 4. Waiver wire opportunities
 		actions = append(actions, findWaiverTargets(league, weekID)...)
+
+		// 5. Handcuff alerts - same-team backup for an injured rostered player
+		actions = append(actions, findHandcuffAlerts(league, weekID)...)
 	}
 
-	// 4. Trade opportunities (dynasty only)
+	// 6. Trade opportunities (dynasty only)
 	if league.IsDynasty && len(league.TradeTargets) > 0 {
 		action := findTradeOpportunity(league, weekID)
 		if action.Title != "" {
@@ -115,6 +124,115 @@ func buildWeeklyActions(league LeagueData) []Action {
 	// Limit to max actions
 	if len(actions) > MAX_ACTIONS {
 		actions = actions[:MAX_ACTIONS]
+	}
+
+	return actions
+}
+
+// isSignificantInjury reports whether an injury_status value is severe
+// enough to warrant surfacing an alert. "Questionable" is deliberately
+// excluded -- it covers most of the active player pool on a given week and
+// would make the alert noise rather than signal.
+func isSignificantInjury(status string) bool {
+	switch status {
+	case "Out", "Doubtful", "IR":
+		return true
+	default:
+		return false
+	}
+}
+
+// actualPosOf returns a starter's real position (QB/RB/WR/TE) when it can be
+// determined directly from PlayerRow.Pos, or "" when the row is in a FLEX/
+// SUPER_FLEX slot and the real position isn't recorded on the row. Bench and
+// free-agent rows always carry the real position already.
+func actualPosOf(p PlayerRow) string {
+	switch p.Pos {
+	case "QB", "RB", "WR", "TE":
+		return p.Pos
+	default:
+		return ""
+	}
+}
+
+// findByeAlerts flags starters whose team has a bye this week. A bye
+// starter scores zero regardless of tier, so this fires independent of any
+// tier comparison and outranks ordinary swap suggestions.
+func findByeAlerts(league LeagueData, weekID string) []Action {
+	var actions []Action
+
+	for _, starter := range league.Starters {
+		if !starter.OnBye {
+			continue
+		}
+		isFlexSlot := starter.Pos == "FLEX" || starter.Pos == "SUPER_FLEX"
+
+		// Find the best available bench replacement (not also on bye).
+		replacement := ""
+		var bestTier float64
+		for _, bench := range league.Bench {
+			if bench.OnBye {
+				continue
+			}
+			var benchTier float64
+			if isFlexSlot {
+				if bench.FlexTier <= 0 {
+					continue
+				}
+				benchTier = float64(bench.FlexTier)
+			} else {
+				if bench.Pos != starter.Pos {
+					continue
+				}
+				benchTier = parseTierFloat(bench.Tier)
+				if benchTier == 0 {
+					continue
+				}
+			}
+			if replacement == "" || benchTier < bestTier {
+				replacement = bench.Name
+				bestTier = benchTier
+			}
+		}
+
+		desc := fmt.Sprintf("%s is on bye this week", starter.Name)
+		if replacement != "" {
+			desc = fmt.Sprintf("Start %s over %s (bye)", replacement, starter.Name)
+		}
+
+		actions = append(actions, Action{
+			Priority:    1,
+			Category:    "bye",
+			Title:       "Bye Week",
+			Description: desc,
+			Impact:      "Scores 0 if left in the lineup",
+			Link:        fmt.Sprintf("#player-%s", normalizeAnchor(starter.Name)),
+			WeekID:      weekID,
+		})
+	}
+
+	return actions
+}
+
+// findInjuryAlerts flags starters whose injury_status makes them unlikely to
+// play. Unlike findStarterSwaps, this isn't tier-driven -- an "Out" starter
+// needs a lineup decision even if no tiered bench replacement exists yet.
+func findInjuryAlerts(league LeagueData, weekID string) []Action {
+	var actions []Action
+
+	for _, starter := range league.Starters {
+		if !isSignificantInjury(starter.InjuryStatus) {
+			continue
+		}
+		actions = append(actions, Action{
+			Priority:    1,
+			Category:    "injury",
+			Title:       "Injury Alert",
+			Description: fmt.Sprintf("%s is listed as %s", starter.Name, starter.InjuryStatus),
+			Impact:      "Confirm status before lineup lock",
+			Link:        fmt.Sprintf("#player-%s", normalizeAnchor(starter.Name)),
+			WeekID:      weekID,
+		})
 	}
 
 	return actions
@@ -237,6 +355,56 @@ func findWaiverTargets(league LeagueData, weekID string) []Action {
 				// Only suggest one waiver pickup per free agent
 				break
 			}
+		}
+	}
+
+	return actions
+}
+
+// findHandcuffAlerts looks for a same-team, same-position free agent sitting
+// one spot behind an injured rostered player on the depth chart -- the
+// classic "handcuff" pickup (e.g. a starting RB's direct backup becomes a
+// must-add when the starter is out). Requires DepthChartOrder on both sides,
+// so it only fires when Sleeper has published a depth chart for that team.
+func findHandcuffAlerts(league LeagueData, weekID string) []Action {
+	var actions []Action
+	seen := make(map[string]bool)
+
+	injured := make([]PlayerRow, 0, len(league.Starters)+len(league.Bench))
+	injured = append(injured, league.Starters...)
+	injured = append(injured, league.Bench...)
+
+	for _, p := range injured {
+		if !isSignificantInjury(p.InjuryStatus) {
+			continue
+		}
+		pos := actualPosOf(p)
+		if pos == "" || p.Team == "" || p.DepthChartOrder <= 0 {
+			continue
+		}
+
+		for _, fa := range league.TopFreeAgentsByValue {
+			if fa.Team != p.Team || fa.Pos != pos {
+				continue
+			}
+			if fa.DepthChartOrder != p.DepthChartOrder+1 {
+				continue
+			}
+			key := fmt.Sprintf("handcuff-%s", fa.Name)
+			if seen[key] {
+				continue
+			}
+			seen[key] = true
+
+			actions = append(actions, Action{
+				Priority:    2,
+				Category:    "handcuff",
+				Title:       "Handcuff Alert",
+				Description: fmt.Sprintf("%s now next in line behind injured %s", fa.Name, p.Name),
+				Impact:      fmt.Sprintf("%s (%s) is %s", p.Name, pos, p.InjuryStatus),
+				Link:        fmt.Sprintf("#fa-%s", normalizeAnchor(fa.Name)),
+				WeekID:      weekID,
+			})
 		}
 	}
 
