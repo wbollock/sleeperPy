@@ -68,7 +68,8 @@ type PlayerRow struct {
 	UpgradeType          string // "Starter" or "Bench" or ""
 	IsFlex               bool   // Heuristic FLEX indicator
 	IsSuperflex          bool   // Heuristic SUPERFLEX indicator
-	DynastyValue         int    // Dynasty value from DynastyProcess (0-10000 scale)
+	DynastyValue         int    // Blended dynasty value (DynastyProcess + FantasyCalc average)
+	DynastyValueLowConf  bool   // True when the two dynasty value sources disagree by 30%+
 	Age                  int    // Player age from Sleeper API
 	RosterPercent        float64
 }

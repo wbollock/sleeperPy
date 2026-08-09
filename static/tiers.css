@@ -829,6 +829,12 @@
 	max-width: 100%;
 }
 
+.value-low-conf {
+	color: var(--qt-warn);
+	font-weight: 700;
+	cursor: help;
+}
+
 /* ---- Tier / lineup highlighting ---- */
 
 .tier1 td {

@@ -88,3 +88,72 @@ func TestFetchDynastyValuesGracefulWithoutFantasyCalc(t *testing.T) {
 		t.Errorf("values should be unchanged when FantasyCalc is unavailable, got %+v", values["x"])
 	}
 }
+
+func TestDynastyValueSourcesDisagree(t *testing.T) {
+	cases := []struct {
+		name     string
+		val      DynastyValue
+		expected bool
+	}{
+		{
+			name:     "sources agree closely",
+			val:      DynastyValue{DynastyProcessValue1QB: 1000, FantasyCalcValue1QB: 1050},
+			expected: false,
+		},
+		{
+			name:     "sources disagree by 40%",
+			val:      DynastyValue{DynastyProcessValue1QB: 1000, FantasyCalcValue1QB: 1500},
+			expected: true,
+		},
+		{
+			name:     "only DynastyProcess has data",
+			val:      DynastyValue{DynastyProcessValue1QB: 1000, FantasyCalcValue1QB: 0},
+			expected: false,
+		},
+		{
+			name:     "only FantasyCalc has data",
+			val:      DynastyValue{DynastyProcessValue1QB: 0, FantasyCalcValue1QB: 1000},
+			expected: false,
+		},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			if got := dynastyValueSourcesDisagree(c.val, false); got != c.expected {
+				t.Errorf("dynastyValueSourcesDisagree(%+v) = %v, want %v", c.val, got, c.expected)
+			}
+		})
+	}
+
+	// Superflex should compare the 2QB fields, not 1QB.
+	superflexVal := DynastyValue{
+		DynastyProcessValue1QB: 1000, FantasyCalcValue1QB: 1050, // agree in 1QB
+		DynastyProcessValue2QB: 1000, FantasyCalcValue2QB: 2000, // disagree in 2QB
+	}
+	if dynastyValueSourcesDisagree(superflexVal, false) {
+		t.Errorf("expected 1QB comparison to agree")
+	}
+	if !dynastyValueSourcesDisagree(superflexVal, true) {
+		t.Errorf("expected 2QB (superflex) comparison to disagree")
+	}
+}
+
+func TestEnrichRowsWithDynastyValuesSetsLowConfidence(t *testing.T) {
+	rows := []PlayerRow{{Name: "Disputed Player"}, {Name: "Agreed Player"}}
+	dynastyValues := map[string]DynastyValue{
+		normalizeName("Disputed Player"): {
+			Value1QB: 1250, DynastyProcessValue1QB: 1000, FantasyCalcValue1QB: 1500,
+		},
+		normalizeName("Agreed Player"): {
+			Value1QB: 1025, DynastyProcessValue1QB: 1000, FantasyCalcValue1QB: 1050,
+		},
+	}
+
+	enrichRowsWithDynastyValues(rows, dynastyValues, false)
+
+	if !rows[0].DynastyValueLowConf {
+		t.Errorf("expected Disputed Player to be flagged low-confidence")
+	}
+	if rows[1].DynastyValueLowConf {
+		t.Errorf("expected Agreed Player to NOT be flagged low-confidence")
+	}
+}

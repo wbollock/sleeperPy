@@ -5,9 +5,12 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"sort"
 	"time"
 )
+
+const dynastyValueDisagreementThreshold = 30.0 // percent
 
 func enrichRowsWithDynastyValues(rows []PlayerRow, dynastyValues map[string]DynastyValue, isSuperFlex bool) {
 	if dynastyValues == nil {
@@ -26,8 +29,26 @@ func enrichRowsWithDynastyValues(rows []PlayerRow, dynastyValues map[string]Dyna
 			} else {
 				rows[i].DynastyValue = val.Value1QB
 			}
+			rows[i].DynastyValueLowConf = dynastyValueSourcesDisagree(val, isSuperFlex)
 		}
 	}
+}
+
+// dynastyValueSourcesDisagree reports whether DynastyProcess and FantasyCalc
+// disagree by 30%+ on a player's value. Only meaningful when both sources
+// have data for this player -- with a single source there's nothing to
+// compare, so this returns false rather than flagging every player.
+func dynastyValueSourcesDisagree(val DynastyValue, isSuperFlex bool) bool {
+	dp, fc := val.DynastyProcessValue1QB, val.FantasyCalcValue1QB
+	if isSuperFlex {
+		dp, fc = val.DynastyProcessValue2QB, val.FantasyCalcValue2QB
+	}
+	if dp <= 0 || fc <= 0 {
+		return false
+	}
+	avg := float64(dp+fc) / 2
+	diffPct := math.Abs(float64(dp-fc)) / avg * 100
+	return diffPct >= dynastyValueDisagreementThreshold
 }
 
 func aggregatePlayerNews(rosterPlayerIDs []string, players map[string]interface{}, startersIDs []string, dynastyValues map[string]DynastyValue, isSuperFlex bool) []PlayerNews {

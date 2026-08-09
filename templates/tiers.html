@@ -217,7 +217,7 @@
                         {{if $l.IsDynasty}}
                         <td class="inseason-only" style="display:none;">{{.Tier}}{{if .IsFlex}} <span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">FLEX</span>{{else if .IsSuperflex}} <span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">SF</span>{{end}}</td>
                         <td class="dynasty-only">{{if .Age}}{{.Age}}{{else}}-{{end}}</td>
-                        <td>{{if .DynastyValue}}{{.DynastyValue}}{{else}}-{{end}}</td>
+                        <td>{{if .DynastyValue}}{{.DynastyValue}}{{if .DynastyValueLowConf}} <span class="value-low-conf" title="DynastyProcess and FantasyCalc disagree by 30%+ on this player -- treat as a rough estimate.">~</span>{{end}}{{else}}-{{end}}</td>
                         {{else}}
                         <td>{{.Tier}}{{if .IsFlex}} <span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">FLEX</span>{{else if .IsSuperflex}} <span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">SF</span>{{end}}</td>
                         {{end}}
@@ -278,7 +278,7 @@
                             {{if $l.IsDynasty}}
                             <td class="inseason-only" style="display:none;">{{.Tier}}{{if .IsFlex}} <span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">FLEX</span>{{end}}</td>
                             <td class="dynasty-only">{{if .Age}}{{.Age}}{{else}}-{{end}}</td>
-                            <td>{{if .DynastyValue}}{{.DynastyValue}}{{else}}-{{end}}</td>
+                            <td>{{if .DynastyValue}}{{.DynastyValue}}{{if .DynastyValueLowConf}} <span class="value-low-conf" title="DynastyProcess and FantasyCalc disagree by 30%+ on this player -- treat as a rough estimate.">~</span>{{end}}{{else}}-{{end}}</td>
                             {{else}}
                             <td>{{.Tier}}{{if .IsFlex}} <span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">FLEX</span>{{end}}</td>
                             {{end}}
