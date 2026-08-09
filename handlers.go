@@ -841,11 +841,20 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		var topFreeAgentsByValue []PlayerRow
 		var totalRosterValue int
 		if isDynasty && dynastyValues != nil {
-			// Calculate total roster value (starters + bench)
+			// Calculate total roster value (starters + bench, including
+			// players with no current-week tier -- dynasty value doesn't
+			// depend on Boris Chen having published tiers yet, so this must
+			// still work in the offseason when every row is "unranked").
 			for _, row := range startersRows {
 				totalRosterValue += row.DynastyValue
 			}
+			for _, row := range unrankedRows {
+				totalRosterValue += row.DynastyValue
+			}
 			for _, row := range benchRows {
+				totalRosterValue += row.DynastyValue
+			}
+			for _, row := range benchUnrankedRows {
 				totalRosterValue += row.DynastyValue
 			}
 			debugLog("[DEBUG] Total roster value: %d", totalRosterValue)
