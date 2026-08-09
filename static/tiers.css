@@ -497,6 +497,18 @@
 	border-radius: var(--qt-radius);
 }
 
+.adp-tier-note {
+	display: inline-block;
+	padding: 1px 6px;
+	font-size: 0.72em;
+	font-weight: 600;
+	background: var(--qt-alt-base);
+	border: 1px solid var(--qt-border-light);
+	color: var(--qt-text-muted);
+	border-radius: var(--qt-radius);
+	margin-left: 4px;
+}
+
 .bye-badge {
 	display: inline-block;
 	padding: 2px 8px;

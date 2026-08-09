@@ -25,6 +25,33 @@ func enrichRowsWithByeWeek(rows []PlayerRow, byeWeeks map[string]int, currentWee
 	}
 }
 
+// enrichRowsWithADPTier sets ADPTier on each row from a secondary,
+// independently-sourced tier map (see fetchADPTiers) for side-by-side
+// comparison against the primary Boris Chen Tier -- only meaningful when
+// the user has TierSource "both" in settings. A FLEX/SUPER_FLEX starter
+// uses the FLX bucket, same as the primary Tier does for that slot;
+// everything else uses its own positional bucket.
+func enrichRowsWithADPTier(rows []PlayerRow, adpTiers map[string][][]string) {
+	if len(adpTiers) == 0 {
+		return
+	}
+	for i := range rows {
+		pos := rows[i].Pos
+		switch pos {
+		case "FLEX", "SUPER_FLEX", "SUPERFLEX":
+			pos = "FLX"
+		case "DEF":
+			pos = "DST"
+		case "?":
+			continue
+		}
+		name := stripHTML(rows[i].Name)
+		if tier := findTier(adpTiers[pos], name); tier > 0 {
+			rows[i].ADPTier = tier
+		}
+	}
+}
+
 func buildRowsWithPositions(ids []string, players map[string]interface{}, tiers map[string][][]string, isStarter bool, rosterPositions []string, irList []string, bestOtherTier map[string]int) ([]PlayerRow, []PlayerRow, []int) {
 	rows := []PlayerRow{}
 	unranked := []PlayerRow{}

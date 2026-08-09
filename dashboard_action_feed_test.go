@@ -105,7 +105,7 @@ func TestBuildDashboardPageAggregatesActionFeed(t *testing.T) {
 		ttl:       time.Hour,
 	}
 
-	page, err := buildDashboardPage("testuser")
+	page, err := buildDashboardPage("testuser", defaultUserSettings())
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

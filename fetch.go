@@ -486,6 +486,147 @@ func fetchBorisTiersImpl(scoring string) map[string][][]string {
 	return out
 }
 
+// ffcScoringParam maps the app's scoring format names to FantasyFootballCalculator's
+// URL path segments.
+var ffcScoringParam = map[string]string{
+	"PPR":      "ppr",
+	"Half PPR": "half-ppr",
+	"Standard": "standard",
+}
+
+type adpPlayer struct {
+	Name     string  `json:"name"`
+	Position string  `json:"position"`
+	ADP      float64 `json:"adp"`
+	StDev    float64 `json:"stdev"`
+}
+
+type adpResponse struct {
+	Players []adpPlayer `json:"players"`
+}
+
+// fetchADPTiers is a variable to allow mocking in tests
+var fetchADPTiers = func(scoring string) map[string][][]string {
+	return fetchADPTiersImpl(scoring)
+}
+
+// fetchADPTiersImpl builds a second, independent tier system from
+// FantasyFootballCalculator's live 12-team ADP data -- real draft-market
+// behavior clustered by statistical gap, as opposed to Boris Chen's
+// expert-panel-clustered tiers. Same [][]string shape as Boris Chen's
+// output, keyed by position + "FLX", so it's a drop-in alternative anywhere
+// a Boris Chen tier map is used.
+func fetchADPTiersImpl(scoring string) map[string][][]string {
+	adpTiersCache.RLock()
+	if cached, exists := adpTiersCache.data[scoring]; exists {
+		if time.Since(adpTiersCache.timestamp[scoring]) < adpTiersCache.ttl {
+			adpTiersCache.RUnlock()
+			return cached
+		}
+	}
+	adpTiersCache.RUnlock()
+
+	debugLog("[DEBUG] Fetching fresh ADP tiers for %s", scoring)
+
+	param, ok := ffcScoringParam[scoring]
+	if !ok {
+		param = "ppr"
+	}
+
+	url := fmt.Sprintf("https://fantasyfootballcalculator.com/api/v1/adp/%s?teams=12&year=%d", param, time.Now().Year())
+	resp, err := httpClient.Get(url)
+	if err != nil {
+		debugLog("[DEBUG] Failed to fetch FFC ADP (%s): %v", scoring, err)
+		return nil
+	}
+	defer resp.Body.Close()
+
+	var parsed adpResponse
+	if err := json.NewDecoder(resp.Body).Decode(&parsed); err != nil {
+		debugLog("[DEBUG] Failed to decode FFC ADP (%s): %v", scoring, err)
+		return nil
+	}
+
+	out := buildADPTiers(parsed.Players)
+
+	adpTiersCache.Lock()
+	adpTiersCache.data[scoring] = out
+	adpTiersCache.timestamp[scoring] = time.Now()
+	adpTiersCache.Unlock()
+
+	debugLog("[DEBUG] Built ADP tiers for %s from %d players", scoring, len(parsed.Players))
+	return out
+}
+
+// normalizeADPPosition maps FFC's position codes onto the ones the rest of
+// the app uses ("PK" -> "K", "DEF" -> "DST"); returns "" for anything else
+// (there shouldn't be anything else in an NFL ADP report, but skip rather
+// than mis-bucket if the API ever adds a new code).
+func normalizeADPPosition(pos string) string {
+	switch pos {
+	case "QB", "RB", "WR", "TE":
+		return pos
+	case "PK":
+		return "K"
+	case "DEF":
+		return "DST"
+	default:
+		return ""
+	}
+}
+
+func buildADPTiers(players []adpPlayer) map[string][][]string {
+	byPos := make(map[string][]adpPlayer)
+	var flexPool []adpPlayer
+	for _, p := range players {
+		pos := normalizeADPPosition(p.Position)
+		if pos == "" {
+			continue
+		}
+		byPos[pos] = append(byPos[pos], p)
+		if pos == "RB" || pos == "WR" || pos == "TE" {
+			flexPool = append(flexPool, p)
+		}
+	}
+	byPos["FLX"] = flexPool
+
+	out := make(map[string][][]string, len(byPos))
+	for pos, list := range byPos {
+		sort.Slice(list, func(i, j int) bool { return list[i].ADP < list[j].ADP })
+		out[pos] = clusterByADPGap(list)
+	}
+	return out
+}
+
+// clusterByADPGap groups ADP-sorted players into tiers by splitting
+// wherever the gap to the next player exceeds their combined draft-position
+// uncertainty (stdev, as reported by FFC across thousands of real drafts).
+// A 1.0-pick floor keeps ties (identical ADP, zero stdev) from each becoming
+// their own tier.
+func clusterByADPGap(players []adpPlayer) [][]string {
+	if len(players) == 0 {
+		return nil
+	}
+	var tiers [][]string
+	current := []string{players[0].Name}
+	for i := 1; i < len(players); i++ {
+		gap := players[i].ADP - players[i-1].ADP
+		threshold := players[i-1].StDev + players[i].StDev
+		if threshold < 1.0 {
+			threshold = 1.0
+		}
+		if gap > threshold {
+			tiers = append(tiers, current)
+			current = nil
+		}
+		current = append(current, players[i].Name)
+	}
+	if len(current) > 0 {
+		tiers = append(tiers, current)
+	}
+	return tiers
+}
+
 func fetchRecentTransactions(leagueID string, currentWeek int, players map[string]interface{}, rosters []map[string]interface{}, userNames map[string]string, dynastyValues map[string]DynastyValue, isSuperFlex bool) []Transaction {
 	transactions := []Transaction{}
 

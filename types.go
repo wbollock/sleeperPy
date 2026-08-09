@@ -85,6 +85,7 @@ type PlayerRow struct {
 	InjuryStatus         string // "Out", "Doubtful", "Questionable", "IR", etc. (empty if healthy)
 	DepthChartOrder      int    // Sleeper's depth chart rank at this position on this team (0 if unknown)
 	OnBye                bool   // True if Team has a bye this week
+	ADPTier              int    // Secondary tier from live ADP draft-market data (0 = not computed/not found). Only populated when TierSource setting is "both".
 }
 
 type TeamAgeData struct {
@@ -395,6 +396,14 @@ type TiersPage struct {
 	AIEnabled   bool   // true if OPENROUTER_API_KEY is configured
 	AIOverview  string // AI-generated all-teams overview, if requested
 	IsOffseason bool   // more than a week out from the regular season start
+}
+
+type SettingsPage struct {
+	Username        string
+	Leagues         []settingsLeagueSummary
+	Settings        UserSettings
+	CategoryEnabled map[string]bool // action category -> currently enabled, for checkbox state
+	Saved           bool            // true right after a successful save, for a confirmation banner
 }
 
 type IndexPage struct {

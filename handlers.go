@@ -345,6 +345,25 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	settings := readUserSettings(r)
+
+	// Drop leagues the user has hidden in settings, before any of the
+	// (expensive) per-league processing below runs on them.
+	if len(settings.HiddenLeagues) > 0 {
+		visible := leagues[:0]
+		for _, league := range leagues {
+			leagueID, _ := league["league_id"].(string)
+			if !isLeagueHidden(leagueID, settings) {
+				visible = append(visible, league)
+			}
+		}
+		leagues = visible
+	}
+	if len(leagues) == 0 {
+		renderError(w, "All of your leagues are hidden in Settings. Unhide at least one to see it here.")
+		return
+	}
+
 	// 3. Get current NFL week from Sleeper API
 	state, err := appProvider.FetchNFLState()
 	if err != nil {
@@ -354,7 +373,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	week := int(state["week"].(float64))
-	isOffseason := isOffseasonMode(state)
+	isOffseason := resolveOffseasonMode(state, settings)
 	byeWeeks := fetchSeasonByeWeeks(state)
 
 	// 4. Get players data (cached for 1 hour)
@@ -390,8 +409,15 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("[INFO] Processed %s with %d leagues", username, len(leagues))
 	totalLeagues.Add(float64(len(leagues)))
 
-	// Sort leagues: dynasty leagues first, then by name
+	// Sort leagues: favorites first, then dynasty leagues, then by name
 	sort.Slice(leagues, func(i, j int) bool {
+		idI, _ := leagues[i]["league_id"].(string)
+		idJ, _ := leagues[j]["league_id"].(string)
+		favI := isLeagueFavorite(idI, settings)
+		favJ := isLeagueFavorite(idJ, settings)
+		if favI != favJ {
+			return favI // Favorites come first
+		}
 		isDynastyI := isDynastyLeague(leagues[i])
 		isDynastyJ := isDynastyLeague(leagues[j])
 		if isDynastyI != isDynastyJ {
@@ -409,17 +435,8 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		// Check if this is a dynasty league
 		isDynasty := isDynastyLeague(league)
 
-		// Determine scoring type
-		scoring := "PPR"
-		if scoringSettings, ok := league["scoring_settings"].(map[string]interface{}); ok {
-			if rec, ok := scoringSettings["rec"].(float64); ok {
-				if rec == 0.5 {
-					scoring = "Half PPR"
-				} else if rec == 0.0 {
-					scoring = "Standard"
-				}
-			}
-		}
+		// Determine scoring type (manual override takes priority over auto-detection)
+		scoring := resolveScoringFormat(league, leagueID, settings)
 
 		// Debug: Check league roster_positions
 		if rosterPositions, ok := league["roster_positions"].([]interface{}); ok {
@@ -498,6 +515,20 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		borisTiers := fetchBorisTiers(scoring)
 		debugLog("[DEBUG] Boris Tiers loaded for scoring: %s", scoring)
 
+		// Tier source setting: "adp" swaps every downstream tier lookup over
+		// to FantasyFootballCalculator's live draft-market tiers instead of
+		// Boris Chen's; "both" keeps Boris Chen primary and separately
+		// fetches ADP tiers to show alongside it (see enrichRowsWithADPTier).
+		var secondaryADPTiers map[string][][]string
+		switch settings.TierSource {
+		case "adp":
+			if adp := fetchADPTiers(scoring); adp != nil {
+				borisTiers = adp
+			}
+		case "both":
+			secondaryADPTiers = fetchADPTiers(scoring)
+		}
+
 		// Get roster positions from league settings
 		var leagueRosterPositions []string
 		if rp, ok := league["roster_positions"].([]interface{}); ok {
@@ -518,6 +549,13 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		starterTiers := tiered.StarterTiers
 		isSuperFlex := tiered.IsSuperFlex
 		debugLog("[DEBUG] League is superflex: %v", isSuperFlex)
+
+		if secondaryADPTiers != nil {
+			enrichRowsWithADPTier(startersRows, secondaryADPTiers)
+			enrichRowsWithADPTier(unrankedRows, secondaryADPTiers)
+			enrichRowsWithADPTier(benchRows, secondaryADPTiers)
+			enrichRowsWithADPTier(benchUnrankedRows, secondaryADPTiers)
+		}
 
 		// Enrich rows with dynasty values (if this is a dynasty league)
 		if isDynasty && dynastyValues != nil {
@@ -1396,7 +1434,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Generate weekly actions (Feature #2)
-		leagueData.WeeklyActions = buildWeeklyActions(leagueData)
+		leagueData.WeeklyActions = applyActionSettings(buildWeeklyActions(leagueData), settings)
 
 		// Compress player news (Feature #4)
 		if len(playerNewsFeed) > 0 {
@@ -1512,7 +1550,8 @@ func dashboardHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Build dashboard data
-	dashboardPage, err := buildDashboardPage(username)
+	settings := readUserSettings(r)
+	dashboardPage, err := buildDashboardPage(username, settings)
 	if err != nil {
 		log.Printf("[ERROR] Failed to build dashboard: %v", err)
 		renderError(w, fmt.Sprintf("Failed to load dashboard: %v", err))
@@ -1526,7 +1565,7 @@ func dashboardHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func buildDashboardPage(username string) (*DashboardPage, error) {
+func buildDashboardPage(username string, settings UserSettings) (*DashboardPage, error) {
 	// 1. Get user ID
 	user, err := appProvider.FetchUser(username)
 	if err != nil || user["user_id"] == nil {
@@ -1569,6 +1608,17 @@ func buildDashboardPage(username string) (*DashboardPage, error) {
 	}
 	leagues = dedupedLeagues
 
+	if len(settings.HiddenLeagues) > 0 {
+		visible := leagues[:0]
+		for _, league := range leagues {
+			leagueID, _ := league["league_id"].(string)
+			if !isLeagueHidden(leagueID, settings) {
+				visible = append(visible, league)
+			}
+		}
+		leagues = visible
+	}
+
 	if len(leagues) == 0 {
 		return nil, fmt.Errorf("no leagues found")
 	}
@@ -1601,7 +1651,7 @@ func buildDashboardPage(username string) (*DashboardPage, error) {
 		if w, ok := state["week"].(float64); ok {
 			week = int(w)
 		}
-		isOffseason = isOffseasonMode(state)
+		isOffseason = resolveOffseasonMode(state, settings)
 		byeWeeks = fetchSeasonByeWeeks(state)
 	}
 
@@ -1653,17 +1703,8 @@ func buildDashboardPage(username string) (*DashboardPage, error) {
 		}
 		leagueSize := len(rosters)
 
-		// Determine scoring type
-		scoring := "PPR"
-		if scoringSettings, ok := league["scoring_settings"].(map[string]interface{}); ok {
-			if rec, ok := scoringSettings["rec"].(float64); ok {
-				if rec == 0.5 {
-					scoring = "Half PPR"
-				} else if rec == 0.0 {
-					scoring = "Standard"
-				}
-			}
-		}
+		// Determine scoring type (manual override takes priority over auto-detection)
+		scoring := resolveScoringFormat(league, leagueID, settings)
 
 		// Check if superflex
 		isSuperFlex := false
@@ -1725,6 +1766,11 @@ func buildDashboardPage(username string) (*DashboardPage, error) {
 					}
 				}
 				borisTiers := fetchBorisTiers(scoring)
+				if settings.TierSource == "adp" {
+					if adp := fetchADPTiers(scoring); adp != nil {
+						borisTiers = adp
+					}
+				}
 				starters, bench, irPlayers := splitRosterForTiering(userRoster)
 				tiered := buildTieredRoster(starters, bench, irPlayers, players, borisTiers, leagueRosterPositions)
 				enrichRowsWithByeWeek(tiered.StartersRows, byeWeeks, week)
@@ -1738,13 +1784,13 @@ func buildDashboardPage(username string) (*DashboardPage, error) {
 				}
 				topFreeAgentsByValue := buildFreeAgentCandidates(players, rostered, borisTiers, 5)
 
-				leagueActions := buildWeeklyActions(LeagueData{
+				leagueActions := applyActionSettings(buildWeeklyActions(LeagueData{
 					Starters:             tiered.StartersRows,
 					Bench:                tiered.BenchRows,
 					TopFreeAgentsByValue: topFreeAgentsByValue,
 					HasMatchups:          true,
 					IsDynasty:            isDynasty,
-				})
+				}), settings)
 				for i := range leagueActions {
 					leagueActions[i].LeagueID = leagueID
 					leagueActions[i].LeagueName = leagueName
@@ -1858,8 +1904,13 @@ func buildDashboardPage(username string) (*DashboardPage, error) {
 		summaries = append(summaries, summary)
 	}
 
-	// Sort: dynasty first, then by name
+	// Sort: favorites first, then dynasty, then by name
 	sort.Slice(summaries, func(i, j int) bool {
+		favI := isLeagueFavorite(summaries[i].LeagueID, settings)
+		favJ := isLeagueFavorite(summaries[j].LeagueID, settings)
+		if favI != favJ {
+			return favI
+		}
 		if summaries[i].IsDynasty != summaries[j].IsDynasty {
 			return summaries[i].IsDynasty
 		}

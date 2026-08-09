@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - SleeperPy</title>
+    <meta name="description" content="Configure tiering, action feed, and league preferences">
+    <link rel="stylesheet" href="/static/app.css?v=20260809a">
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <style>
+        .settings-container {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 24px 20px 60px;
+        }
+        .settings-section {
+            margin-bottom: 20px;
+        }
+        .settings-section-desc {
+            font-size: 0.85rem;
+            color: var(--qt-text-muted);
+            margin: -6px 0 14px 0;
+        }
+        .settings-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--qt-border-light);
+        }
+        .settings-row:last-child {
+            border-bottom: none;
+        }
+        .settings-row-label {
+            font-size: 0.9rem;
+        }
+        .settings-row-sub {
+            font-size: 0.78rem;
+            color: var(--qt-text-muted);
+            display: block;
+            margin-top: 2px;
+        }
+        .settings-check-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.88rem;
+            cursor: pointer;
+        }
+        .settings-check-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 10px;
+        }
+        input[type="checkbox"], input[type="radio"] {
+            accent-color: var(--qt-accent);
+            width: 16px;
+            height: 16px;
+        }
+        .settings-radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .league-settings-table th, .league-settings-table td {
+            text-align: left;
+        }
+        .league-settings-table td.center, .league-settings-table th.center {
+            text-align: center;
+        }
+        .settings-saved-banner {
+            background: var(--qt-alt-base);
+            border: 1px solid var(--qt-ok);
+            color: var(--qt-ok);
+            border-radius: var(--qt-radius);
+            padding: 10px 14px;
+            font-size: 0.88rem;
+            margin-bottom: 16px;
+        }
+        .settings-actions {
+            position: sticky;
+            bottom: 0;
+            background: var(--qt-base);
+            padding: 14px 0;
+            border-top: 1px solid var(--qt-border);
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    {{template "qt-header" (dict "Username" .Username "Active" "settings")}}
+
+    <main class="settings-container">
+        <h2 class="qt-page-title">Settings</h2>
+
+        {{if .Saved}}
+        <div class="settings-saved-banner">Settings saved.</div>
+        {{end}}
+
+        <form method="POST" action="/settings?user={{.Username}}">
+            <input type="hidden" name="league_ids" value="{{range $i, $l := .Leagues}}{{if $i}},{{end}}{{$l.LeagueID}}{{end}}">
+
+            <div class="settings-section qt-panel">
+                <h3 class="qt-panel-title">Appearance</h3>
+                <p class="settings-section-desc">Theme follows the switch in the top bar and saves automatically -- nothing to configure here.</p>
+            </div>
+
+            <div class="settings-section qt-panel">
+                <h3 class="qt-panel-title">Tier Data Source</h3>
+                <p class="settings-section-desc">Boris Chen clusters an expert panel's rankings into tiers. ADP tiers are built from live FantasyFootballCalculator draft data instead -- a useful independent cross-check when the two disagree, especially early in the season before Boris Chen's tiers have settled.</p>
+                <div class="settings-radio-group">
+                    <label class="settings-check-label">
+                        <input type="radio" name="tier_source" value="boris" {{if eq .Settings.TierSource "boris"}}checked{{end}}>
+                        Boris Chen only (default)
+                    </label>
+                    <label class="settings-check-label">
+                        <input type="radio" name="tier_source" value="adp" {{if eq .Settings.TierSource "adp"}}checked{{end}}>
+                        ADP draft-market tiers only
+                    </label>
+                    <label class="settings-check-label">
+                        <input type="radio" name="tier_source" value="both" {{if eq .Settings.TierSource "both"}}checked{{end}}>
+                        Both -- Boris Chen primary, ADP tier shown alongside
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-section qt-panel">
+                <h3 class="qt-panel-title">Weekly Action Feed</h3>
+                <p class="settings-section-desc">Choose which alert types show up in the action feed, and how many to surface per league.</p>
+                <div class="settings-check-grid">
+                    <label class="settings-check-label"><input type="checkbox" name="cat_bye" {{if index .CategoryEnabled "bye"}}checked{{end}}> Bye week</label>
+                    <label class="settings-check-label"><input type="checkbox" name="cat_injury" {{if index .CategoryEnabled "injury"}}checked{{end}}> Injury</label>
+                    <label class="settings-check-label"><input type="checkbox" name="cat_swap" {{if index .CategoryEnabled "swap"}}checked{{end}}> Starter swap</label>
+                    <label class="settings-check-label"><input type="checkbox" name="cat_waiver" {{if index .CategoryEnabled "waiver"}}checked{{end}}> Waiver wire</label>
+                    <label class="settings-check-label"><input type="checkbox" name="cat_handcuff" {{if index .CategoryEnabled "handcuff"}}checked{{end}}> Handcuff</label>
+                    <label class="settings-check-label"><input type="checkbox" name="cat_trade" {{if index .CategoryEnabled "trade"}}checked{{end}}> Trade</label>
+                </div>
+                <div class="settings-row" style="margin-top:10px;border-bottom:none;">
+                    <label class="qt-field-label" for="action_feed_limit" style="margin:0;">Max actions per league</label>
+                    <input class="qt-field" style="width:80px;" type="number" min="1" max="20" id="action_feed_limit" name="action_feed_limit" value="{{.Settings.ActionFeedLimit}}">
+                </div>
+            </div>
+
+            <div class="settings-section qt-panel">
+                <h3 class="qt-panel-title">Offseason Mode</h3>
+                <p class="settings-section-desc">SleeperPy normally detects offseason vs. in-season automatically from Sleeper's own schedule data. Override it here if that's ever wrong for your situation.</p>
+                <div class="settings-radio-group">
+                    <label class="settings-check-label">
+                        <input type="radio" name="offseason_override" value="auto" {{if eq .Settings.OffseasonOverride "auto"}}checked{{end}}>
+                        Auto-detect (default)
+                    </label>
+                    <label class="settings-check-label">
+                        <input type="radio" name="offseason_override" value="force_on" {{if eq .Settings.OffseasonOverride "force_on"}}checked{{end}}>
+                        Always show offseason view
+                    </label>
+                    <label class="settings-check-label">
+                        <input type="radio" name="offseason_override" value="force_off" {{if eq .Settings.OffseasonOverride "force_off"}}checked{{end}}>
+                        Always show in-season view
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-section qt-panel">
+                <h3 class="qt-panel-title">Leagues</h3>
+                <p class="settings-section-desc">Override the auto-detected scoring format if it's wrong, star favorites to show them first on your dashboard, or hide leagues you don't want to see here at all.</p>
+                {{if .Leagues}}
+                <div class="qt-table-scroll">
+                <table class="qt-table league-settings-table">
+                    <thead>
+                        <tr>
+                            <th>League</th>
+                            <th>Scoring</th>
+                            <th class="center">Favorite</th>
+                            <th class="center">Hide</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{range .Leagues}}
+                        <tr>
+                            <td>{{.LeagueName}}{{if .IsDynasty}} <span class="qt-tag">Dynasty</span>{{end}}</td>
+                            <td>
+                                <select class="qt-field" name="scoring_{{.LeagueID}}">
+                                    <option value="" {{if eq .Override ""}}selected{{end}}>Auto ({{.DetectedScoring}})</option>
+                                    <option value="PPR" {{if eq .Override "PPR"}}selected{{end}}>PPR</option>
+                                    <option value="Half PPR" {{if eq .Override "Half PPR"}}selected{{end}}>Half PPR</option>
+                                    <option value="Standard" {{if eq .Override "Standard"}}selected{{end}}>Standard</option>
+                                </select>
+                            </td>
+                            <td class="center"><input type="checkbox" name="favorite_{{.LeagueID}}" {{if .IsFavorite}}checked{{end}}></td>
+                            <td class="center"><input type="checkbox" name="hidden_{{.LeagueID}}" {{if .IsHidden}}checked{{end}}></td>
+                        </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+                </div>
+                {{else}}
+                <p class="qt-stat-sub">No leagues found for this account.</p>
+                {{end}}
+            </div>
+
+            <div class="settings-actions">
+                <button type="submit" class="qt-btn qt-btn-primary">Save Settings</button>
+                {{if .Username}}<a href="/dashboard?user={{.Username}}" class="qt-btn">Back to Dashboard</a>{{end}}
+            </div>
+        </form>
+    </main>
+
+    {{template "qt-footer" .}}
+</body>
+</html>

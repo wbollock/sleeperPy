@@ -42,6 +42,12 @@ var borisTiersCache = &tiersCache{
 	ttl:       15 * time.Minute, // Cache tiers for 15 minutes
 }
 
+var adpTiersCache = &tiersCache{
+	data:      make(map[string]map[string][][]string),
+	timestamp: make(map[string]time.Time),
+	ttl:       15 * time.Minute,
+}
+
 var dynastyValuesCache = &dynastyCache{
 	data: make(map[string]DynastyValue),
 	ttl:  24 * time.Hour, // Cache for 24 hours (values don't change frequently)
@@ -307,6 +313,7 @@ func main() {
 	http.Handle("/", wrapHandler("index", visitorLogging(indexHandler)))
 	http.Handle("/lookup", wrapHandler("lookup", lookupHandler))
 	http.Handle("/dashboard", wrapHandler("dashboard", dashboardHandler))
+	http.Handle("/settings", wrapHandler("settings", settingsHandler))
 	http.Handle("/signout", wrapHandler("signout", signoutHandler))
 	http.Handle("/privacy", wrapHandler("privacy", privacyHandler))
 	http.Handle("/terms", wrapHandler("terms", termsHandler))

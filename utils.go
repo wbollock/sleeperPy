@@ -134,6 +134,24 @@ func isDynastyLeague(league map[string]interface{}) bool {
 	return false
 }
 
+// detectScoringFormat auto-derives a league's scoring format ("PPR", "Half
+// PPR", or "Standard") from its Sleeper reception-points setting. This is
+// the auto-detection fallback; callers should prefer a user's manual
+// per-league override (see UserSettings.ScoringOverrides) when one is set.
+func detectScoringFormat(league map[string]interface{}) string {
+	scoring := "PPR"
+	if scoringSettings, ok := league["scoring_settings"].(map[string]interface{}); ok {
+		if rec, ok := scoringSettings["rec"].(float64); ok {
+			if rec == 0.5 {
+				scoring = "Half PPR"
+			} else if rec == 0.0 {
+				scoring = "Standard"
+			}
+		}
+	}
+	return scoring
+}
+
 // parseCSVLine parses a CSV line handling quoted fields
 func parseCSVLine(line string) []string {
 	var fields []string
