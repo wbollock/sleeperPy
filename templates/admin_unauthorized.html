@@ -3,33 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Unauthorized - SleeperPy</title>
+    <title>Admin Access Required - SleeperPy</title>
     <meta name="robots" content="noindex">
-    <link rel="stylesheet" href="/static/main.css?v=20260211d">
-    <link rel="stylesheet" href="/static/theme.css?v=20260211d">
+    <link rel="stylesheet" href="/static/app.css?v=20260809a">
 </head>
 <body>
-    <div class="admin-shell">
-        <header class="admin-header">
-            <h1>Admin Access Required</h1>
-            <p class="subtitle">Request blocked at {{.ServerTime}}</p>
-        </header>
+    {{template "qt-header" (dict "Username" "" "Active" "")}}
 
-        <div class="admin-card admin-section">
-            <h2 class="card-title">Why This Appears</h2>
-            <div class="stat-row">
-                <span class="stat-label">Status</span>
-                <span class="stat-value">Unauthorized (401)</span>
+    <main class="qt-page">
+        <h2 class="qt-page-title">Admin Access Required</h2>
+        <p class="qt-page-subtitle">Request blocked at {{.ServerTime}}</p>
+
+        <div class="qt-panel">
+            <h3 class="qt-panel-title">Why This Appears</h3>
+            <div class="qt-kv-row">
+                <span class="qt-kv-key">Status</span>
+                <span class="qt-kv-value">Unauthorized (401)</span>
             </div>
-            <div class="stat-row">
-                <span class="stat-label">Required</span>
-                <span class="stat-value">Valid admin key and allowed source IP</span>
+            <div class="qt-kv-row">
+                <span class="qt-kv-key">Required</span>
+                <span class="qt-kv-value">Valid admin key and allowed source IP</span>
             </div>
-            <div class="stat-row">
-                <span class="stat-label">Local Dev</span>
-                <span class="stat-value">Set `ADMIN_KEY` and (if using the default key) `ADMIN_ALLOW_INSECURE=1` plus `ADMIN_ALLOW_QUERY=1`, then append `?secret=...`</span>
+            <div class="qt-kv-row">
+                <span class="qt-kv-key">Local Dev</span>
+                <span class="qt-kv-value">Set `ADMIN_KEY` and (if using the default key) `ADMIN_ALLOW_INSECURE=1` plus `ADMIN_ALLOW_QUERY=1`, then append `?secret=...`</span>
             </div>
         </div>
-    </div>
+    </main>
 </body>
 </html>

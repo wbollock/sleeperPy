@@ -6,39 +6,20 @@
     <title>FAQ - SleeperPy</title>
     <meta name="description" content="Frequently asked questions about SleeperPy fantasy football tier analysis tool.">
     <link rel="manifest" href="/static/manifest.json">
-    <link rel="stylesheet" href="/static/main.css">
-    <link rel="stylesheet" href="/static/theme.css">
+    <link rel="stylesheet" href="/static/app.css?v=20260809a">
     <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
 </head>
 <body>
-    <header class="app-header">
-        <div class="header-content">
-            <div class="logo-section">
-                <a href="/" style="display:flex; align-items:center; gap:12px; text-decoration:none;">
-                    <svg class="logo-icon" width="32" height="32" viewBox="0 0 32 32" fill="none">
-                        <rect width="32" height="32" rx="8" fill="#0ea5e9"/>
-                        <path d="M16 8L22 12V20L16 24L10 20V12L16 8Z" fill="white"/>
-                        <circle cx="16" cy="16" r="3" fill="#0ea5e9"/>
-                    </svg>
-                    <h1 style="color:#f1f5f9; margin:0;">SleeperPy</h1>
-                </a>
-            </div>
-            <div class="theme-toggle">
-                <button class="theme-option active" data-theme="" onclick="switchTheme('')" title="Default">🌙</button>
-                <button class="theme-option" data-theme="dark" onclick="switchTheme('dark')" title="Dark">🌑</button>
-                <button class="theme-option" data-theme="light" onclick="switchTheme('light')" title="Light">☀️</button>
-            </div>
-        </div>
-    </header>
+    {{template "qt-header" (dict "Username" "" "Active" "faq")}}
 
-    <div class="privacy-container">
-        <h2>Frequently Asked Questions</h2>
+    <main class="qt-page">
+        <h2 class="qt-page-title">Frequently Asked Questions</h2>
 
-        <div class="privacy-section">
+        <div class="qt-panel qt-prose">
             <h3>What are tiers and how do they work?</h3>
             <p>
                 Tiers are groupings of players based on expert consensus rankings, created by
-                <a href="https://www.borischen.co/" target="_blank" rel="noopener" style="color:#7bb0ff;">Boris Chen</a>.
+                <a href="https://www.borischen.co/" target="_blank" rel="noopener">Boris Chen</a>.
                 Players in the same tier are expected to perform similarly that week.
                 For example, all Tier 1 QBs are roughly equivalent, and significantly better than Tier 3 QBs.
             </p>
@@ -48,7 +29,7 @@
             </p>
         </div>
 
-        <div class="privacy-section">
+        <div class="qt-panel qt-prose">
             <h3>How do I find my Sleeper username?</h3>
             <p>
                 Open the Sleeper app, go to <strong>Settings</strong> (gear icon), and look for your username near the top of the page.
@@ -56,11 +37,11 @@
             </p>
             <p>
                 For more details, see
-                <a href="https://support.sleeper.com/en/articles/1876011-account-settings" target="_blank" rel="noopener" style="color:#7bb0ff;">Sleeper's account settings guide</a>.
+                <a href="https://support.sleeper.com/en/articles/1876011-account-settings" target="_blank" rel="noopener">Sleeper's account settings guide</a>.
             </p>
         </div>
 
-        <div class="privacy-section">
+        <div class="qt-panel qt-prose">
             <h3>How often do tiers update?</h3>
             <p>
                 Boris Chen's tiers are updated weekly during the NFL season, typically by Wednesday.
@@ -71,7 +52,7 @@
             </p>
         </div>
 
-        <div class="privacy-section">
+        <div class="qt-panel qt-prose">
             <h3>What's the difference between Standard, Half PPR, and PPR?</h3>
             <p>
                 These are scoring formats that affect how players are ranked:
@@ -87,7 +68,7 @@
             </p>
         </div>
 
-        <div class="privacy-section">
+        <div class="qt-panel qt-prose">
             <h3>What is dynasty mode?</h3>
             <p>
                 Dynasty mode provides analysis tools for dynasty (keeper) leagues where you keep players across seasons.
@@ -106,11 +87,11 @@
             </p>
         </div>
 
-        <div class="privacy-section">
+        <div class="qt-panel qt-prose">
             <h3>How are dynasty values calculated?</h3>
             <p>
                 Dynasty values come from
-                <a href="https://dynastyprocess.com" target="_blank" rel="noopener" style="color:#7bb0ff;">DynastyProcess</a>,
+                <a href="https://dynastyprocess.com" target="_blank" rel="noopener">DynastyProcess</a>,
                 which aggregates multiple dynasty ranking sources. Values are on a 0-10,000 scale and are updated regularly.
             </p>
             <p>
@@ -119,18 +100,18 @@
             </p>
         </div>
 
-        <div class="privacy-section">
+        <div class="qt-panel qt-prose">
             <h3>What do the colored indicators mean?</h3>
             <ul>
-                <li><strong style="color:#ffc83a;">&#9733; Gold star</strong> &mdash; Tier 1 player (elite)</li>
-                <li><strong style="color:#3ae87a;">Green highlight</strong> &mdash; Free agent upgrade available</li>
-                <li><strong style="color:#ff7b7b;">Red highlight</strong> &mdash; Starter with a better bench alternative</li>
-                <li><strong style="color:#7bb0ff;">Blue FLEX badge</strong> &mdash; Player ranked using FLEX tier</li>
-                <li><strong style="color:#7bb0ff;">&#8644; Swap icon</strong> &mdash; Bench player better than a current starter</li>
+                <li><strong>Gold star</strong> &mdash; Tier 1 player (elite)</li>
+                <li><strong>Green highlight</strong> &mdash; Free agent upgrade available</li>
+                <li><strong>Red highlight</strong> &mdash; Starter with a better bench alternative</li>
+                <li><strong>Blue FLEX badge</strong> &mdash; Player ranked using FLEX tier</li>
+                <li><strong>Swap icon</strong> &mdash; Bench player better than a current starter</li>
             </ul>
         </div>
 
-        <div class="privacy-section">
+        <div class="qt-panel qt-prose">
             <h3>Why don't I see my league?</h3>
             <p>Possible reasons:</p>
             <ul>
@@ -144,49 +125,19 @@
             </p>
         </div>
 
-        <div class="privacy-section">
+        <div class="qt-panel qt-prose">
             <h3>How do I report a bug or request a feature?</h3>
             <p>
-                Please <a href="https://github.com/wbollock/sleeperPy/issues" target="_blank" rel="noopener" style="color:#7bb0ff;">open an issue on GitHub</a>.
+                Please <a href="https://github.com/wbollock/sleeperPy/issues" target="_blank" rel="noopener">open an issue on GitHub</a>.
                 Include as much detail as possible: your username, league name, what you expected vs what happened.
             </p>
         </div>
 
-        <div style="text-align:center; margin-top:40px;">
-            <a href="/" style="color:#7bb0ff; text-decoration:none; font-weight:600; font-size:1.1em;">
-                &larr; Back to Home
-            </a>
-        </div>
-    </div>
+        <a href="/" class="qt-back-link">&larr; Back to Home</a>
+    </main>
 
-    <script src="/static/theme.js"></script>
+    {{template "qt-footer" .}}
 
-    <style>
-        .app-header {
-            width: 100%;
-            background: linear-gradient(90deg, #1e293b 0%, #0ea5e9 100%);
-            padding: 20px 0;
-            border-bottom: 1px solid rgba(125, 211, 252, 0.1);
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
-        }
-        .app-header .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 0 24px;
-        }
-
-        @media (max-width: 768px) {
-            .app-header .header-content {
-                padding: 0 16px;
-            }
-
-            .app-header h1 {
-                font-size: 1.45em !important;
-            }
-        }
-    </style>
+    <script src="/static/theme.js?v=20260809a"></script>
 </body>
 </html>

@@ -429,6 +429,31 @@ body {
 	text-decoration: underline;
 }
 
+/* ---- Key/value rows (admin, unauthorized pages) ---- */
+
+.qt-kv-row {
+	display: flex;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 7px 0;
+	border-bottom: 1px solid var(--qt-border-light);
+	font-size: 0.85rem;
+}
+
+.qt-kv-row:last-child {
+	border-bottom: none;
+}
+
+.qt-kv-key {
+	color: var(--qt-text-muted);
+	flex: none;
+}
+
+.qt-kv-value {
+	font-weight: 600;
+	text-align: right;
+}
+
 /* ---- Stat tiles (status/admin pages) ---- */
 
 .qt-stat-grid {

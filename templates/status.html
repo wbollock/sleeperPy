@@ -5,48 +5,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Status - SleeperPy</title>
     <meta name="description" content="Public operational status for SleeperPy">
-    <link rel="stylesheet" href="/static/main.css?v=20260211d">
-    <link rel="stylesheet" href="/static/theme.css?v=20260211d">
+    <link rel="stylesheet" href="/static/app.css?v=20260809a">
 </head>
 <body>
-    <main style="max-width:900px;margin:0 auto;padding:24px;">
-        <header style="margin-bottom:20px;">
-            <h1 style="margin:0 0 8px 0;">SleeperPy Status</h1>
-            <p style="margin:0;color:var(--text-secondary);">Updated: {{.UpdatedAt}} | Uptime: {{.Uptime}}</p>
-        </header>
+    {{template "qt-header" (dict "Username" "" "Active" "")}}
 
-        <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:18px;">
-            <article style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:10px;padding:14px;">
-                <div style="font-size:0.8rem;color:var(--text-secondary);">Service</div>
-                <div style="font-size:1.4rem;font-weight:700;margin-top:4px;">{{.ServiceStatus}}</div>
-            </article>
-            <article style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:10px;padding:14px;">
-                <div style="font-size:0.8rem;color:var(--text-secondary);">Error Rate</div>
-                <div style="font-size:1.4rem;font-weight:700;margin-top:4px;">{{.ErrorRate}}</div>
-            </article>
-        </section>
+    <main class="qt-page">
+        <h2 class="qt-page-title">SleeperPy Status</h2>
+        <p class="qt-page-subtitle">Updated: {{.UpdatedAt}} &middot; Uptime: {{.Uptime}}</p>
 
-        <section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
-            <article style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:10px;padding:14px;">
-                <div style="font-size:0.8rem;color:var(--text-secondary);">Total Lookups</div>
-                <div style="font-size:1.2rem;font-weight:700;margin-top:4px;">{{printf "%.0f" .TotalLookups}}</div>
-                <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:4px;">{{printf "%.1f" .LookupsPerHour}}/hr since start</div>
-            </article>
-            <article style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:10px;padding:14px;">
-                <div style="font-size:0.8rem;color:var(--text-secondary);">Leagues Processed</div>
-                <div style="font-size:1.2rem;font-weight:700;margin-top:4px;">{{printf "%.0f" .TotalLeagues}}</div>
-                <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:4px;">{{printf "%.1f" .LeaguesPerHour}}/hr since start</div>
-            </article>
-            <article style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:10px;padding:14px;">
-                <div style="font-size:0.8rem;color:var(--text-secondary);">Total Errors</div>
-                <div style="font-size:1.2rem;font-weight:700;margin-top:4px;">{{printf "%.0f" .TotalErrors}}</div>
-                <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:4px;">Aggregate counter</div>
-            </article>
-        </section>
+        <div class="qt-stat-grid">
+            <div class="qt-stat-tile">
+                <div class="qt-stat-label">Service</div>
+                <div class="qt-stat-value">{{.ServiceStatus}}</div>
+            </div>
+            <div class="qt-stat-tile">
+                <div class="qt-stat-label">Error Rate</div>
+                <div class="qt-stat-value">{{.ErrorRate}}</div>
+            </div>
+        </div>
 
-        <p style="margin-top:18px;font-size:0.85rem;color:var(--text-secondary);">
+        <div class="qt-stat-grid">
+            <div class="qt-stat-tile">
+                <div class="qt-stat-label">Total Lookups</div>
+                <div class="qt-stat-value">{{printf "%.0f" .TotalLookups}}</div>
+                <div class="qt-stat-sub">{{printf "%.1f" .LookupsPerHour}}/hr since start</div>
+            </div>
+            <div class="qt-stat-tile">
+                <div class="qt-stat-label">Leagues Processed</div>
+                <div class="qt-stat-value">{{printf "%.0f" .TotalLeagues}}</div>
+                <div class="qt-stat-sub">{{printf "%.1f" .LeaguesPerHour}}/hr since start</div>
+            </div>
+            <div class="qt-stat-tile">
+                <div class="qt-stat-label">Total Errors</div>
+                <div class="qt-stat-value">{{printf "%.0f" .TotalErrors}}</div>
+                <div class="qt-stat-sub">Aggregate counter</div>
+            </div>
+        </div>
+
+        <p class="qt-stat-sub">
             This page is intentionally sanitized and does not include raw error details, user agents, path-level traffic, or admin-only diagnostics.
         </p>
     </main>
+
+    {{template "qt-footer" .}}
 </body>
 </html>
