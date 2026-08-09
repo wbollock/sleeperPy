@@ -505,6 +505,120 @@ body {
 	text-align: right;
 }
 
+/* ---- Form fields ---- */
+
+.qt-field {
+	display: block;
+	width: 100%;
+	font-family: var(--qt-font);
+	font-size: 0.9rem;
+	padding: 8px 10px;
+	border: 1px solid var(--qt-border);
+	border-radius: var(--qt-radius);
+	background: var(--qt-base);
+	color: var(--qt-text);
+}
+
+.qt-field:focus {
+	outline: 2px solid var(--qt-focus);
+	outline-offset: -1px;
+}
+
+.qt-field-label {
+	display: block;
+	font-size: 0.8rem;
+	font-weight: 600;
+	color: var(--qt-text-muted);
+	margin-bottom: 6px;
+}
+
+/* ---- Hero (landing page) ---- */
+
+.qt-hero {
+	max-width: 640px;
+	margin: 0 auto;
+	text-align: center;
+	padding: 40px 20px 8px;
+}
+
+.qt-hero-title {
+	font-size: 1.6rem;
+	font-weight: 700;
+	margin: 0 0 10px 0;
+}
+
+.qt-hero-subtitle {
+	color: var(--qt-text-muted);
+	line-height: 1.5;
+	margin: 0 0 24px 0;
+}
+
+.qt-hero-form {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 12px;
+	max-width: 360px;
+	margin: 0 auto;
+}
+
+.qt-hero-actions {
+	display: flex;
+	gap: 8px;
+	justify-content: center;
+	flex-wrap: wrap;
+}
+
+.qt-help-text {
+	margin-top: 16px;
+	font-size: 0.82rem;
+	color: var(--qt-text-muted);
+}
+
+.qt-help-text a {
+	color: var(--qt-accent);
+}
+
+/* ---- Feature grid ---- */
+
+.qt-feature-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 12px;
+	max-width: 900px;
+	margin: 32px auto 0;
+	padding: 0 20px;
+}
+
+.qt-feature-title {
+	font-size: 0.95rem;
+	font-weight: 700;
+	margin: 0 0 6px 0;
+}
+
+.qt-feature-desc {
+	font-size: 0.85rem;
+	color: var(--qt-text-muted);
+	line-height: 1.5;
+	margin: 0;
+}
+
+/* ---- Spinner ---- */
+
+.qt-spinner {
+	width: 28px;
+	height: 28px;
+	border: 3px solid var(--qt-border);
+	border-top-color: var(--qt-accent);
+	border-radius: 50%;
+	margin: 0 auto 12px;
+	animation: qt-spin 0.7s linear infinite;
+}
+
+@keyframes qt-spin {
+	to { transform: rotate(360deg); }
+}
+
 /* ---- Stat tiles (status/admin pages) ---- */
 
 .qt-stat-grid {
