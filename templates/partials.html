@@ -1,0 +1,57 @@
+{{define "qt-header"}}
+<header class="qt-titlebar" role="banner">
+	<div class="qt-titlebar-row">
+		<a href="/" class="qt-brand">
+			<span class="qt-brand-mark" aria-hidden="true">S</span>
+			<span class="qt-brand-name">SleeperPy</span>
+		</a>
+		<div class="qt-titlebar-actions">
+			<div class="qt-theme-switch" role="group" aria-label="Theme">
+				<button class="theme-option active" data-theme="" onclick="switchTheme('')" title="Follow system theme">Sys</button>
+				<button class="theme-option" data-theme="dark" onclick="switchTheme('dark')" title="Dark theme">Dark</button>
+				<button class="theme-option" data-theme="light" onclick="switchTheme('light')" title="Light theme">Light</button>
+			</div>
+			{{if .Username}}
+			<div class="qt-user">
+				<span class="qt-user-name">{{.Username}}</span>
+				<a href="/signout" class="qt-btn">Sign Out</a>
+			</div>
+			{{end}}
+		</div>
+	</div>
+	<nav class="qt-menubar" aria-label="Primary">
+		<a href="/"{{if eq .Active "home"}} class="active"{{end}}>Home</a>
+		{{if .Username}}<a href="/dashboard?user={{.Username}}"{{if eq .Active "dashboard"}} class="active"{{end}}>Dashboard</a>{{end}}
+		<a href="/roadmap"{{if eq .Active "roadmap"}} class="active"{{end}}>Roadmap</a>
+		<a href="/about"{{if eq .Active "about"}} class="active"{{end}}>About</a>
+		<a href="/faq"{{if eq .Active "faq"}} class="active"{{end}}>FAQ</a>
+	</nav>
+</header>
+{{end}}
+
+{{define "qt-footer"}}
+<footer class="qt-statusbar">
+	<div class="qt-statusbar-row">
+		<div class="qt-statusbar-links">
+			<a href="https://www.borischen.co/" target="_blank" rel="noopener">Boris Chen Tiers</a>
+			<span class="qt-statusbar-sep">&middot;</span>
+			<a href="https://github.com/wbollock/sleeperPy" target="_blank" rel="noopener">GitHub</a>
+			<span class="qt-statusbar-sep">&middot;</span>
+			<a href="/roadmap">Planned Features</a>
+			<span class="qt-statusbar-sep">&middot;</span>
+			<a href="/privacy">Privacy</a>
+			<span class="qt-statusbar-sep">&middot;</span>
+			<a href="/terms">Terms</a>
+			<span class="qt-statusbar-sep">&middot;</span>
+			<a href="/about">About</a>
+			<span class="qt-statusbar-sep">&middot;</span>
+			<a href="/faq">FAQ</a>
+		</div>
+		<div class="qt-statusbar-links">
+			<a href="https://buymeacoffee.com/wbollock" target="_blank" rel="noopener">Buy Me a Coffee</a>
+			<span class="qt-statusbar-sep">&middot;</span>
+			<span>Data from Boris Chen &amp; DynastyProcess</span>
+		</div>
+	</div>
+</footer>
+{{end}}
