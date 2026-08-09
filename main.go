@@ -48,6 +48,12 @@ var adpTiersCache = &tiersCache{
 	ttl:       15 * time.Minute,
 }
 
+var draftKitCache = &draftKitTierCache{
+	data:      make(map[string][][]string),
+	timestamp: make(map[string]time.Time),
+	ttl:       1 * time.Hour, // Pre-draft content, changes far less than weekly tiers
+}
+
 var dynastyValuesCache = &dynastyCache{
 	data: make(map[string]DynastyValue),
 	ttl:  24 * time.Hour, // Cache for 24 hours (values don't change frequently)
@@ -314,6 +320,7 @@ func main() {
 	http.Handle("/lookup", wrapHandler("lookup", lookupHandler))
 	http.Handle("/dashboard", wrapHandler("dashboard", dashboardHandler))
 	http.Handle("/settings", wrapHandler("settings", settingsHandler))
+	http.Handle("/draft-kit", wrapHandler("draft_kit", draftKitHandler))
 	http.Handle("/signout", wrapHandler("signout", signoutHandler))
 	http.Handle("/privacy", wrapHandler("privacy", privacyHandler))
 	http.Handle("/terms", wrapHandler("terms", termsHandler))

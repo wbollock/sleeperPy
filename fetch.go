@@ -451,23 +451,7 @@ func fetchBorisTiersImpl(scoring string) map[string][][]string {
 				return
 			}
 
-			var posTiers [][]string
-			lines := strings.Split(string(body), "\n")
-			for _, line := range lines {
-				if strings.HasPrefix(line, "Tier ") {
-					tierContent := strings.TrimPrefix(line, "Tier ")
-					parts := strings.SplitN(tierContent, ":", 2)
-					if len(parts) < 2 {
-						continue
-					}
-					tier := strings.TrimSpace(parts[1])
-					names := strings.Split(tier, ",")
-					for j := range names {
-						names[j] = strings.TrimSpace(names[j])
-					}
-					posTiers = append(posTiers, names)
-				}
-			}
+			posTiers := parseBorisTierText(body)
 
 			mu.Lock()
 			out[position] = posTiers
@@ -484,6 +468,109 @@ func fetchBorisTiersImpl(scoring string) map[string][][]string {
 	borisTiersCache.Unlock()
 
 	return out
+}
+
+// parseBorisTierText parses Boris Chen's "Tier N: Name, Name, ..." text
+// format, shared by both the per-position weekly tiers and the combined
+// cross-position draft kit tiers (same format, different files).
+func parseBorisTierText(body []byte) [][]string {
+	var tiers [][]string
+	lines := strings.Split(string(body), "\n")
+	for _, line := range lines {
+		if !strings.HasPrefix(line, "Tier ") {
+			continue
+		}
+		tierContent := strings.TrimPrefix(line, "Tier ")
+		parts := strings.SplitN(tierContent, ":", 2)
+		if len(parts) < 2 {
+			continue
+		}
+		tier := strings.TrimSpace(parts[1])
+		names := strings.Split(tier, ",")
+		for j := range names {
+			names[j] = strings.TrimSpace(names[j])
+		}
+		tiers = append(tiers, names)
+	}
+	return tiers
+}
+
+// draftKitURLs holds Boris Chen's combined cross-position "Draft Kit" tier
+// files -- unlike the weekly per-position tiers, these rank every skill
+// position on one board for pre-draft cheat-sheet use. Each scoring format
+// has 3 variants ("adjust" 0/1/2); Boris Chen's site doesn't document the
+// exact difference between them, so the app just labels them neutrally.
+// These URLs are fetched live -- whenever Boris Chen republishes them for a
+// new season, this app picks it up automatically with no code change.
+var draftKitURLs = map[string]map[int]string{
+	"Standard": {
+		0: "https://s3-us-west-1.amazonaws.com/fftiers/out/text_ALL-adjust0.txt",
+		1: "https://s3-us-west-1.amazonaws.com/fftiers/out/text_ALL-adjust1.txt",
+		2: "https://s3-us-west-1.amazonaws.com/fftiers/out/text_ALL-adjust2.txt",
+	},
+	"PPR": {
+		0: "https://s3-us-west-1.amazonaws.com/fftiers/out/text_ALL-PPR-adjust0.txt",
+		1: "https://s3-us-west-1.amazonaws.com/fftiers/out/text_ALL-PPR-adjust1.txt",
+		2: "https://s3-us-west-1.amazonaws.com/fftiers/out/text_ALL-PPR-adjust2.txt",
+	},
+	"Half PPR": {
+		0: "https://s3-us-west-1.amazonaws.com/fftiers/out/text_ALL-HALF-PPR-adjust0.txt",
+		1: "https://s3-us-west-1.amazonaws.com/fftiers/out/text_ALL-HALF-PPR-adjust1.txt",
+		2: "https://s3-us-west-1.amazonaws.com/fftiers/out/text_ALL-HALF-PPR-adjust2.txt",
+	},
+}
+
+// fetchDraftKitTiers is a variable to allow mocking in tests
+var fetchDraftKitTiers = func(scoring string, adjust int) [][]string {
+	return fetchDraftKitTiersImpl(scoring, adjust)
+}
+
+func fetchDraftKitTiersImpl(scoring string, adjust int) [][]string {
+	key := fmt.Sprintf("%s:%d", scoring, adjust)
+
+	draftKitCache.RLock()
+	if cached, exists := draftKitCache.data[key]; exists {
+		if time.Since(draftKitCache.timestamp[key]) < draftKitCache.ttl {
+			draftKitCache.RUnlock()
+			return cached
+		}
+	}
+	draftKitCache.RUnlock()
+
+	urls, ok := draftKitURLs[scoring]
+	if !ok {
+		debugLog("[DEBUG] Unknown draft kit scoring format %q", scoring)
+		return nil
+	}
+	url, ok := urls[adjust]
+	if !ok {
+		debugLog("[DEBUG] Unknown draft kit adjust level %d", adjust)
+		return nil
+	}
+
+	debugLog("[DEBUG] Fetching fresh draft kit tiers for %s", key)
+
+	resp, err := httpClient.Get(url)
+	if err != nil {
+		debugLog("[DEBUG] Failed to fetch draft kit tiers (%s): %v", key, err)
+		return nil
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		debugLog("[DEBUG] Failed to read draft kit tiers (%s): %v", key, err)
+		return nil
+	}
+
+	tiers := parseBorisTierText(body)
+
+	draftKitCache.Lock()
+	draftKitCache.data[key] = tiers
+	draftKitCache.timestamp[key] = time.Now()
+	draftKitCache.Unlock()
+
+	return tiers
 }
 
 // ffcScoringParam maps the app's scoring format names to FantasyFootballCalculator's

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Draft Kit - SleeperPy</title>
+    <meta name="description" content="Pre-draft cheat sheet: Boris Chen's combined cross-position tier board">
+    <link rel="stylesheet" href="/static/app.css?v=20260809a">
+    <link rel="stylesheet" href="/static/tiers.css?v=20260809a">
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <style>
+        .draft-kit-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 24px 20px 60px;
+        }
+        .draft-kit-desc {
+            font-size: 0.88rem;
+            color: var(--qt-text-muted);
+            margin: -8px 0 18px 0;
+            line-height: 1.5;
+        }
+        .draft-kit-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .draft-kit-tabs a {
+            padding: 6px 12px;
+            border: 1px solid var(--qt-border);
+            border-radius: var(--qt-radius);
+            font-size: 0.85rem;
+            color: var(--qt-text);
+            text-decoration: none;
+        }
+        .draft-kit-tabs a:hover {
+            background: var(--qt-alt-base);
+        }
+        .draft-kit-tabs a.active {
+            background: var(--qt-accent);
+            border-color: var(--qt-accent);
+            color: var(--qt-accent-fg);
+        }
+        .draft-kit-tabs-group {
+            margin-bottom: 14px;
+        }
+        .draft-kit-tabs-label {
+            display: block;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--qt-text-muted);
+            margin-bottom: 6px;
+        }
+        .draft-kit-tier {
+            margin-bottom: 12px;
+        }
+        .draft-kit-tier-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin: 0 0 8px 0;
+        }
+        .draft-kit-players {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .draft-kit-player {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 5px;
+            padding: 5px 10px;
+            background: var(--qt-alt-base);
+            border: 1px solid var(--qt-border-light);
+            border-radius: var(--qt-radius);
+            font-size: 0.85rem;
+        }
+        .draft-kit-player-pos {
+            font-size: 0.7em;
+            font-weight: 700;
+            color: var(--qt-text-muted);
+        }
+        .draft-kit-tier.tier1 .draft-kit-tier-title {
+            color: var(--qt-accent);
+        }
+    </style>
+</head>
+<body>
+    {{template "qt-header" (dict "Username" .Username "Active" "draft-kit")}}
+
+    <main class="draft-kit-container">
+        <h2 class="qt-page-title">Draft Kit</h2>
+        <p class="draft-kit-desc">
+            One board ranking every skill position together, for pre-draft cheat-sheet use -- unlike the weekly
+            tiers elsewhere in the app, which only rank within a position. Sourced live from
+            <a href="https://www.borischen.co/p/draft-kit.html" target="_blank" rel="noopener">Boris Chen's Draft Kit</a>,
+            so this updates automatically whenever he republishes it for the new season.
+        </p>
+
+        <div class="draft-kit-tabs-group">
+            <span class="draft-kit-tabs-label">Scoring format</span>
+            <div class="draft-kit-tabs">
+                <a href="/draft-kit?user={{.Username}}&scoring=PPR&adjust={{.Adjust}}"{{if eq .Scoring "PPR"}} class="active"{{end}}>PPR</a>
+                <a href="/draft-kit?user={{.Username}}&scoring=Half+PPR&adjust={{.Adjust}}"{{if eq .Scoring "Half PPR"}} class="active"{{end}}>Half PPR</a>
+                <a href="/draft-kit?user={{.Username}}&scoring=Standard&adjust={{.Adjust}}"{{if eq .Scoring "Standard"}} class="active"{{end}}>Standard</a>
+            </div>
+        </div>
+
+        <div class="draft-kit-tabs-group">
+            <span class="draft-kit-tabs-label">View (Boris Chen publishes 3 unlabeled variants of the combined board -- try another if one looks off)</span>
+            <div class="draft-kit-tabs">
+                <a href="/draft-kit?user={{.Username}}&scoring={{.Scoring}}&adjust=0"{{if eq .Adjust 0}} class="active"{{end}}>View 1</a>
+                <a href="/draft-kit?user={{.Username}}&scoring={{.Scoring}}&adjust=1"{{if eq .Adjust 1}} class="active"{{end}}>View 2</a>
+                <a href="/draft-kit?user={{.Username}}&scoring={{.Scoring}}&adjust=2"{{if eq .Adjust 2}} class="active"{{end}}>View 3</a>
+            </div>
+        </div>
+
+        {{if .Empty}}
+        <div class="qt-panel">
+            <p class="qt-stat-sub" style="margin:0;">Couldn't load the draft kit right now -- Boris Chen's site may be temporarily unavailable. Try again in a few minutes.</p>
+        </div>
+        {{else}}
+        <div class="qt-panel">
+            {{range .Tiers}}
+            <div class="draft-kit-tier{{if eq .Number 1}} tier1{{end}}">
+                <h3 class="draft-kit-tier-title">Tier {{.Number}}</h3>
+                <div class="draft-kit-players">
+                    {{range .Players}}
+                    <span class="draft-kit-player">{{.Name}}{{if .Position}} <span class="draft-kit-player-pos">{{.Position}}</span>{{end}}</span>
+                    {{end}}
+                </div>
+            </div>
+            {{end}}
+        </div>
+        {{end}}
+    </main>
+
+    {{template "qt-footer" .}}
+</body>
+</html>

@@ -22,6 +22,7 @@
 	<nav class="qt-menubar" aria-label="Primary">
 		<a href="/"{{if eq .Active "home"}} class="active"{{end}}>Home</a>
 		{{if .Username}}<a href="/dashboard?user={{.Username}}"{{if eq .Active "dashboard"}} class="active"{{end}}>Dashboard</a>{{end}}
+		<a href="/draft-kit{{if .Username}}?user={{.Username}}{{end}}"{{if eq .Active "draft-kit"}} class="active"{{end}}>Draft Kit</a>
 		{{if .Username}}<a href="/settings?user={{.Username}}"{{if eq .Active "settings"}} class="active"{{end}}>Settings</a>{{end}}
 		<a href="/roadmap"{{if eq .Active "roadmap"}} class="active"{{end}}>Roadmap</a>
 		<a href="/about"{{if eq .Active "about"}} class="active"{{end}}>About</a>

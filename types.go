@@ -48,6 +48,15 @@ type trendingCache struct {
 	ttl       time.Duration
 }
 
+// Cache for the combined cross-position draft kit tiers, keyed by
+// "scoring:adjust" (e.g. "PPR:0")
+type draftKitTierCache struct {
+	sync.RWMutex
+	data      map[string][][]string
+	timestamp map[string]time.Time
+	ttl       time.Duration
+}
+
 // Cache for NFL bye weeks, keyed by season year
 type byeWeekCache struct {
 	sync.RWMutex
@@ -396,6 +405,24 @@ type TiersPage struct {
 	AIEnabled   bool   // true if OPENROUTER_API_KEY is configured
 	AIOverview  string // AI-generated all-teams overview, if requested
 	IsOffseason bool   // more than a week out from the regular season start
+}
+
+type DraftKitPlayer struct {
+	Name     string
+	Position string // "" if the player couldn't be matched in the Sleeper players list
+}
+
+type DraftKitTier struct {
+	Number  int
+	Players []DraftKitPlayer
+}
+
+type DraftKitPage struct {
+	Username string
+	Scoring  string // "PPR", "Half PPR", "Standard"
+	Adjust   int    // 0, 1, or 2 -- Boris Chen's 3 unlabeled variants
+	Tiers    []DraftKitTier
+	Empty    bool // true if the fetch failed/returned nothing, for an explanatory empty state
 }
 
 type SettingsPage struct {
