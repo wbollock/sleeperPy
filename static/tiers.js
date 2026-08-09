@@ -297,7 +297,33 @@ function searchPlayers(leagueIndex) {
     });
 }
 
+// Jump to a specific league via #league-<leagueID> (used by dashboard action
+// links, which don't know the on-page tab index -- only the Sleeper league ID).
+function selectLeagueFromHash() {
+    if (!location.hash.startsWith('#league-')) return false;
+    const anchor = document.querySelector(location.hash);
+    const targetId = anchor && anchor.dataset.target;
+    const targetEl = targetId && document.getElementById(targetId);
+    if (!targetEl) return false;
+
+    document.querySelectorAll('.league-content').forEach(div => div.style.display = 'none');
+    targetEl.style.display = 'block';
+
+    const leagueOption = document.querySelector(`.league-option[data-league-id="${targetId}"]`);
+    if (leagueOption) {
+        document.querySelectorAll('.league-option').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll(`.league-option[data-league-id="${targetId}"]`).forEach(btn => btn.classList.add('active'));
+        const nameEl = document.getElementById('currentLeagueName');
+        if (nameEl) nameEl.textContent = leagueOption.dataset.leagueName;
+    }
+
+    localStorage.setItem('sleeperpy_last_league', targetId);
+    return true;
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
-    restoreLastLeague();
+    if (!selectLeagueFromHash()) {
+        restoreLastLeague();
+    }
 });

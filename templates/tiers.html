@@ -129,6 +129,7 @@
 {{end}}
 <div class="league-contents">
     {{range $i, $l := .Leagues}}
+        <a id="league-{{$l.LeagueID}}" data-target="league{{$i}}" aria-hidden="true"></a>
         <div class="league-content" id="league{{$i}}" style="display:{{if eq $i 0}}block{{else}}none{{end}};">
             <div class="league-info-bar">
                 <div class="league-meta">

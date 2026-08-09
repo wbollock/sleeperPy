@@ -113,6 +113,65 @@
             width: 100%;
         }
 
+        .action-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .action-feed-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border: 1px solid var(--qt-border-light);
+            border-radius: var(--qt-radius);
+            text-decoration: none;
+            color: var(--qt-text);
+        }
+
+        .action-feed-item:hover {
+            background: var(--qt-alt-base);
+            border-color: var(--qt-border);
+        }
+
+        .action-feed-league {
+            flex: none;
+            white-space: nowrap;
+        }
+
+        .action-feed-body {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 10px;
+            font-size: 0.85rem;
+        }
+
+        .action-feed-desc {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .action-feed-impact {
+            flex: none;
+            color: var(--qt-ok);
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        @media (max-width: 600px) {
+            .action-feed-item {
+                flex-wrap: wrap;
+            }
+            .action-feed-desc {
+                white-space: normal;
+            }
+        }
+
         @media (max-width: 768px) {
             .dashboard-container {
                 padding: 16px 14px;
@@ -139,6 +198,23 @@
                 {{if gt .RedraftCount 0}}<span>{{.RedraftCount}} redraft</span>{{end}}
             </div>
         </div>
+
+        {{if .ActionFeed}}
+        <div class="qt-panel" style="margin-bottom:20px;">
+            <h3 class="qt-panel-title">This Week Across Your Leagues</h3>
+            <div class="action-feed">
+                {{range .ActionFeed}}
+                <a class="action-feed-item" href="/lookup?username={{$.Username}}#league-{{.LeagueID}}">
+                    <span class="qt-tag action-feed-league">{{.LeagueName}}</span>
+                    <span class="action-feed-body">
+                        <span class="action-feed-desc">{{.Description}}</span>
+                        <span class="action-feed-impact">{{.Impact}}</span>
+                    </span>
+                </a>
+                {{end}}
+            </div>
+        </div>
+        {{end}}
 
         <div class="leagues-grid">
             {{range .LeagueSummaries}}

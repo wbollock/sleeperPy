@@ -25,8 +25,8 @@ var adminMetrics = struct {
 	startTime      time.Time
 	pageViews      map[string]int64 // path -> count
 	userAgents     map[string]int64 // user agent -> count
-	activeUsers    int64             // users in last 24h
-	dynastyPercent float64           // % of leagues that are dynasty
+	activeUsers    int64            // users in last 24h
+	dynastyPercent float64          // % of leagues that are dynasty
 	errorLog       []ErrorLog
 }{
 	startTime:  time.Now(),
@@ -44,18 +44,18 @@ type ErrorLog struct {
 
 type AdminData struct {
 	// Server Info
-	Uptime          string
-	GoVersion       string
-	Goroutines      int
-	MemoryUsage     string
-	ServerTime      string
+	Uptime      string
+	GoVersion   string
+	Goroutines  int
+	MemoryUsage string
+	ServerTime  string
 
 	// Metrics from Prometheus
-	TotalVisitors  float64
-	TotalLookups   float64
-	TotalLeagues   float64
-	TotalTeams     float64
-	TotalErrors    float64
+	TotalVisitors float64
+	TotalLookups  float64
+	TotalLeagues  float64
+	TotalTeams    float64
+	TotalErrors   float64
 
 	// Rate metrics (calculated)
 	LookupsPerHour float64

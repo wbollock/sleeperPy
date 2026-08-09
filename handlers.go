@@ -1336,6 +1336,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		leagueData := LeagueData{
+			LeagueID:             leagueID,
 			LeagueName:           leagueName,
 			Scoring:              scoring,
 			IsDynasty:            isDynasty,
@@ -1566,8 +1567,18 @@ func buildDashboardPage(username string) (*DashboardPage, error) {
 		dynastyValues, _ = fetchDynastyValues()
 	}
 
-	// 5. Build summary for each league
+	// 5. Get current NFL week so we can compute cross-league actions below.
+	// If this fails, the dashboard still renders -- just without the action feed.
+	week := 0
+	if state, err := appProvider.FetchNFLState(); err == nil {
+		if w, ok := state["week"].(float64); ok {
+			week = int(w)
+		}
+	}
+
+	// 6. Build summary for each league
 	var summaries []LeagueSummary
+	var actionFeed []Action
 	dynastyCount := 0
 	redraftCount := 0
 
@@ -1660,6 +1671,37 @@ func buildDashboardPage(username string) (*DashboardPage, error) {
 			debugLog("[DEBUG] User roster not found in league %s", leagueName)
 			summaries = append(summaries, summary)
 			continue
+		}
+
+		// Cross-league start/sit actions, using the same tier logic as the
+		// per-league page. Waiver and trade actions stay per-league only for
+		// now (they'd need a full free-agent fetch per league here).
+		if week > 0 {
+			if matchups, err := appProvider.FetchLeagueMatchups(leagueID, week); err == nil && len(matchups) > 0 {
+				var leagueRosterPositions []string
+				if rp, ok := league["roster_positions"].([]interface{}); ok {
+					for _, pos := range rp {
+						if posStr, ok := pos.(string); ok {
+							leagueRosterPositions = append(leagueRosterPositions, posStr)
+						}
+					}
+				}
+				borisTiers := fetchBorisTiers(scoring)
+				starters, bench, irPlayers := splitRosterForTiering(userRoster)
+				tiered := buildTieredRoster(starters, bench, irPlayers, players, borisTiers, leagueRosterPositions)
+				leagueActions := buildWeeklyActions(LeagueData{
+					Starters:    tiered.StartersRows,
+					Bench:       tiered.BenchRows,
+					HasMatchups: true,
+					IsDynasty:   isDynasty,
+				})
+				for i := range leagueActions {
+					leagueActions[i].LeagueID = leagueID
+					leagueActions[i].LeagueName = leagueName
+				}
+				summary.ActionCount = len(leagueActions)
+				actionFeed = append(actionFeed, leagueActions...)
+			}
 		}
 
 		// Get user's record (wins/losses)
@@ -1774,12 +1816,21 @@ func buildDashboardPage(username string) (*DashboardPage, error) {
 		return summaries[i].LeagueName < summaries[j].LeagueName
 	})
 
+	sort.Slice(actionFeed, func(i, j int) bool {
+		return actionFeed[i].Priority < actionFeed[j].Priority
+	})
+	const maxDashboardActions = 15
+	if len(actionFeed) > maxDashboardActions {
+		actionFeed = actionFeed[:maxDashboardActions]
+	}
+
 	return &DashboardPage{
 		Username:        username,
 		LeagueSummaries: summaries,
 		TotalLeagues:    len(summaries),
 		DynastyCount:    dynastyCount,
 		RedraftCount:    redraftCount,
+		ActionFeed:      actionFeed,
 	}, nil
 }
 

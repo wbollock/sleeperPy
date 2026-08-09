@@ -256,6 +256,11 @@ type Action struct {
 	Link        string // "#player-name" anchor link
 	Completed   bool   // User checked it off
 	WeekID      string // "2026-W14" for persistence
+
+	// Set only when an action is aggregated across leagues (dashboard feed).
+	// Empty on the per-league tiers page since the league is already the context.
+	LeagueID   string
+	LeagueName string
 }
 
 type WaiverRecommendation struct {
@@ -311,6 +316,7 @@ type RookieDraftNeed struct {
 }
 
 type LeagueData struct {
+	LeagueID              string
 	LeagueName            string
 	Scoring               string
 	IsDynasty             bool
@@ -400,6 +406,10 @@ type DashboardPage struct {
 	TotalLeagues    int
 	DynastyCount    int
 	RedraftCount    int
+
+	// Cross-league action feed: start/sit swaps (and more, over time) from
+	// every league, sorted by priority. Each Action carries LeagueName/ID.
+	ActionFeed []Action
 }
 
 // Cache for roster value trends (24h comparison)
