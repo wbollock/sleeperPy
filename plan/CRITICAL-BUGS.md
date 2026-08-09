@@ -299,7 +299,9 @@ allowlist was removed):
 12. Rookie Draft Needs
 
 Remaining open ideas: cross-platform provider abstraction (ESPN import
-exists, Yahoo import is a stub), league trend tracking across seasons.
+exists, Yahoo import is a stub), league trend tracking across seasons
+(see `plan/LEAGUE-TREND-TRACKING.md` -- needs a few decisions made
+before this one's ready to build).
 
 ---
 
