@@ -81,8 +81,11 @@ func TestBuildDashboardPageAggregatesActionFeed(t *testing.T) {
 				{},                      // Tier 2 (empty)
 				{"Starter Runningback"}, // Tier 3
 			},
-			"QB":  {{"Starter Quarterback"}},
-			"WR":  {{"Starter Wideout"}},
+			"QB": {{"Starter Quarterback"}},
+			"WR": {
+				{"Hot Waiver Add"},  // Tier 1 -- unrostered, should surface as a waiver target
+				{"Starter Wideout"}, // Tier 2
+			},
 			"TE":  {{"Starter Tightend"}},
 			"FLX": {},
 		}
@@ -95,6 +98,8 @@ func TestBuildDashboardPageAggregatesActionFeed(t *testing.T) {
 			"RB_BENCH":   map[string]interface{}{"first_name": "Bench", "last_name": "Runner", "position": "RB", "age": 24.0},
 			"WR1":        map[string]interface{}{"first_name": "Starter", "last_name": "Wideout", "position": "WR", "age": 25.0},
 			"TE1":        map[string]interface{}{"first_name": "Starter", "last_name": "Tightend", "position": "TE", "age": 26.0},
+			// Not on any roster -- a free agent.
+			"FA_WR": map[string]interface{}{"first_name": "Hot", "last_name": "Waiver Add", "position": "WR", "team": "KC", "active": true},
 		},
 		timestamp: time.Now(),
 		ttl:       time.Hour,
@@ -109,18 +114,24 @@ func TestBuildDashboardPageAggregatesActionFeed(t *testing.T) {
 		t.Fatalf("expected at least one action in the feed, got none")
 	}
 
-	found := false
+	foundSwap := false
+	foundWaiver := false
 	for _, a := range page.ActionFeed {
-		if a.Category != "swap" {
-			continue
-		}
 		if a.LeagueID != "league1" || a.LeagueName != "Test League" {
 			t.Fatalf("action missing league context: %+v", a)
 		}
-		found = true
+		if a.Category == "swap" {
+			foundSwap = true
+		}
+		if a.Category == "waiver" {
+			foundWaiver = true
+		}
 	}
-	if !found {
+	if !foundSwap {
 		t.Fatalf("expected a swap action for the obviously-better bench RB, got: %+v", page.ActionFeed)
+	}
+	if !foundWaiver {
+		t.Fatalf("expected a waiver action for the unrostered Tier 1 WR, got: %+v", page.ActionFeed)
 	}
 
 	if len(page.LeagueSummaries) != 1 || page.LeagueSummaries[0].ActionCount == 0 {

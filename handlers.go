@@ -1689,9 +1689,10 @@ func buildDashboardPage(username string) (*DashboardPage, error) {
 			continue
 		}
 
-		// Cross-league start/sit actions, using the same tier logic as the
-		// per-league page. Waiver and trade actions stay per-league only for
-		// now (they'd need a full free-agent fetch per league here).
+		// Cross-league start/sit and waiver actions, using the same tier
+		// logic as the per-league page. Trade actions stay per-league only
+		// for now (findTradeTargets needs every other roster's dynasty
+		// value breakdown, which isn't computed on the dashboard).
 		if week > 0 {
 			if matchups, err := appProvider.FetchLeagueMatchups(leagueID, week); err == nil && len(matchups) > 0 {
 				var leagueRosterPositions []string
@@ -1705,11 +1706,21 @@ func buildDashboardPage(username string) (*DashboardPage, error) {
 				borisTiers := fetchBorisTiers(scoring)
 				starters, bench, irPlayers := splitRosterForTiering(userRoster)
 				tiered := buildTieredRoster(starters, bench, irPlayers, players, borisTiers, leagueRosterPositions)
+
+				rostered := make(map[string]bool)
+				for _, r := range rosters {
+					for _, pid := range toStringSlice(r["players"]) {
+						rostered[pid] = true
+					}
+				}
+				topFreeAgentsByValue := buildFreeAgentCandidates(players, rostered, borisTiers, 5)
+
 				leagueActions := buildWeeklyActions(LeagueData{
-					Starters:    tiered.StartersRows,
-					Bench:       tiered.BenchRows,
-					HasMatchups: true,
-					IsDynasty:   isDynasty,
+					Starters:             tiered.StartersRows,
+					Bench:                tiered.BenchRows,
+					TopFreeAgentsByValue: topFreeAgentsByValue,
+					HasMatchups:          true,
+					IsDynasty:            isDynasty,
 				})
 				for i := range leagueActions {
 					leagueActions[i].LeagueID = leagueID

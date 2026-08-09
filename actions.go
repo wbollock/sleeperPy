@@ -16,6 +16,64 @@ const (
 	MAX_ACTIONS           = 5   // Maximum number of actions to return
 )
 
+// buildFreeAgentCandidates returns a lightweight top-N-per-position free
+// agent list for cross-league action generation. Simpler than the
+// per-league page's free-agent builder (no roster-percent tiebreaking or
+// upgrade pre-labeling) since findWaiverTargets does the upgrade comparison
+// itself -- this only needs to supply candidates with tiers attached.
+func buildFreeAgentCandidates(players map[string]interface{}, rostered map[string]bool, borisTiers map[string][][]string, perPositionLimit int) []PlayerRow {
+	type candidate struct {
+		row  PlayerRow
+		tier int
+	}
+	byPos := make(map[string][]candidate)
+
+	for pid, p := range players {
+		if rostered[pid] {
+			continue
+		}
+		pm, ok := p.(map[string]interface{})
+		if !ok || pm["active"] == false {
+			continue
+		}
+		pos, _ := pm["position"].(string)
+		if pos != "QB" && pos != "RB" && pos != "WR" && pos != "TE" {
+			continue // dashboard action feed only covers skill positions
+		}
+		team, _ := pm["team"].(string)
+		if team == "" {
+			continue // no NFL team = not realistically addable
+		}
+
+		name := getPlayerName(pm)
+		tier := findTier(borisTiers[pos], name)
+		if tier == 0 {
+			continue
+		}
+		flexTier := 0
+		if pos == "RB" || pos == "WR" || pos == "TE" {
+			flexTier = findTier(borisTiers["FLX"], name)
+		}
+
+		byPos[pos] = append(byPos[pos], candidate{
+			row:  PlayerRow{Pos: pos, Name: name, Tier: tier, FlexTier: flexTier, IsFreeAgent: true},
+			tier: tier,
+		})
+	}
+
+	var out []PlayerRow
+	for _, list := range byPos {
+		sort.Slice(list, func(i, j int) bool { return list[i].tier < list[j].tier })
+		if len(list) > perPositionLimit {
+			list = list[:perPositionLimit]
+		}
+		for _, c := range list {
+			out = append(out, c.row)
+		}
+	}
+	return out
+}
+
 func buildWeeklyActions(league LeagueData) []Action {
 	var actions []Action
 	weekID := getCurrentWeekID()
