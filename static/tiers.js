@@ -44,13 +44,47 @@ function toggleSection(sectionId) {
     const content = document.getElementById(sectionId + '-content');
     const icon = document.getElementById(sectionId + '-icon');
 
+    const expanded = getExpandedSections();
     if (content.style.display === 'none') {
         content.style.display = '';
         icon.textContent = '▼';
+        if (!expanded.includes(sectionId)) expanded.push(sectionId);
     } else {
         content.style.display = 'none';
         icon.textContent = '▶';
+        const idx = expanded.indexOf(sectionId);
+        if (idx !== -1) expanded.splice(idx, 1);
     }
+    localStorage.setItem('sleeperpy_expanded_sections', JSON.stringify(expanded));
+}
+
+function getExpandedSections() {
+    try {
+        return JSON.parse(localStorage.getItem('sleeperpy_expanded_sections')) || [];
+    } catch (e) {
+        return [];
+    }
+}
+
+// Dynasty toolkit cards (draft picks, trade targets, league age, etc.) are
+// collapsed by default -- there are ~20 of them and showing all expanded at
+// once reads as a wall of unrelated panels. A card stays expanded across
+// visits once the user opens it (see toggleSection).
+function initCollapsibleCards() {
+    const expanded = getExpandedSections();
+    document.querySelectorAll('.toolkit-card.collapseable').forEach(card => {
+        const header = card.querySelector('.card-header');
+        const content = card.querySelector('.card-content');
+        const icon = card.querySelector('.collapse-icon');
+        if (!header || !content || !icon) return;
+
+        const match = (header.getAttribute('onclick') || '').match(/toggleSection\('([^']+)'\)/);
+        const sectionId = match && match[1];
+        const shouldExpand = sectionId && expanded.includes(sectionId);
+
+        content.style.display = shouldExpand ? '' : 'none';
+        icon.textContent = shouldExpand ? '▼' : '▶';
+    });
 }
 
 function toggleLeagueDropdown() {
@@ -326,4 +360,5 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!selectLeagueFromHash()) {
         restoreLastLeague();
     }
+    initCollapsibleCards();
 });
