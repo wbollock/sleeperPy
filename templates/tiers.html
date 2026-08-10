@@ -152,33 +152,17 @@
             {{end}}
 
             {{if $l.WeeklyActions}}
-            <div class="actions-banner qt-panel" style="margin-bottom:20px;">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-                    <h3 style="margin:0;font-size:1.1rem;">
-                        {{len $l.WeeklyActions}} Action{{if gt (len $l.WeeklyActions) 1}}s{{end}} This Week
-                    </h3>
-                </div>
-                <div style="display:flex;flex-direction:column;gap:10px;">
+            <div class="actions-banner qt-panel" style="margin-bottom:20px;padding:12px 16px;">
+                <h3 style="margin:0 0 4px 0;font-size:0.95rem;">Recommended This Week</h3>
+                <div>
                     {{range $idx, $action := $l.WeeklyActions}}
-                    {{if lt $idx 3}}
-                    <div class="action-item" style="display:flex;align-items:start;gap:10px;padding:10px;background:var(--card-bg-alt);border-radius:var(--qt-radius);">
-                        <input type="checkbox" id="action-{{$i}}-{{$idx}}" class="action-checkbox" style="margin-top:2px;">
-                        <label for="action-{{$i}}-{{$idx}}" style="flex:1;cursor:pointer;">
-                            <div style="font-weight:600;margin-bottom:2px;">{{add $idx 1}}. {{$action.Title}}</div>
-                            <div style="font-size:0.875rem;color:var(--text-secondary);">{{$action.Description}}</div>
-                            <div style="font-size:0.8rem;color:var(--qt-ok);margin-top:4px;">Impact: {{$action.Impact}}</div>
-                        </label>
+                    <div style="display:flex;align-items:baseline;gap:8px;padding:6px 0;{{if lt (add $idx 1) (len $l.WeeklyActions)}}border-bottom:1px solid var(--qt-border-light);{{end}}">
+                        <span style="font-weight:600;">{{$action.Title}}</span>
+                        <span style="flex:1;min-width:0;font-size:0.85rem;color:var(--text-secondary);">{{$action.Description}}</span>
+                        <span style="font-size:0.78rem;color:var(--qt-ok);white-space:nowrap;">{{$action.Impact}}</span>
                     </div>
                     {{end}}
-                    {{end}}
                 </div>
-                {{if gt (len $l.WeeklyActions) 3}}
-                <div style="margin-top:12px;text-align:center;">
-                    <button class="qt-btn" onclick="toggleAllActions({{$i}})">
-                        View All {{len $l.WeeklyActions}} Actions
-                    </button>
-                </div>
-                {{end}}
             </div>
             {{else}}
             <div class="actions-banner qt-panel" style="margin-bottom:20px;">
@@ -1559,38 +1543,6 @@ async function clearAppCache() {
         window.location.reload();
     }
 }
-
-// Actions feature: localStorage persistence for checkboxes
-function toggleAllActions(leagueIdx) {
-    const banner = document.querySelector(`#league${leagueIdx} .actions-banner`);
-    const hiddenActions = banner.querySelectorAll('.action-item:nth-child(n+4)');
-    const btn = banner.querySelector('.toggle-btn');
-
-    if (hiddenActions.length > 0 && hiddenActions[0].style.display === 'none') {
-        hiddenActions.forEach(action => action.style.display = 'flex');
-        btn.textContent = 'Show Less';
-    } else {
-        hiddenActions.forEach(action => action.style.display = 'none');
-        btn.textContent = `View All ${banner.querySelectorAll('.action-item').length} Actions`;
-    }
-}
-
-// Load action checkbox states from localStorage
-document.addEventListener('DOMContentLoaded', () => {
-    const checkboxes = document.querySelectorAll('.action-checkbox');
-    checkboxes.forEach(checkbox => {
-        const saved = localStorage.getItem(checkbox.id);
-        if (saved === 'true') {
-            checkbox.checked = true;
-            checkbox.parentElement.style.opacity = '0.5';
-        }
-
-        checkbox.addEventListener('change', (e) => {
-            localStorage.setItem(checkbox.id, e.target.checked);
-            checkbox.parentElement.style.opacity = e.target.checked ? '0.5' : '1';
-        });
-    });
-});
 
 // Register service worker for PWA offline support
 if ('serviceWorker' in navigator) {
