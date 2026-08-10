@@ -312,6 +312,15 @@
 	flex-direction: column;
 }
 
+.roster-table {
+	table-layout: fixed;
+}
+
+.roster-table td,
+.roster-table th {
+	overflow-wrap: break-word;
+}
+
 .dynasty-toolkit {
 	display: flex;
 	flex-direction: column;

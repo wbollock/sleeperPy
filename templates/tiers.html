@@ -193,7 +193,22 @@
             <div class="league-grid-container{{if not $l.IsDynasty}} single-column{{end}}">
                 <div class="roster-card">
             <div class="table-scroll">
-            <table class="sortable-table pretty-table">
+            <table class="sortable-table pretty-table roster-table">
+                {{if $l.IsDynasty}}
+                <colgroup>
+                    <col style="width:12%">
+                    <col style="width:55%">
+                    <col style="width:0">
+                    <col style="width:13%">
+                    <col style="width:20%">
+                </colgroup>
+                {{else}}
+                <colgroup>
+                    <col style="width:14%">
+                    <col style="width:66%">
+                    <col style="width:20%">
+                </colgroup>
+                {{end}}
                 <thead>
                     <tr>
                         <th>Position</th>
