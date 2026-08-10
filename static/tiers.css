@@ -295,7 +295,7 @@
 
 @media (min-width: 1100px) {
 	.league-grid-container {
-		grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+		grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 	}
 	.league-grid-container.single-column {
 		grid-template-columns: minmax(0, 1fr);
@@ -303,6 +303,18 @@
 	.roster-card {
 		grid-column: span 2;
 	}
+}
+
+.toolkit-group-label {
+	grid-column: 1 / -1;
+	font-size: 0.75rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--qt-text-muted);
+	padding-top: 10px;
+	margin-top: 4px;
+	border-top: 1px solid var(--qt-border);
 }
 
 .roster-card {
