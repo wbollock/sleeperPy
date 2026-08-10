@@ -268,12 +268,12 @@ func initTestMode() {
 
 	log.Println("[TEST MODE] Enabled - using mock data")
 
-	// Override HTTP client to intercept requests
-	originalClient := httpClient
-	httpClient = &http.Client{
-		Timeout:   originalClient.Timeout,
-		Transport: &mockTransport{},
-	}
+	// Mutate the shared client's Transport in place rather than reassigning
+	// the httpClient variable -- appProvider (SleeperProvider) captured a
+	// copy of the *http.Client pointer at package-init time, before this
+	// runs, so a reassignment here wouldn't be visible to it and /lookup
+	// would keep hitting the real Sleeper API even in test mode.
+	httpClient.Transport = &mockTransport{}
 }
 
 // Custom transport that intercepts HTTP requests in test mode
