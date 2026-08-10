@@ -54,6 +54,12 @@ var draftKitCache = &draftKitTierCache{
 	ttl:       1 * time.Hour, // Pre-draft content, changes far less than weekly tiers
 }
 
+var weeklyProjectionsCache = &projectionsCache{
+	data:      make(map[string]map[string]interface{}),
+	timestamp: make(map[string]time.Time),
+	ttl:       1 * time.Hour,
+}
+
 var dynastyValuesCache = &dynastyCache{
 	data: make(map[string]DynastyValue),
 	ttl:  24 * time.Hour, // Cache for 24 hours (values don't change frequently)

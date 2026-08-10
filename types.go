@@ -63,6 +63,14 @@ type draftKitTierCache struct {
 	ttl       time.Duration
 }
 
+// Cache for weekly player projections, keyed by "season:week" (e.g. "2026:1")
+type projectionsCache struct {
+	sync.RWMutex
+	data      map[string]map[string]interface{}
+	timestamp map[string]time.Time
+	ttl       time.Duration
+}
+
 // Cache for NFL bye weeks, keyed by season year
 type byeWeekCache struct {
 	sync.RWMutex
@@ -102,6 +110,7 @@ type PlayerRow struct {
 	DepthChartOrder      int     // Sleeper's depth chart rank at this position on this team (0 if unknown)
 	OnBye                bool    // True if Team has a bye this week
 	ADPTier              int     // Secondary tier from live ADP draft-market data (0 = not computed/not found). Only populated when TierSource setting is "both".
+	ProjectedPoints      float64 // Weekly projected fantasy points (0 = not found/not yet published by Sleeper)
 	IsTaxiSquad          bool    // True if this player is currently stashed on the user's taxi squad -- excluded from drop/cut value comparisons since taxi stashes are intentionally low-value prospects, not roster mistakes
 	IsTaxiEligible       bool    // True if a free agent's NFL experience is within the league's taxi eligibility window (see LeagueData.TaxiYears)
 	YearsExp             int     // Player's NFL experience in years, from Sleeper (0 = rookie)
