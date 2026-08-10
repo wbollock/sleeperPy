@@ -76,7 +76,23 @@ Fix: `static/tiers.css` adds `.roster-table { table-layout: fixed; }`
 and `templates/tiers.html` adds an explicit `<colgroup>` giving Player the
 majority of the row width (~55-66%) and capping the narrow columns.
 
-Q2/Q3 (vertical mismatch between roster-card and dynasty-toolkit, and
-900-1100px behavior) weren't addressed -- re-open this doc if the "empty
-space" complaint persists after this change, since it may point at one of
-those instead.
+That wasn't the actual complaint -- user feedback after this landed
+confirmed it's Q2 (vertical mismatch): `.dynasty-toolkit` stacks roughly
+20 `toolkit-card` boxes (draft picks, trade targets, league age, etc.) in
+a single flex column confined to the grid's narrow right track, while
+`roster-card` is just one table. That height mismatch left a large empty
+gap under the roster on the left once it ran out of content, while the
+right column kept going.
+
+Second fix: `.league-grid-container` now uses
+`grid-template-columns: repeat(auto-fit, minmax(380px, 1fr))` instead of
+a fixed `1.6fr 1fr` split, and `.dynasty-toolkit` is set to
+`display: contents` so its `toolkit-card` children become direct grid
+items -- they flow into whatever columns/rows are actually free
+(including next to and below the roster card) instead of being trapped
+in one tall single-file stack. `roster-card` gets `grid-column: span 2`
+so it stays the widest/most prominent box.
+
+Q3 (900-1100px behavior, where `.league-grid-container` is still a
+single column) wasn't specifically re-verified, but the single-column
+path is unchanged by this fix.
