@@ -1344,16 +1344,8 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Get top rookies for dynasty leagues
 		var topRookies []RookieProspect
-		if isDynasty {
-			topRookies = getTopRookies()
-			// Filter out defensive players (they have 0 fantasy value)
-			fantasyRookies := []RookieProspect{}
-			for _, r := range topRookies {
-				if r.Value > 0 {
-					fantasyRookies = append(fantasyRookies, r)
-				}
-			}
-			topRookies = fantasyRookies
+		if isDynasty && dynastyValues != nil {
+			topRookies = buildTopRookies(players, dynastyValues, isSuperFlex, 20)
 			debugLog("[DEBUG] Loaded %d top rookie prospects", len(topRookies))
 		}
 

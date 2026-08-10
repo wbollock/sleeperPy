@@ -505,37 +505,54 @@ func findAgingPlayers(startersRows, benchRows []PlayerRow) []PlayerRow {
 	return aging
 }
 
-func getTopRookies() []RookieProspect {
-	return []RookieProspect{
-		// 2025 NFL Draft Results (actual draft picks with NFL teams)
-		{Name: "Cam Ward", Position: "QB", College: "Miami (TEN)", Value: 4500, Rank: 1, Year: 2025},
-		{Name: "Travis Hunter", Position: "WR", College: "Colorado (JAX)", Value: 7500, Rank: 2, Year: 2025},
-		{Name: "Ashton Jeanty", Position: "RB", College: "Boise State (LV)", Value: 6800, Rank: 3, Year: 2025},
-		{Name: "Tetairoa McMillan", Position: "WR", College: "Arizona (CAR)", Value: 6500, Rank: 4, Year: 2025},
-		{Name: "Colston Loveland", Position: "TE", College: "Michigan (CHI)", Value: 3800, Rank: 5, Year: 2025},
-		{Name: "Emeka Egbuka", Position: "WR", College: "Ohio State (TB)", Value: 5500, Rank: 6, Year: 2025},
-		{Name: "Omarion Hampton", Position: "RB", College: "North Carolina (LAC)", Value: 5500, Rank: 7, Year: 2025},
-		{Name: "Matthew Golden", Position: "WR", College: "Texas (GB)", Value: 5000, Rank: 8, Year: 2025},
-		{Name: "Jaxson Dart", Position: "QB", College: "Ole Miss (NYG)", Value: 4200, Rank: 9, Year: 2025},
-		{Name: "Luther Burden III", Position: "WR", College: "Missouri", Value: 6000, Rank: 10, Year: 2025},
+// buildTopRookies surfaces this year's actual rookies (years_exp == 0, i.e.
+// currently in their first NFL season) with a known dynasty value, ranked
+// highest first. A hardcoded draft-class snapshot goes stale the moment the
+// real draft happens each April -- pulling straight from the live Sleeper
+// player pool means this never needs a manual yearly update.
+func buildTopRookies(players map[string]interface{}, dynastyValues map[string]DynastyValue, isSuperFlex bool, limit int) []RookieProspect {
+	rookies := []RookieProspect{}
+	for _, p := range players {
+		pm, ok := p.(map[string]interface{})
+		if !ok || pm["active"] == false {
+			continue
+		}
+		yearsExp, ok := pm["years_exp"].(float64)
+		if !ok || yearsExp != 0 {
+			continue
+		}
+		pos, _ := pm["position"].(string)
+		if pos != "QB" && pos != "RB" && pos != "WR" && pos != "TE" {
+			continue // Only skill positions carry dynasty value
+		}
 
-		// 2026 NFL Draft Prospects (projections - subject to change)
-		{Name: "Dante Moore", Position: "QB", College: "Oregon", Value: 4500, Rank: 1, Year: 2026},
-		{Name: "Ty Simpson", Position: "QB", College: "Alabama", Value: 4200, Rank: 2, Year: 2026},
-		{Name: "Jordyn Tyson", Position: "WR", College: "Arizona State", Value: 6500, Rank: 3, Year: 2026},
-		{Name: "Carnell Tate", Position: "WR", College: "Ohio State", Value: 6200, Rank: 4, Year: 2026},
-		{Name: "Makai Lemon", Position: "WR", College: "USC", Value: 6000, Rank: 5, Year: 2026},
-		{Name: "Fernando Mendoza", Position: "QB", College: "Indiana", Value: 4000, Rank: 6, Year: 2026},
-		{Name: "Jeremiyah Love", Position: "RB", College: "Notre Dame", Value: 6800, Rank: 7, Year: 2026},
-		{Name: "Denzel Boston", Position: "WR", College: "Washington", Value: 5800, Rank: 8, Year: 2026},
-		{Name: "Justice Haynes", Position: "RB", College: "Michigan", Value: 5500, Rank: 9, Year: 2026},
-		{Name: "Chris Brazzell II", Position: "WR", College: "Tennessee", Value: 5500, Rank: 10, Year: 2026},
-		{Name: "Jonah Coleman", Position: "RB", College: "Washington", Value: 5200, Rank: 11, Year: 2026},
-		{Name: "KC Concepcion", Position: "WR", College: "Texas A&M", Value: 5000, Rank: 12, Year: 2026},
-		{Name: "Kenyon Sadiq", Position: "TE", College: "Oregon", Value: 3800, Rank: 13, Year: 2026},
-		{Name: "Nick Singleton", Position: "RB", College: "Penn State", Value: 4800, Rank: 14, Year: 2026},
-		{Name: "Eli Stowers", Position: "TE", College: "Vanderbilt", Value: 3500, Rank: 15, Year: 2026},
+		name := getPlayerName(pm)
+		val, exists := dynastyValues[normalizeName(name)]
+		if !exists {
+			continue
+		}
+		value := val.Value1QB
+		if isSuperFlex {
+			value = val.Value2QB
+		}
+		if value <= 0 {
+			continue
+		}
+
+		college, _ := pm["college"].(string)
+		rookies = append(rookies, RookieProspect{Name: name, Position: pos, College: college, Value: value})
 	}
+
+	sort.Slice(rookies, func(i, j int) bool {
+		return rookies[i].Value > rookies[j].Value
+	})
+	if limit > 0 && len(rookies) > limit {
+		rookies = rookies[:limit]
+	}
+	for i := range rookies {
+		rookies[i].Rank = i + 1
+	}
+	return rookies
 }
 
 func calculatePowerRankings(teamAges []TeamAgeData) []PowerRanking {

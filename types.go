@@ -299,7 +299,6 @@ type RookieProspect struct {
 	College  string
 	Value    int
 	Rank     int
-	Year     int // Draft year
 }
 
 type LeagueTrends struct {
