@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math"
 	"sort"
 	"strconv"
 	"strings"
@@ -275,6 +276,7 @@ func fetchDynastyValues(players map[string]interface{}) (map[string]DynastyValue
 	if players != nil {
 		blendFantasyCalcValues(values, players)
 	}
+	blendDynastyADPValues(values)
 
 	// Update cache
 	dynastyValuesCache.Lock()
@@ -375,6 +377,87 @@ func blendValue(a, b int) int {
 		return a
 	default:
 		return b
+	}
+}
+
+// blendValue3 averages whichever of three source values are actually
+// available (a zero value means that source had no data for this player),
+// rather than requiring all three.
+func blendValue3(a, b, c int) int {
+	sum, n := 0, 0
+	for _, v := range []int{a, b, c} {
+		if v > 0 {
+			sum += v
+			n++
+		}
+	}
+	if n == 0 {
+		return 0
+	}
+	return sum / n
+}
+
+// dynastyADPHalfLifePicks controls how fast the ADP-derived value below
+// decays with draft position -- picked so the value roughly halves every 40
+// picks, putting it in the same ballpark as DynastyProcess/FantasyCalc's
+// 0-9999 scales without trying to exactly match either one.
+const dynastyADPHalfLifePicks = 40.0
+
+// fetchDynastyADPValues fetches FantasyFootballCalculator's live dynasty
+// startup-draft ADP and converts it into a 0-9999 value via exponential
+// decay, keyed by normalized player name. This is a third, independent
+// dynasty value signal -- what real dynasty managers are drafting right now,
+// as opposed to a single site's editorial rankings -- blended alongside
+// DynastyProcess and FantasyCalc in fetchDynastyValues.
+var fetchDynastyADPValues = func() map[string]int {
+	url := fmt.Sprintf("https://fantasyfootballcalculator.com/api/v1/adp/dynasty?teams=12&year=%d", time.Now().Year())
+	resp, err := httpClient.Get(url)
+	if err != nil {
+		debugLog("[DEBUG] Failed to fetch FFC dynasty ADP: %v", err)
+		return nil
+	}
+	defer resp.Body.Close()
+
+	var parsed adpResponse
+	if err := json.NewDecoder(resp.Body).Decode(&parsed); err != nil {
+		debugLog("[DEBUG] Failed to decode FFC dynasty ADP: %v", err)
+		return nil
+	}
+	if len(parsed.Players) == 0 {
+		debugLog("[DEBUG] FFC dynasty ADP returned no players (likely too early in the season for a sample)")
+		return nil
+	}
+
+	out := make(map[string]int, len(parsed.Players))
+	for _, p := range parsed.Players {
+		decay := math.Exp(-math.Ln2 / dynastyADPHalfLifePicks * (p.ADP - 1))
+		out[normalizeName(p.Name)] = int(math.Round(9999 * decay))
+	}
+	return out
+}
+
+// blendDynastyADPValues folds the FFC dynasty-ADP-derived value into an
+// existing values map (keyed by normalized player name) as a third source,
+// recomputing Value1QB/Value2QB as the average of whichever sources are
+// available. Only updates players DynastyProcess or FantasyCalc already
+// know about -- ADP alone doesn't carry reliable position data to seed a
+// brand new entry.
+func blendDynastyADPValues(values map[string]DynastyValue) {
+	adpValues := fetchDynastyADPValues()
+	if len(adpValues) == 0 {
+		debugLog("[DEBUG] Dynasty ADP values unavailable, blending DynastyProcess/FantasyCalc only")
+		return
+	}
+
+	for normName, adpValue := range adpValues {
+		entry, exists := values[normName]
+		if !exists {
+			continue
+		}
+		entry.DynastyADPValue = adpValue
+		entry.Value1QB = blendValue3(entry.DynastyProcessValue1QB, entry.FantasyCalcValue1QB, adpValue)
+		entry.Value2QB = blendValue3(entry.DynastyProcessValue2QB, entry.FantasyCalcValue2QB, adpValue)
+		values[normName] = entry
 	}
 }
 

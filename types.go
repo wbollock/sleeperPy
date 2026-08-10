@@ -30,6 +30,12 @@ type DynastyValue struct {
 	DynastyProcessValue2QB int
 	FantasyCalcValue1QB    int
 	FantasyCalcValue2QB    int
+
+	// DynastyADPValue is derived from live FantasyFootballCalculator dynasty
+	// startup-draft ADP (decay-scaled to roughly the same 0-9999 range as
+	// the other sources). FFC doesn't publish a superflex-specific dynasty
+	// ADP, so this single figure is blended into both Value1QB and Value2QB.
+	DynastyADPValue int
 }
 
 // Cache for dynasty values
