@@ -42,8 +42,6 @@ func enrichRowsWithADPTier(rows []PlayerRow, adpTiers map[string][][]string) {
 			pos = "FLX"
 		case "DEF":
 			pos = "DST"
-		case "?":
-			continue
 		}
 		name := stripHTML(rows[i].Name)
 		if tier := findTier(adpTiers[pos], name); tier > 0 {
@@ -140,7 +138,7 @@ func buildRowsWithPositions(ids []string, players map[string]interface{}, tiers 
 			rows = append(rows, PlayerRow{Pos: pos, Name: displayName, Tier: tier, FlexTier: flexTier, IsTierWorseThanBench: isWorse, ShouldSwapIn: shouldSwapIn, Age: age, Team: team, InjuryStatus: injuryStatus, DepthChartOrder: depthChartOrder})
 			tierNums = append(tierNums, tier)
 		} else {
-			unranked = append(unranked, PlayerRow{Pos: "?", Name: displayName, Tier: "Not Ranked", FlexTier: flexTier, IsTierWorseThanBench: false, ShouldSwapIn: false, Age: age, Team: team, InjuryStatus: injuryStatus, DepthChartOrder: depthChartOrder})
+			unranked = append(unranked, PlayerRow{Pos: pos, Name: displayName, Tier: "Not Ranked", FlexTier: flexTier, IsTierWorseThanBench: false, ShouldSwapIn: false, Age: age, Team: team, InjuryStatus: injuryStatus, DepthChartOrder: depthChartOrder})
 		}
 	}
 	return rows, unranked, tierNums
@@ -274,25 +272,6 @@ func getPlayerName(p map[string]interface{}) string {
 	firstName, _ := p["first_name"].(string)
 	lastName, _ := p["last_name"].(string)
 	return strings.TrimSpace(firstName + " " + lastName)
-}
-
-func getPos(p map[string]interface{}, idx int, isStarter bool, userRoster map[string]interface{}) string {
-	if isStarter && userRoster != nil {
-		if slots, ok := userRoster["starter_positions"].([]interface{}); ok && idx < len(slots) {
-			if s, ok := slots[idx].(string); ok {
-				slot := strings.ToUpper(s)
-				if strings.Contains(slot, "SUPER") && strings.Contains(slot, "FLEX") {
-					return "SUPERFLEX"
-				} else if strings.Contains(slot, "FLEX") {
-					return "FLEX"
-				}
-			}
-		}
-	}
-	if pos, ok := p["position"].(string); ok {
-		return pos
-	}
-	return "?"
 }
 
 func avg(arr []int) string {
