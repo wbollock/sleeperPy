@@ -723,32 +723,6 @@
 	margin-bottom: 10px;
 }
 
-.target-details {
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
-}
-
-.surplus-row {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	font-size: 0.85em;
-	padding: 8px 10px;
-	background: var(--qt-base);
-	border-radius: var(--qt-radius);
-	border-left: 3px solid var(--qt-border);
-}
-
-.surplus-label {
-	color: var(--qt-text-muted);
-	font-weight: 600;
-}
-
-.surplus-value {
-	font-weight: 600;
-}
-
 /* ---- Empty states ---- */
 
 .empty-state {

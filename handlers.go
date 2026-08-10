@@ -1431,7 +1431,6 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 							target.TheirSurplus,
 							dynastyValues,
 							isSuperFlex,
-							aiEnabled,
 						)
 						target.Proposal = &proposal
 						debugLog("[DEBUG] Generated trade proposal for %s", target.TeamName)

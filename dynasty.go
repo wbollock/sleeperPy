@@ -644,36 +644,35 @@ func findTradeTargets(userRows []PlayerRow, allRosters map[int][]PlayerRow, team
 
 	// Determine surplus and deficit positions (>30% is surplus, <15% is deficit)
 	type posNeed struct {
-		pos   string
-		value int
-		pct   float64
+		pos string
+		pct float64
 	}
 
 	userSurplus := []posNeed{}
 	userDeficit := []posNeed{}
 
 	if userQBPct > tradeSurplusThreshold {
-		userSurplus = append(userSurplus, posNeed{"QB", userKTC.QB, userQBPct})
+		userSurplus = append(userSurplus, posNeed{"QB", userQBPct})
 	} else if userQBPct < tradeDeficitThreshold {
-		userDeficit = append(userDeficit, posNeed{"QB", userKTC.QB, userQBPct})
+		userDeficit = append(userDeficit, posNeed{"QB", userQBPct})
 	}
 
 	if userRBPct > tradeSurplusThreshold {
-		userSurplus = append(userSurplus, posNeed{"RB", userKTC.RB, userRBPct})
+		userSurplus = append(userSurplus, posNeed{"RB", userRBPct})
 	} else if userRBPct < tradeDeficitThreshold {
-		userDeficit = append(userDeficit, posNeed{"RB", userKTC.RB, userRBPct})
+		userDeficit = append(userDeficit, posNeed{"RB", userRBPct})
 	}
 
 	if userWRPct > tradeSurplusThreshold {
-		userSurplus = append(userSurplus, posNeed{"WR", userKTC.WR, userWRPct})
+		userSurplus = append(userSurplus, posNeed{"WR", userWRPct})
 	} else if userWRPct < tradeDeficitThreshold {
-		userDeficit = append(userDeficit, posNeed{"WR", userKTC.WR, userWRPct})
+		userDeficit = append(userDeficit, posNeed{"WR", userWRPct})
 	}
 
 	if userTEPct > tradeSurplusThreshold {
-		userSurplus = append(userSurplus, posNeed{"TE", userKTC.TE, userTEPct})
+		userSurplus = append(userSurplus, posNeed{"TE", userTEPct})
 	} else if userTEPct < tradeDeficitThreshold {
-		userDeficit = append(userDeficit, posNeed{"TE", userKTC.TE, userTEPct})
+		userDeficit = append(userDeficit, posNeed{"TE", userTEPct})
 	}
 
 	debugLog("[DEBUG] User positional breakdown: QB=%.1f%%, RB=%.1f%%, WR=%.1f%%, TE=%.1f%%",
@@ -693,8 +692,6 @@ func findTradeTargets(userRows []PlayerRow, allRosters map[int][]PlayerRow, team
 		complementarity float64
 		yourSurplus     string
 		theirSurplus    string
-		yourSurplusKTC  int
-		theirSurplusKTC int
 	}
 
 	matches := []tradeMatch{}
@@ -725,21 +722,16 @@ func findTradeTargets(userRows []PlayerRow, allRosters map[int][]PlayerRow, team
 				// Check if team has surplus in user's deficit AND deficit in user's surplus
 				teamSurPct := 0.0
 				teamDefPct := 0.0
-				teamSurValue := 0
 
 				switch userDef.pos {
 				case "QB":
 					teamSurPct = teamQBPct
-					teamSurValue = teamKTC.QB
 				case "RB":
 					teamSurPct = teamRBPct
-					teamSurValue = teamKTC.RB
 				case "WR":
 					teamSurPct = teamWRPct
-					teamSurValue = teamKTC.WR
 				case "TE":
 					teamSurPct = teamTEPct
-					teamSurValue = teamKTC.TE
 				}
 
 				switch userSur.pos {
@@ -764,8 +756,6 @@ func findTradeTargets(userRows []PlayerRow, allRosters map[int][]PlayerRow, team
 							complementarity: complementarity,
 							yourSurplus:     userSur.pos,
 							theirSurplus:    userDef.pos,
-							yourSurplusKTC:  userSur.value,
-							theirSurplusKTC: teamSurValue,
 						}
 					}
 				}
@@ -793,12 +783,10 @@ func findTradeTargets(userRows []PlayerRow, allRosters map[int][]PlayerRow, team
 		m := matches[i]
 		reason := fmt.Sprintf("Has %s depth, needs %s", m.theirSurplus, m.yourSurplus)
 		targets[i] = TradeTarget{
-			TeamName:        m.teamName,
-			Reason:          reason,
-			YourSurplus:     m.yourSurplus,
-			TheirSurplus:    m.theirSurplus,
-			YourSurplusKTC:  m.yourSurplusKTC,
-			TheirSurplusKTC: m.theirSurplusKTC,
+			TeamName:     m.teamName,
+			Reason:       reason,
+			YourSurplus:  m.yourSurplus,
+			TheirSurplus: m.theirSurplus,
 		}
 	}
 

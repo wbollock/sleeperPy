@@ -188,13 +188,11 @@ type PositionalKTC struct {
 }
 
 type TradeTarget struct {
-	TeamName        string
-	Reason          string
-	YourSurplus     string
-	TheirSurplus    string
-	YourSurplusKTC  int
-	TheirSurplusKTC int
-	Proposal        *TradeProposal // Feature #9: Trade coach proposal
+	TeamName     string
+	Reason       string
+	YourSurplus  string
+	TheirSurplus string
+	Proposal     *TradeProposal // Feature #9: Trade coach proposal
 }
 
 type TradeProposal struct {
@@ -203,7 +201,6 @@ type TradeProposal struct {
 	TheirReturn    []ProposalPlayer
 	ValueDelta     int
 	Fairness       string
-	DraftMessage   string
 	Rationale      string
 	RiskLevel      string
 	WinNowImpact   int

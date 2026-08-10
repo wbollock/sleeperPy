@@ -4,11 +4,9 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"sort"
 	"strings"
-	"time"
 )
 
 // Generate trade proposal for a specific target team
@@ -20,7 +18,6 @@ func generateTradeProposal(
 	targetSurplus string,
 	dynastyValues map[string]DynastyValue,
 	isSuperFlex bool,
-	aiEnabled bool,
 ) TradeProposal {
 
 	// Find user's surplus players
@@ -67,13 +64,6 @@ func generateTradeProposal(
 
 	// Generate rationale
 	proposal.Rationale = buildRationale(proposal, userSurplus, targetSurplus)
-
-	// Generate draft message (LLM-drafted if configured, template otherwise)
-	if aiEnabled && hasOpenRouterKey() {
-		proposal.DraftMessage = generateLLMTradeMessage(proposal, userSurplus, targetSurplus)
-	} else {
-		proposal.DraftMessage = generateTemplateMessage(proposal)
-	}
 
 	return proposal
 }
@@ -166,11 +156,7 @@ func buildDashboardTradeAction(leagueID, leagueName string, userRoster map[strin
 		return nil
 	}
 
-	// aiEnabled=false: always use the template draft message, never the LLM
-	// path -- the dashboard action feed only needs the offer/return/fairness
-	// data, not a drafted message, so there's no reason to spend an LLM call
-	// (or add a network dependency) generating one.
-	proposal := generateTradeProposal(userFullRoster, targetRoster, target.TeamName, target.YourSurplus, target.TheirSurplus, dynastyValues, isSuperFlex, false)
+	proposal := generateTradeProposal(userFullRoster, targetRoster, target.TeamName, target.YourSurplus, target.TheirSurplus, dynastyValues, isSuperFlex)
 	if len(proposal.YourOffer) == 0 || len(proposal.TheirReturn) == 0 {
 		return nil
 	}
@@ -331,94 +317,6 @@ func buildRationale(proposal TradeProposal, userSurplus, targetSurplus string) s
 	return strings.Join(parts, ". ")
 }
 
-func generateTemplateMessage(proposal TradeProposal) string {
-	yourPlayers := formatPlayerList(proposal.YourOffer)
-	theirPlayers := formatPlayerList(proposal.TheirReturn)
-
-	template := fmt.Sprintf(`Hey! I'm looking to upgrade at %s and noticed you have strong depth there.
-
-Would you be interested in trading:
-- You get: %s
-- I get: %s
-
-%s
-
-Let me know if you'd like to discuss!`,
-		proposal.TheirReturn[0].Position,
-		yourPlayers,
-		theirPlayers,
-		proposal.Rationale,
-	)
-
-	return template
-}
-
-func generateLLMTradeMessage(proposal TradeProposal, userSurplus, targetSurplus string) string {
-	yourPlayers := formatPlayerList(proposal.YourOffer)
-	theirPlayers := formatPlayerList(proposal.TheirReturn)
-
-	// Safe fallback template if LLM is unavailable or fails.
-	fallback := fmt.Sprintf(`Hey! I think we might match up well on a trade.
-
-I can send: %s
-I'd be looking for: %s
-
-I have surplus at %s and you have surplus at %s, so this could help both sides.
-%s
-
-If this framework works for you, I can adjust details.`,
-		yourPlayers,
-		theirPlayers,
-		emptyToNA(userSurplus),
-		emptyToNA(targetSurplus),
-		proposal.Rationale,
-	)
-
-	if !hasOpenRouterKey() {
-		return fallback
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 12*time.Second)
-	defer cancel()
-
-	messages := []openRouterMessage{
-		{
-			Role: "system",
-			Content: "You are writing a concise fantasy football trade message. " +
-				"Be polite, direct, and specific. Do not overhype. Keep it under 120 words.",
-		},
-		{
-			Role: "user",
-			Content: fmt.Sprintf(
-				"Write a trade message to %s.\n"+
-					"My surplus: %s\n"+
-					"Their surplus: %s\n"+
-					"I send: %s\n"+
-					"I receive: %s\n"+
-					"Rationale: %s\n"+
-					"Fairness: %s\n"+
-					"Risk: %s\n"+
-					"Use plain language and end with a simple question.",
-				proposal.TargetTeamName,
-				emptyToNA(userSurplus),
-				emptyToNA(targetSurplus),
-				yourPlayers,
-				theirPlayers,
-				proposal.Rationale,
-				proposal.Fairness,
-				proposal.RiskLevel,
-			),
-		},
-	}
-
-	msg, err := callOpenRouter(ctx, messages, 180)
-	if err != nil || strings.TrimSpace(msg) == "" {
-		debugLog("[DEBUG] trade message LLM fallback: %v", err)
-		return fallback
-	}
-	return strings.TrimSpace(msg)
-}
-
 func formatPlayerList(players []ProposalPlayer) string {
 	names := []string{}
 	for _, p := range players {
@@ -453,11 +351,4 @@ func clamp(value, min, max int) int {
 		return max
 	}
 	return value
-}
-
-func emptyToNA(s string) string {
-	if strings.TrimSpace(s) == "" {
-		return "N/A"
-	}
-	return s
 }
