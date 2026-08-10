@@ -295,10 +295,13 @@
 
 @media (min-width: 1100px) {
 	.league-grid-container {
-		grid-template-columns: minmax(0, 1.6fr) minmax(360px, 1fr);
+		grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
 	}
 	.league-grid-container.single-column {
 		grid-template-columns: minmax(0, 1fr);
+	}
+	.roster-card {
+		grid-column: span 2;
 	}
 }
 
@@ -322,10 +325,11 @@
 }
 
 .dynasty-toolkit {
-	display: flex;
-	flex-direction: column;
-	gap: 14px;
-	min-width: 0;
+	/* Not a real layout box -- its toolkit-card children become direct
+	   grid items of .league-grid-container so they can flow into
+	   whatever columns/rows are free instead of being trapped in one
+	   tall single-file stack next to a much shorter roster-card. */
+	display: contents;
 }
 
 .dynasty-source-info {
