@@ -1145,7 +1145,7 @@
                                         <th style="text-align:left;">Team</th>
                                         <th>Avg Age</th>
                                         <th>Roster Value</th>
-                                        <th>Wins</th>
+                                        <th>Record</th>
                                         <th>Strategy</th>
                                     </tr>
                                 </thead>
@@ -1157,7 +1157,7 @@
                                         </td>
                                         <td>{{printf "%.1f" .AvgAge}}</td>
                                         <td>{{if .RosterValue}}{{.RosterValue}}{{else}}-{{end}}</td>
-                                        <td>{{.Rank}}</td>
+                                        <td>{{.Wins}}-{{.Losses}}</td>
                                         <td>
                                             {{if gt .AvgAge 27.0}}
                                                 <span style="color:#ff9d5c;">Win Now</span>

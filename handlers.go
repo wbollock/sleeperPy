@@ -1176,11 +1176,14 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 					avgAge = float64(totalAge) / float64(ageCount)
 				}
 
-				// Get standings rank (wins)
-				rank := 0
+				// Get real season record
+				wins, losses := 0, 0
 				if settings, ok := r["settings"].(map[string]interface{}); ok {
-					if wins, ok := settings["wins"].(float64); ok {
-						rank = int(wins)
+					if w, ok := settings["wins"].(float64); ok {
+						wins = int(w)
+					}
+					if l, ok := settings["losses"].(float64); ok {
+						losses = int(l)
 					}
 				}
 
@@ -1188,14 +1191,37 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 					TeamName:    teamName,
 					OwnerName:   ownerName,
 					AvgAge:      avgAge,
-					Rank:        rank,
+					Wins:        wins,
+					Losses:      losses,
 					RosterID:    int(rosterID),
 					IsUserTeam:  (ownerID == userID),
 					RosterValue: rosterValue,
 				})
 			}
 
-			// Sort teams by age (oldest to youngest)
+			// Compute standings position (1 = best record) from real
+			// Wins/Losses now that every team's record is known -- this used
+			// to just copy the raw win count into Rank, which broke every
+			// consumer that treated Rank as a 1..N position (draft order,
+			// fabricated power-rankings win/loss display) once two teams
+			// didn't have win counts that happened to already look ranked
+			// (e.g. everyone tied at 0-0 in the preseason).
+			byRecord := append([]TeamAgeData{}, teamAges...)
+			sort.Slice(byRecord, func(i, j int) bool {
+				if byRecord[i].Wins != byRecord[j].Wins {
+					return byRecord[i].Wins > byRecord[j].Wins
+				}
+				return byRecord[i].Losses < byRecord[j].Losses
+			})
+			rankByRosterID := make(map[int]int, len(byRecord))
+			for i, team := range byRecord {
+				rankByRosterID[team.RosterID] = i + 1
+			}
+			for i := range teamAges {
+				teamAges[i].Rank = rankByRosterID[teamAges[i].RosterID]
+			}
+
+			// Sort teams by age (oldest to youngest) for display
 			sort.Slice(teamAges, func(i, j int) bool {
 				return teamAges[i].AvgAge > teamAges[j].AvgAge
 			})

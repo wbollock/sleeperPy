@@ -551,15 +551,11 @@ func calculatePowerRankings(teamAges []TeamAgeData) []PowerRanking {
 			strategy = "Rebuilding"
 		}
 
-		// Get wins/losses from rank (Rank 1 = most wins)
-		wins := 15 - team.Rank // Approximate
-		losses := team.Rank - 1
-
 		rankings = append(rankings, PowerRanking{
 			TeamName:     team.TeamName,
 			RosterValue:  team.RosterValue,
-			Wins:         wins,
-			Losses:       losses,
+			Wins:         team.Wins,
+			Losses:       team.Losses,
 			AvgAge:       team.AvgAge,
 			Strategy:     strategy,
 			IsUserTeam:   team.IsUserTeam,
@@ -980,11 +976,7 @@ func calculateProjectedDraftPicks(draftPicks []DraftPick, teamAges []TeamAgeData
 		// Calculate overall pick number
 		overallPick := (pick.Round-1)*leagueSize + projectedPosition
 
-		// Format team record
-		// Rank 1 = most wins, so approximate wins/losses
-		wins := leagueSize - pickPositionTeam.Rank
-		losses := pickPositionTeam.Rank - 1
-		teamRecord := fmt.Sprintf("%d-%d", wins, losses)
+		teamRecord := fmt.Sprintf("%d-%d", pickPositionTeam.Wins, pickPositionTeam.Losses)
 
 		projectedPicks = append(projectedPicks, ProjectedDraftPick{
 			Year:              pick.Year,

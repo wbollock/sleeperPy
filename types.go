@@ -138,7 +138,9 @@ type TeamAgeData struct {
 	TeamName    string
 	OwnerName   string
 	AvgAge      float64
-	Rank        int // Standings rank (wins)
+	Wins        int // Real season wins, from roster settings
+	Losses      int // Real season losses, from roster settings
+	Rank        int // Standings position (1 = best record) -- computed from Wins/Losses, not a raw count
 	RosterID    int
 	IsUserTeam  bool
 	RosterValue int // Total dynasty value of roster
