@@ -1401,6 +1401,7 @@
                 {{end}}
             </div>
 
+            <div class="fa-grid">
             {{if $l.TopFreeAgents}}
             <div class="fa-section {{if $l.IsDynasty}}inseason-only{{end}}">
                 <div class="fa-header">Recommended Free Agents (Tier-Based)</div>
@@ -1429,25 +1430,99 @@
             </div>
             {{end}}
 
-            {{if $l.TopFreeAgentsByValue}}
+            {{if $l.LowestValueRoster}}
             <div class="fa-section dynasty-only">
-                <div class="fa-header">Top Available Players (Dynasty Value)</div>
+                <div class="fa-header">Your Lowest-Value Players vs. Best Available</div>
                 <div class="table-scroll">
                 <table class="sortable-table pretty-table">
                     <thead>
-                        <tr><th>Pos</th><th>Player</th><th>Dynasty Value</th></tr>
+                        <tr><th>Pos</th><th>Your Player</th><th>Value</th><th>Best Available</th><th>Their Value</th><th>Gap</th></tr>
+                    </thead>
+                    <tbody>
+                    {{range $l.LowestValueRoster}}
+                        <tr>
+                            <td>{{.YourPlayer.Pos}}</td>
+                            <td>{{.YourPlayer.Name | safe}}{{if .YourPlayer.IsTaxiSquad}} <span title="Currently on your taxi squad" style="font-size:0.85em;color:#9fb3d4;">🚕 Taxi</span>{{end}}</td>
+                            <td>{{.YourPlayer.DynastyValue}}</td>
+                            <td>{{if .BestAvailable.Name}}{{.BestAvailable.Name | safe}}{{if .BestAvailable.IsTaxiEligible}} <span title="Taxi eligible -- stash, don't necessarily start">🚕</span>{{end}}{{else}}<span style="color:#9fb3d4;">Nothing better available</span>{{end}}</td>
+                            <td>{{if .BestAvailable.Name}}{{.BestAvailable.DynastyValue}}{{else}}-{{end}}</td>
+                            <td>{{if gt .ValueGap 0}}<span style="color:#3ae87a;">+{{.ValueGap}}</span>{{else if .BestAvailable.Name}}<span style="color:#9fb3d4;">even/better</span>{{else}}-{{end}}</td>
+                        </tr>
+                    {{end}}
+                    </tbody>
+                </table>
+                </div>
+            </div>
+            {{end}}
+
+            {{if $l.TaxiSuggestions}}
+            <div class="fa-section dynasty-only">
+                <div class="fa-header">🚕 Taxi Squad Suggestions</div>
+                <div style="font-size:0.85em;color:#9fb3d4;margin-bottom:8px;">{{if gt $l.OpenTaxiSlots 0}}{{$l.OpenTaxiSlots}} open taxi slot{{if ne $l.OpenTaxiSlots 1}}s{{end}}{{else}}Taxi squad full -- suggested swaps shown{{end}}</div>
+                <div class="table-scroll">
+                <table class="sortable-table pretty-table">
+                    <thead>
+                        <tr><th>Pos</th><th>Add to Taxi</th><th>Value</th><th>Action</th></tr>
+                    </thead>
+                    <tbody>
+                    {{range $l.TaxiSuggestions}}
+                        <tr{{if .HasOpenSlot}} class="fa-upgrade"{{end}}>
+                            <td>{{.Prospect.Pos}}</td>
+                            <td>{{.Prospect.Name | safe}}</td>
+                            <td>{{.Prospect.DynastyValue}}</td>
+                            <td>{{if .HasOpenSlot}}<span style="color:#3ae87a;">Add -- open slot</span>{{else}}Add, drop {{.DropFromTaxi.Name}} from taxi{{end}}</td>
+                        </tr>
+                    {{end}}
+                    </tbody>
+                </table>
+                </div>
+            </div>
+            {{end}}
+
+            {{if $l.TopFreeAgentsByValue}}
+            <div class="fa-section dynasty-only">
+                <div class="fa-header">Suggested Add/Drop (Dynasty Value)</div>
+                <div class="table-scroll">
+                <table class="sortable-table pretty-table">
+                    <thead>
+                        <tr><th>Pos</th><th>Add</th><th>Dynasty Value</th><th>Drop</th><th>Value Gained</th></tr>
                     </thead>
                     <tbody>
                     {{range $l.TopFreeAgentsByValue}}
                         <tr{{if .IsUpgrade}} class="fa-upgrade"{{end}}>
                             <td>{{.Pos}}</td>
-                            <td>
-                                {{if .IsUpgrade}}<span class="fa-upgrade-icon">⬆</span> {{end}}{{.Name | safe}}
-                                {{if .IsUpgrade}}
-                                    <div style="font-size:0.85em;color:#3ae87a;margin-top:2px;">Upgrade for {{.UpgradeType}}: {{.UpgradeFor}}</div>
-                                {{end}}
-                            </td>
+                            <td>{{if .IsUpgrade}}<span class="fa-upgrade-icon">⬆</span> {{end}}{{.Name | safe}}{{if .IsTaxiEligible}} <span title="Taxi eligible -- stash, don't necessarily start">🚕</span>{{end}}</td>
                             <td>{{.DynastyValue}}</td>
+                            <td>{{if .UpgradeFor}}{{.UpgradeFor}} <span style="font-size:0.85em;color:#9fb3d4;">({{.UpgradeType}})</span>{{else}}-{{end}}</td>
+                            <td>{{if .UpgradeValueDiff}}<span style="color:#3ae87a;">+{{.UpgradeValueDiff}}</span>{{else}}-{{end}}</td>
+                        </tr>
+                    {{end}}
+                    </tbody>
+                </table>
+                </div>
+            </div>
+            {{end}}
+            </div>
+
+            {{if $l.AllFreeAgentsByValue}}
+            <div class="fa-section dynasty-only">
+                <div class="fa-header">All Unowned Free Agents — Ranked by Dynasty Value</div>
+                {{if $l.HasTaxiSquad}}
+                <div style="font-size:0.85em;color:#9fb3d4;margin-bottom:8px;">🚕 Taxi Eligible = {{$l.TaxiYears}} year{{if ne $l.TaxiYears 1}}s{{end}} of NFL experience or less</div>
+                {{end}}
+                <div class="table-scroll">
+                <table class="sortable-table pretty-table">
+                    <thead>
+                        <tr><th>Pos</th><th>Player</th><th>Team</th><th>Dynasty Value</th>{{if $l.HasTaxiSquad}}<th>Taxi Eligible</th>{{end}}</tr>
+                    </thead>
+                    <tbody>
+                    {{range $l.AllFreeAgentsByValue}}
+                        <tr>
+                            <td>{{.Pos}}</td>
+                            <td>{{.Name | safe}}</td>
+                            <td>{{.Team}}</td>
+                            <td>{{.DynastyValue}}</td>
+                            {{if $l.HasTaxiSquad}}<td>{{if .IsTaxiEligible}}<span title="{{.YearsExp}} year(s) NFL experience">🚕 Yes</span>{{else}}-{{end}}</td>{{end}}
                         </tr>
                     {{end}}
                     </tbody>

@@ -134,6 +134,26 @@ func isDynastyLeague(league map[string]interface{}) bool {
 	return false
 }
 
+// resolveTaxiSettings reads a league's taxi squad configuration. taxiYears
+// defaults to 1 (rookies/1st-year players only) when the league doesn't set
+// taxi_years explicitly -- that's the most common dynasty taxi rule, and a
+// safe default when the setting is missing rather than assuming vets are
+// taxi-eligible.
+func resolveTaxiSettings(league map[string]interface{}) (taxiSlots int, taxiYears int) {
+	taxiYears = 1
+	settings, ok := league["settings"].(map[string]interface{})
+	if !ok {
+		return 0, taxiYears
+	}
+	if v, ok := settings["taxi_slots"].(float64); ok {
+		taxiSlots = int(v)
+	}
+	if v, ok := settings["taxi_years"].(float64); ok && v > 0 {
+		taxiYears = int(v)
+	}
+	return taxiSlots, taxiYears
+}
+
 // detectScoringFormat auto-derives a league's scoring format ("PPR", "Half
 // PPR", or "Standard") from its Sleeper reception-points setting. This is
 // the auto-detection fallback; callers should prefer a user's manual

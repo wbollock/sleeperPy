@@ -157,6 +157,232 @@ func aggregatePlayerNews(rosterPlayerIDs []string, players map[string]interface{
 	return newsFeed
 }
 
+// buildAllFreeAgentsByDynastyValue ranks every unowned skill-position player
+// with a known dynasty value, regardless of whether they'd actually improve
+// the user's roster. This is the full waiver-wire board ("who's the best
+// asset out there") as opposed to the narrower upgrade-only add/drop
+// suggestions, which only surface players that beat something already
+// rostered. taxiYears marks each player IsTaxiEligible when their NFL
+// experience is within the league's taxi squad window (see
+// resolveTaxiSettings) -- pass 0 to skip taxi eligibility entirely (e.g. the
+// league has no taxi squad).
+func buildAllFreeAgentsByDynastyValue(players map[string]interface{}, rostered map[string]bool, dynastyValues map[string]DynastyValue, isSuperFlex bool, taxiYears int, limit int) []PlayerRow {
+	all := []PlayerRow{}
+	for pid, p := range players {
+		if rostered[pid] {
+			continue
+		}
+		pm, ok := p.(map[string]interface{})
+		if !ok || pm["active"] == false {
+			continue
+		}
+		pos, _ := pm["position"].(string)
+		if pos != "QB" && pos != "RB" && pos != "WR" && pos != "TE" {
+			continue // Only skill positions carry dynasty value
+		}
+		team, _ := pm["team"].(string)
+		if team == "" {
+			continue // Undrafted rookies / players without an NFL team
+		}
+
+		name := getPlayerName(pm)
+		val, exists := dynastyValues[normalizeName(name)]
+		if !exists {
+			continue
+		}
+		value := val.Value1QB
+		if isSuperFlex {
+			value = val.Value2QB
+		}
+		if value <= 0 {
+			continue
+		}
+
+		yearsExp := 0
+		if ye, ok := pm["years_exp"].(float64); ok {
+			yearsExp = int(ye)
+		}
+
+		all = append(all, PlayerRow{
+			Pos:            pos,
+			Name:           name,
+			Team:           team,
+			DynastyValue:   value,
+			IsFreeAgent:    true,
+			YearsExp:       yearsExp,
+			IsTaxiEligible: taxiYears > 0 && yearsExp <= taxiYears,
+		})
+	}
+
+	sort.Slice(all, func(i, j int) bool {
+		return all[i].DynastyValue > all[j].DynastyValue
+	})
+
+	if limit > 0 && len(all) > limit {
+		all = all[:limit]
+	}
+	return all
+}
+
+// buildTaxiSquadNameSet converts a roster's taxi squad player IDs into a set
+// of normalized names -- the same lookup key PlayerRow enrichment functions
+// already use, since rows only carry a display name, not the player_id they
+// were built from.
+func buildTaxiSquadNameSet(taxiIDs []string, players map[string]interface{}) map[string]bool {
+	if len(taxiIDs) == 0 {
+		return nil
+	}
+	set := make(map[string]bool, len(taxiIDs))
+	for _, pid := range taxiIDs {
+		p, ok := players[pid].(map[string]interface{})
+		if !ok {
+			continue
+		}
+		name := getPlayerName(p)
+		if name == "" {
+			continue
+		}
+		set[normalizeName(name)] = true
+	}
+	return set
+}
+
+// enrichRowsWithTaxiSquad flags rows currently stashed on the taxi squad.
+// Dynasty leagues treat taxi players differently from the rest of the
+// bench -- they're intentionally low-value prospect stashes, not roster
+// mistakes -- so drop/cut value comparisons need to be able to exclude them.
+func enrichRowsWithTaxiSquad(rows []PlayerRow, taxiNames map[string]bool) {
+	if len(taxiNames) == 0 {
+		return
+	}
+	for i := range rows {
+		if taxiNames[normalizeName(stripHTML(rows[i].Name))] {
+			rows[i].IsTaxiSquad = true
+		}
+	}
+}
+
+// buildTaxiSquadRows builds PlayerRows directly from a roster's taxi squad
+// player IDs and dynasty values, rather than filtering already-tiered
+// bench rows. Taxi stashes are frequently un-drafted-by-Boris-Chen rookies,
+// which land in the "unranked" bucket with Pos hardcoded to "?" -- fine for
+// the tier tables, but useless for a real position-based value comparison.
+// Going straight to the Sleeper player record sidesteps that entirely.
+func buildTaxiSquadRows(taxiIDs []string, players map[string]interface{}, dynastyValues map[string]DynastyValue, isSuperFlex bool) []PlayerRow {
+	rows := make([]PlayerRow, 0, len(taxiIDs))
+	for _, pid := range taxiIDs {
+		p, ok := players[pid].(map[string]interface{})
+		if !ok {
+			continue
+		}
+		name := getPlayerName(p)
+		if name == "" {
+			continue
+		}
+		pos, _ := p["position"].(string)
+
+		row := PlayerRow{Pos: pos, Name: name, IsTaxiSquad: true}
+		if val, exists := dynastyValues[normalizeName(name)]; exists {
+			if isSuperFlex {
+				row.DynastyValue = val.Value2QB
+			} else {
+				row.DynastyValue = val.Value1QB
+			}
+		}
+		rows = append(rows, row)
+	}
+	return rows
+}
+
+// findLowestValueRosterPlayers picks the user's `limit` weakest dynasty
+// assets on the active roster (starters + bench, excluding taxi squad
+// stashes and anything with no dynasty value at all), plus every player
+// currently on the taxi squad, and pairs each with the single best unowned
+// player at the same position. Taxi squad players are always included in
+// full (not just the weakest ones) since the whole point of a taxi stash is
+// to track whether it's still the best available prospect at its position.
+func findLowestValueRosterPlayers(startersRows, benchRows, taxiRows, allFreeAgentsByValue []PlayerRow, limit int) []LowestValuePlayer {
+	owned := make([]PlayerRow, 0, len(startersRows)+len(benchRows))
+	for _, row := range append(append([]PlayerRow{}, startersRows...), benchRows...) {
+		if row.IsTaxiSquad || row.DynastyValue <= 0 {
+			continue
+		}
+		owned = append(owned, row)
+	}
+
+	sort.Slice(owned, func(i, j int) bool {
+		return owned[i].DynastyValue < owned[j].DynastyValue
+	})
+	if limit > 0 && len(owned) > limit {
+		owned = owned[:limit]
+	}
+
+	taxi := append([]PlayerRow{}, taxiRows...)
+	sort.Slice(taxi, func(i, j int) bool {
+		return taxi[i].DynastyValue < taxi[j].DynastyValue
+	})
+
+	bestByPos := make(map[string]PlayerRow, 4)
+	for _, fa := range allFreeAgentsByValue {
+		if _, exists := bestByPos[fa.Pos]; !exists {
+			bestByPos[fa.Pos] = fa
+		}
+	}
+
+	comparisons := make([]LowestValuePlayer, 0, len(owned)+len(taxi))
+	for _, row := range append(owned, taxi...) {
+		best := bestByPos[row.Pos]
+		gap := 0
+		if best.Name != "" {
+			gap = best.DynastyValue - row.DynastyValue
+		}
+		comparisons = append(comparisons, LowestValuePlayer{
+			YourPlayer:    row,
+			BestAvailable: best,
+			ValueGap:      gap,
+		})
+	}
+	return comparisons
+}
+
+// buildTaxiSquadSuggestions recommends the best taxi-eligible free agents to
+// stash, in order of dynasty value. While openSlots remain, prospects go
+// straight into an unused slot; once slots are full, a prospect is only
+// suggested if it clearly beats the weakest player currently on the taxi
+// squad (as a swap). allFreeAgentsByValue must already be sorted by dynasty
+// value descending (see buildAllFreeAgentsByDynastyValue) and have
+// IsTaxiEligible set.
+func buildTaxiSquadSuggestions(allFreeAgentsByValue, currentTaxiRows []PlayerRow, openSlots int, limit int) []TaxiSuggestion {
+	var worstTaxi PlayerRow
+	for _, row := range currentTaxiRows {
+		if worstTaxi.Name == "" || row.DynastyValue < worstTaxi.DynastyValue {
+			worstTaxi = row
+		}
+	}
+
+	suggestions := []TaxiSuggestion{}
+	remainingOpen := openSlots
+	for _, fa := range allFreeAgentsByValue {
+		if !fa.IsTaxiEligible {
+			continue
+		}
+		if limit > 0 && len(suggestions) >= limit {
+			break
+		}
+
+		if remainingOpen > 0 {
+			suggestions = append(suggestions, TaxiSuggestion{Prospect: fa, HasOpenSlot: true})
+			remainingOpen--
+			continue
+		}
+
+		if worstTaxi.Name != "" && fa.DynastyValue > worstTaxi.DynastyValue {
+			suggestions = append(suggestions, TaxiSuggestion{Prospect: fa, DropFromTaxi: worstTaxi})
+		}
+	}
+	return suggestions
+}
+
 func findBreakoutCandidates(benchRows []PlayerRow) []PlayerRow {
 	candidates := []PlayerRow{}
 

@@ -566,6 +566,22 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			debugLog("[DEBUG] Enriched starter and bench rows with dynasty values")
 		}
 
+		// Flag taxi squad stashes -- taxi players are always benched (Sleeper
+		// doesn't allow starting them), so only the bench rows need this.
+		taxiSlots, taxiYears := resolveTaxiSettings(league)
+		hasTaxiSquad := taxiSlots > 0
+		taxiIDs := toStringSlice(userRoster["taxi"])
+		openTaxiSlots := taxiSlots - len(taxiIDs)
+		if openTaxiSlots < 0 {
+			openTaxiSlots = 0
+		}
+		if hasTaxiSquad {
+			taxiNames := buildTaxiSquadNameSet(taxiIDs, players)
+			enrichRowsWithTaxiSquad(benchRows, taxiNames)
+			enrichRowsWithTaxiSquad(benchUnrankedRows, taxiNames)
+			debugLog("[DEBUG] Flagged taxi squad rows (taxi_years=%d, open_slots=%d)", taxiYears, openTaxiSlots)
+		}
+
 		// Flag players whose team is on bye this week
 		enrichRowsWithByeWeek(startersRows, byeWeeks, week)
 		enrichRowsWithByeWeek(unrankedRows, byeWeeks, week)
@@ -917,8 +933,10 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			for _, row := range benchRows {
 				actualPos := row.Pos
-				// Skip positions like FLEX, use actual player position for comparison
-				if actualPos != "FLEX" && actualPos != "SUPER_FLEX" && row.DynastyValue > 0 {
+				// Skip positions like FLEX, use actual player position for comparison.
+				// Taxi squad stashes are excluded -- they're intentionally
+				// low-value prospects, not a roster weakness to fill via add/drop.
+				if actualPos != "FLEX" && actualPos != "SUPER_FLEX" && !row.IsTaxiSquad && row.DynastyValue > 0 {
 					if lowest, exists := lowestRosterValue[actualPos]; !exists || row.DynastyValue < lowest {
 						lowestRosterValue[actualPos] = row.DynastyValue
 					}
@@ -986,14 +1004,26 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 							}
 						}
 
+						yearsExp := 0
+						if ye, ok := pm["years_exp"].(float64); ok {
+							yearsExp = int(ye)
+						}
+						taxiEligibilityYears := 0
+						if hasTaxiSquad {
+							taxiEligibilityYears = taxiYears
+						}
+
 						valueUpgrades = append(valueUpgrades, PlayerRow{
-							Pos:          pos,
-							Name:         name,
-							DynastyValue: faValue,
-							IsFreeAgent:  true,
-							IsUpgrade:    true,
-							UpgradeFor:   upgradeFor,
-							UpgradeType:  upgradeType,
+							Pos:              pos,
+							Name:             name,
+							DynastyValue:     faValue,
+							IsFreeAgent:      true,
+							IsUpgrade:        true,
+							UpgradeFor:       upgradeFor,
+							UpgradeType:      upgradeType,
+							UpgradeValueDiff: valueDiff,
+							YearsExp:         yearsExp,
+							IsTaxiEligible:   taxiEligibilityYears > 0 && yearsExp <= taxiEligibilityYears,
 						})
 					}
 				}
@@ -1013,6 +1043,34 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 				topFreeAgentsByValue = valueUpgrades[:limit]
 			}
 			debugLog("[DEBUG] Dynasty mode: found %d value-based free agent upgrades", len(topFreeAgentsByValue))
+		}
+
+		// Dynasty add/drop finder: the full board of every unowned
+		// skill-position player ranked by dynasty value, not just the ones
+		// that beat something already on the roster.
+		var allFreeAgentsByValue []PlayerRow
+		var lowestValueRoster []LowestValuePlayer
+		var taxiSuggestions []TaxiSuggestion
+		if isDynasty && dynastyValues != nil {
+			eligibilityYears := 0
+			if hasTaxiSquad {
+				eligibilityYears = taxiYears
+			}
+			allFreeAgentsByValue = buildAllFreeAgentsByDynastyValue(players, rostered, dynastyValues, isSuperFlex, eligibilityYears, 50)
+			debugLog("[DEBUG] Dynasty mode: all free agents by value: %d players", len(allFreeAgentsByValue))
+
+			var currentTaxiRows []PlayerRow
+			if hasTaxiSquad {
+				currentTaxiRows = buildTaxiSquadRows(taxiIDs, players, dynastyValues, isSuperFlex)
+			}
+
+			lowestValueRoster = findLowestValueRosterPlayers(startersRows, benchRows, currentTaxiRows, allFreeAgentsByValue, 3)
+			debugLog("[DEBUG] Dynasty mode: lowest value roster comparisons: %d", len(lowestValueRoster))
+
+			if hasTaxiSquad {
+				taxiSuggestions = buildTaxiSquadSuggestions(allFreeAgentsByValue, currentTaxiRows, openTaxiSlots, 5)
+				debugLog("[DEBUG] Dynasty mode: taxi squad suggestions: %d (open_slots=%d)", len(taxiSuggestions), openTaxiSlots)
+			}
 		}
 
 		// Calculate user's average age (for dynasty mode)
@@ -1416,6 +1474,12 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			FreeAgentsByPos:      freeAgentsByPos,
 			TopFreeAgents:        topFreeAgents,
 			TopFreeAgentsByValue: topFreeAgentsByValue,
+			AllFreeAgentsByValue: allFreeAgentsByValue,
+			HasTaxiSquad:         hasTaxiSquad,
+			TaxiYears:            taxiYears,
+			OpenTaxiSlots:        openTaxiSlots,
+			TaxiSuggestions:      taxiSuggestions,
+			LowestValueRoster:    lowestValueRoster,
 			TotalRosterValue:     totalRosterValue,
 			UserAvgAge:           userAvgAge,
 			TeamAges:             teamAges,

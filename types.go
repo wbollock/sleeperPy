@@ -89,6 +89,7 @@ type PlayerRow struct {
 	IsUpgrade            bool
 	UpgradeFor           string // Name of player this FA is better than
 	UpgradeType          string // "Starter" or "Bench" or ""
+	UpgradeValueDiff     int    // Dynasty value gained by making this add/drop swap (only set alongside UpgradeFor)
 	IsFlex               bool   // Heuristic FLEX indicator
 	IsSuperflex          bool   // Heuristic SUPERFLEX indicator
 	FlexTier             int    // Tier from the FLX table, for RB/WR/TE only (0 if not flex-eligible or unranked). Only comparable to other FlexTier values -- never to a positional Tier.
@@ -96,11 +97,32 @@ type PlayerRow struct {
 	DynastyValueLowConf  bool   // True when the two dynasty value sources disagree by 30%+
 	Age                  int    // Player age from Sleeper API
 	RosterPercent        float64
-	Team                 string // NFL team abbreviation
-	InjuryStatus         string // "Out", "Doubtful", "Questionable", "IR", etc. (empty if healthy)
-	DepthChartOrder      int    // Sleeper's depth chart rank at this position on this team (0 if unknown)
-	OnBye                bool   // True if Team has a bye this week
-	ADPTier              int    // Secondary tier from live ADP draft-market data (0 = not computed/not found). Only populated when TierSource setting is "both".
+	Team                 string  // NFL team abbreviation
+	InjuryStatus         string  // "Out", "Doubtful", "Questionable", "IR", etc. (empty if healthy)
+	DepthChartOrder      int     // Sleeper's depth chart rank at this position on this team (0 if unknown)
+	OnBye                bool    // True if Team has a bye this week
+	ADPTier              int     // Secondary tier from live ADP draft-market data (0 = not computed/not found). Only populated when TierSource setting is "both".
+	IsTaxiSquad          bool    // True if this player is currently stashed on the user's taxi squad -- excluded from drop/cut value comparisons since taxi stashes are intentionally low-value prospects, not roster mistakes
+	IsTaxiEligible       bool    // True if a free agent's NFL experience is within the league's taxi eligibility window (see LeagueData.TaxiYears)
+	YearsExp             int     // Player's NFL experience in years, from Sleeper (0 = rookie)
+}
+
+// LowestValuePlayer pairs one of the user's weakest dynasty assets at a
+// position with the best unowned player at that same position, for a quick
+// "should I even keep this guy" comparison.
+type LowestValuePlayer struct {
+	YourPlayer    PlayerRow
+	BestAvailable PlayerRow // zero-value (Name == "") if no valued free agent exists at this position
+	ValueGap      int       // BestAvailable.DynastyValue - YourPlayer.DynastyValue (only meaningful when BestAvailable is set)
+}
+
+// TaxiSuggestion recommends stashing a taxi-eligible free agent on an open
+// taxi slot, or -- once taxi slots are full -- swapping out the weakest
+// current taxi stash for a clearly better prospect.
+type TaxiSuggestion struct {
+	Prospect     PlayerRow // Taxi-eligible free agent to add
+	HasOpenSlot  bool      // True if this can go straight into an unused taxi slot
+	DropFromTaxi PlayerRow // Current taxi squad player to drop instead (zero-value if HasOpenSlot)
 }
 
 type TeamAgeData struct {
@@ -379,6 +401,12 @@ type LeagueData struct {
 	FreeAgentsByPos       map[string][]PlayerRow
 	TopFreeAgents         []PlayerRow
 	TopFreeAgentsByValue  []PlayerRow
+	AllFreeAgentsByValue  []PlayerRow         // Every unowned skill-position player with a dynasty value, ranked highest first (dynasty add/drop finder)
+	HasTaxiSquad          bool                // True if the league has taxi_slots configured
+	TaxiYears             int                 // Max NFL experience (years) for taxi eligibility -- from league settings, defaults to 1 (rookies/1st-year players only)
+	OpenTaxiSlots         int                 // Unused taxi slots on the user's roster right now
+	TaxiSuggestions       []TaxiSuggestion    // Best taxi-eligible free agents to stash, given open slots / current taxi squad
+	LowestValueRoster     []LowestValuePlayer // User's 3 weakest dynasty assets vs. the best available replacement at each position
 	TotalRosterValue      int
 	UserAvgAge            float64
 	TeamAges              []TeamAgeData
