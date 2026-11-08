@@ -338,6 +338,28 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		leagues = append(leagues, previousYearLeagues...)
 	}
 
+	// Sleeper can return the same league when querying adjacent seasons.
+	// Keep one copy per league_id to avoid duplicate entries in the selector.
+	leagueByID := make(map[string]map[string]interface{}, len(leagues))
+	dedupedLeagues := make([]map[string]interface{}, 0, len(leagues))
+	duplicateCount := 0
+	for _, league := range leagues {
+		leagueID, ok := league["league_id"].(string)
+		if !ok || leagueID == "" {
+			continue
+		}
+		if _, exists := leagueByID[leagueID]; exists {
+			duplicateCount++
+			continue
+		}
+		leagueByID[leagueID] = league
+		dedupedLeagues = append(dedupedLeagues, league)
+	}
+	if duplicateCount > 0 {
+		debugLog("[DEBUG] Removed %d duplicate league entries from merged season fetch", duplicateCount)
+	}
+	leagues = dedupedLeagues
+
 	if len(leagues) == 0 {
 		log.Printf("[ERROR] No leagues found for user %s", userID)
 		totalErrors.Inc()
@@ -431,6 +453,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 	for _, league := range leagues {
 		leagueID := league["league_id"].(string)
 		leagueName := league["name"].(string)
+		season := leagueSeasonString(league)
 
 		// Check if this is a dynasty league
 		isDynasty := isDynastyLeague(league)
@@ -1489,6 +1512,7 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 		leagueData := LeagueData{
 			LeagueID:             leagueID,
 			LeagueName:           leagueName,
+			Season:               season,
 			Scoring:              scoring,
 			IsDynasty:            isDynasty,
 			HasMatchups:          hasMatchups,
@@ -1661,6 +1685,19 @@ func dashboardHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func leagueSeasonString(league map[string]interface{}) string {
+	switch seasonValue := league["season"].(type) {
+	case string:
+		return strings.TrimSpace(seasonValue)
+	case float64:
+		return strconv.Itoa(int(seasonValue))
+	case int:
+		return strconv.Itoa(seasonValue)
+	default:
+		return ""
+	}
+}
+
 func buildDashboardPage(username string, settings UserSettings) (*DashboardPage, error) {
 	// 1. Get user ID
 	user, err := appProvider.FetchUser(username)
@@ -1770,15 +1807,7 @@ func buildDashboardPage(username string, settings UserSettings) (*DashboardPage,
 		isDynasty := isDynastyLeague(league)
 
 		// Get season year
-		season := ""
-		switch seasonValue := league["season"].(type) {
-		case string:
-			season = seasonValue
-		case float64:
-			season = strconv.Itoa(int(seasonValue))
-		case int:
-			season = strconv.Itoa(seasonValue)
-		}
+		season := leagueSeasonString(league)
 		if season != "" {
 			debugLog("[DEBUG] League %s has season: %s", leagueName, season)
 		} else {
