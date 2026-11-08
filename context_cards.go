@@ -22,15 +22,15 @@ func buildContextCards(league LeagueData, userRosterValue int, userAvgAge float6
 		}
 
 		rankSuffix := getRankSuffix(valueRank)
-		color := "#10b981" // green
+		color := "var(--qt-ok)" // green
 		if valueRank > league.LeagueSize/2 {
-			color = "#ef4444" // red - bottom half
+			color = "var(--qt-danger)" // red - bottom half
 		} else if valueRank <= 3 {
-			color = "#3b82f6" // blue - top 3
+			color = "var(--qt-accent)" // blue - top 3
 		}
 
 		cards = append(cards, ContextCard{
-			Title: "Roster Value",
+			Title: "Starter Value",
 			Value: fmt.Sprintf("#%d%s of %d", valueRank, rankSuffix, league.LeagueSize),
 			Icon:  "💎",
 			Color: color,
@@ -64,12 +64,12 @@ func buildContextCards(league LeagueData, userRosterValue int, userAvgAge float6
 		}
 
 		rankSuffix := getRankSuffix(ageRank)
-		color := "#10b981" // green - younger
+		color := "var(--qt-ok)" // green - younger
 		if userAvgAge > 27 {
-			color = "#f59e0b" // orange - aging
+			color = "var(--qt-warn)" // orange - aging
 		}
 		if userAvgAge > 29 {
-			color = "#ef4444" // red - old
+			color = "var(--qt-danger)" // red - old
 		}
 
 		ageDescriptor := "Middle"
@@ -105,11 +105,11 @@ func buildContextCards(league LeagueData, userRosterValue int, userAvgAge float6
 			}
 		}
 
-		color := "#10b981" // green
+		color := "var(--qt-ok)" // green
 		if totalPicks < 3 {
-			color = "#ef4444" // red - low picks
+			color = "var(--qt-danger)" // red - low picks
 		} else if firstRoundPicks > 1 {
-			color = "#3b82f6" // blue - multiple 1sts
+			color = "var(--qt-accent)" // blue - multiple 1sts
 		}
 
 		descriptor := fmt.Sprintf("%d total", totalPicks)
@@ -137,23 +137,23 @@ func buildContextCards(league LeagueData, userRosterValue int, userAvgAge float6
 
 			var weakPos string
 			var weakPct float64
-			color := "#10b981"
+			color := "var(--qt-ok)"
 
 			if rbPct < 20 {
 				weakPos = "RB"
 				weakPct = rbPct
-				color = "#ef4444"
+				color = "var(--qt-danger)"
 			} else if wrPct < 25 {
 				weakPos = "WR"
 				weakPct = wrPct
-				color = "#ef4444"
+				color = "var(--qt-danger)"
 			} else if tePct < 10 {
 				weakPos = "TE"
 				weakPct = tePct
-				color = "#ef4444"
+				color = "var(--qt-danger)"
 			} else {
 				weakPos = "Balanced"
-				color = "#10b981"
+				color = "var(--qt-ok)"
 			}
 
 			value := weakPos
@@ -180,14 +180,14 @@ func buildContextCards(league LeagueData, userRosterValue int, userAvgAge float6
 					winPct := float64(pr.Wins) / float64(totalGames)
 
 					status := "In Hunt"
-					color := "#f59e0b" // orange
+					color := "var(--qt-warn)" // orange
 
 					if winPct >= 0.6 {
 						status = "Playoff Bound"
-						color = "#10b981" // green
+						color = "var(--qt-ok)" // green
 					} else if winPct < 0.4 {
 						status = "Rebuild Mode"
-						color = "#ef4444" // red
+						color = "var(--qt-danger)" // red
 					}
 
 					cards = append(cards, ContextCard{

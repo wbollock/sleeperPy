@@ -134,28 +134,42 @@ type TaxiSuggestion struct {
 	DropFromTaxi PlayerRow // Current taxi squad player to drop instead (zero-value if HasOpenSlot)
 }
 
+// LeagueChampion is one past season's title winner, resolved from Sleeper's
+// winners_bracket for that season's league_id.
+type LeagueChampion struct {
+	Season     string
+	TeamName   string
+	OwnerName  string
+	OwnerID    string
+	IsUserTeam bool
+}
+
 type TeamAgeData struct {
-	TeamName    string
-	OwnerName   string
-	AvgAge      float64
-	Wins        int // Real season wins, from roster settings
-	Losses      int // Real season losses, from roster settings
-	Rank        int // Standings position (1 = best record) -- computed from Wins/Losses, not a raw count
-	RosterID    int
-	IsUserTeam  bool
-	RosterValue int // Total dynasty value of roster
+	TeamName     string
+	OwnerName    string
+	AvgAge       float64
+	Wins         int // Real season wins, from roster settings
+	Losses       int // Real season losses, from roster settings
+	Rank         int // Standings position (1 = best record) -- computed from Wins/Losses, not a raw count
+	RosterID     int
+	IsUserTeam   bool
+	RosterValue  int    // Total dynasty value of every rostered player (bench included)
+	StarterValue int    // Dynasty value of the best lineup the roster can field under the league's slot counts
+	Strategy     string // "Win Now", "Contending", "Rebuilding" -- set from calculatePowerRankings, kept in sync so this table and Power Rankings never disagree
 }
 
 type PowerRanking struct {
 	Rank         int
 	TeamName     string
+	RosterID     int
 	RosterValue  int
+	StarterValue int
 	Wins         int
 	Losses       int
 	AvgAge       float64
 	Strategy     string // "Win Now", "Contending", "Rebuilding"
 	IsUserTeam   bool
-	ValueRank    int // Rank by dynasty value
+	ValueRank    int // Rank by starter value
 	StandingRank int // Rank by wins
 }
 
@@ -418,6 +432,7 @@ type LeagueData struct {
 	UserAvgAge            float64
 	TeamAges              []TeamAgeData
 	PowerRankings         []PowerRanking
+	LeagueHistory         []LeagueChampion // Past seasons' champions, most recent first
 	DraftPicks            []DraftPick
 	ProjectedDraftPicks   []ProjectedDraftPick
 	TradeTargets          []TradeTarget

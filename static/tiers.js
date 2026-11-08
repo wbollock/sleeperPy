@@ -40,11 +40,18 @@ function switchMode(evt, leagueIndex, mode) {
     }
 }
 
+// Cards worth seeing without an extra click on a brand-new visit. Matched
+// against the toggleSection id prefix (before the trailing "-<leagueIndex>").
+// Only applies the first time a browser loads this page -- see
+// initCollapsibleCards -- so a user who deliberately collapses one of these
+// later has that choice remembered like any other card.
+const DEFAULT_EXPANDED_CARD_PREFIXES = ['season-plan', 'power-rankings', 'league-age', 'trade-targets', 'league-history'];
+
 function toggleSection(sectionId) {
     const content = document.getElementById(sectionId + '-content');
     const icon = document.getElementById(sectionId + '-icon');
 
-    const expanded = getExpandedSections();
+    const expanded = getExpandedSections() || [];
     if (content.style.display === 'none') {
         content.style.display = '';
         icon.textContent = '▼';
@@ -58,9 +65,14 @@ function toggleSection(sectionId) {
     localStorage.setItem('sleeperpy_expanded_sections', JSON.stringify(expanded));
 }
 
+// Returns null (not []) when the user has never toggled a card, so
+// initCollapsibleCards can tell "brand-new visit" apart from "user collapsed
+// everything" and only apply the default-expanded set in the former case.
 function getExpandedSections() {
+    const raw = localStorage.getItem('sleeperpy_expanded_sections');
+    if (raw === null) return null;
     try {
-        return JSON.parse(localStorage.getItem('sleeperpy_expanded_sections')) || [];
+        return JSON.parse(raw) || [];
     } catch (e) {
         return [];
     }
@@ -68,10 +80,16 @@ function getExpandedSections() {
 
 // Dynasty toolkit cards (draft picks, trade targets, league age, etc.) are
 // collapsed by default -- there are ~20 of them and showing all expanded at
-// once reads as a wall of unrelated panels. A card stays expanded across
-// visits once the user opens it (see toggleSection).
+// once reads as a wall of unrelated panels. A handful of the most useful
+// ones (see DEFAULT_EXPANDED_CARD_PREFIXES) start open on a user's first
+// visit so the toolkit isn't a wall of collapsed headers with nothing to
+// look at. After that first visit, a card's state is whatever the user last
+// left it as (see toggleSection), including if they collapse a default one.
 function initCollapsibleCards() {
-    const expanded = getExpandedSections();
+    const stored = getExpandedSections();
+    const isFirstVisit = stored === null;
+    const expanded = stored || [];
+
     document.querySelectorAll('.toolkit-card.collapseable').forEach(card => {
         const header = card.querySelector('.card-header');
         const content = card.querySelector('.card-content');
@@ -80,11 +98,23 @@ function initCollapsibleCards() {
 
         const match = (header.getAttribute('onclick') || '').match(/toggleSection\('([^']+)'\)/);
         const sectionId = match && match[1];
-        const shouldExpand = sectionId && expanded.includes(sectionId);
+        const isDefaultCard = sectionId && DEFAULT_EXPANDED_CARD_PREFIXES.some(prefix => sectionId.startsWith(prefix + '-'));
+
+        let shouldExpand;
+        if (isFirstVisit) {
+            shouldExpand = !!isDefaultCard;
+            if (shouldExpand) expanded.push(sectionId);
+        } else {
+            shouldExpand = sectionId && expanded.includes(sectionId);
+        }
 
         content.style.display = shouldExpand ? '' : 'none';
         icon.textContent = shouldExpand ? '▼' : '▶';
     });
+
+    if (isFirstVisit) {
+        localStorage.setItem('sleeperpy_expanded_sections', JSON.stringify(expanded));
+    }
 }
 
 function toggleLeagueDropdown() {

@@ -28,6 +28,12 @@ func (f *fakeLeagueUsersProvider) FetchLeagueUsers(leagueID string) ([]map[strin
 func (f *fakeLeagueUsersProvider) FetchLeagueTradedPicks(leagueID string) ([]map[string]interface{}, error) {
 	return nil, nil
 }
+func (f *fakeLeagueUsersProvider) FetchLeague(leagueID string) (map[string]interface{}, error) {
+	return nil, nil
+}
+func (f *fakeLeagueUsersProvider) FetchLeagueWinnersBracket(leagueID string) ([]map[string]interface{}, error) {
+	return nil, nil
+}
 
 func TestBuildDashboardTradeAction(t *testing.T) {
 	origProvider := appProvider

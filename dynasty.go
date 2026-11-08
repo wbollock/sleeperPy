@@ -555,38 +555,178 @@ func buildTopRookies(players map[string]interface{}, dynastyValues map[string]Dy
 	return rookies
 }
 
+// calculateStarterValue returns the KTC value of the best starting lineup a
+// roster can field under the league's actual slot counts, instead of the
+// sum of every rostered player. Using full-roster value for power rankings
+// lets a team inflate its score just by hoarding bench depth at one
+// position (e.g. stashing four extra QBs in a superflex league that only
+// starts two) -- starter value can't be padded that way.
+//
+// Slot eligibility is a strict nesting -- REC_FLEX (WR/TE) is a subset of
+// FLEX (RB/WR/TE), which is a subset of SUPER_FLEX (QB/RB/WR/TE) -- so
+// filling fixed single-position slots first, then flex slots narrowest to
+// widest with players sorted by value descending, is optimal (a standard
+// greedy-on-a-laminar-family argument): a player only "wastes" a wide slot
+// when no narrower slot can use them, which is exactly what this order
+// avoids.
+func calculateStarterValue(rosterPlayerIDs []string, players map[string]interface{}, dynastyValues map[string]DynastyValue, isSuperFlex bool, rosterPositions []string) int {
+	type candidate struct {
+		pos   string
+		value int
+	}
+
+	byPos := map[string][]candidate{}
+	for _, pid := range rosterPlayerIDs {
+		p, ok := players[pid].(map[string]interface{})
+		if !ok {
+			continue
+		}
+		pos, _ := p["position"].(string)
+		if pos != "QB" && pos != "RB" && pos != "WR" && pos != "TE" {
+			continue
+		}
+		name := getPlayerName(p)
+		val, exists := dynastyValues[normalizeName(name)]
+		if !exists {
+			continue
+		}
+		value := val.Value1QB
+		if isSuperFlex {
+			value = val.Value2QB
+		}
+		if value <= 0 {
+			continue
+		}
+		byPos[pos] = append(byPos[pos], candidate{pos: pos, value: value})
+	}
+	for pos := range byPos {
+		sort.Slice(byPos[pos], func(i, j int) bool { return byPos[pos][i].value > byPos[pos][j].value })
+	}
+
+	fixedSlots := map[string]int{}
+	var flexSlots, superFlexSlots, recFlexSlots int
+	for _, slot := range rosterPositions {
+		switch slot {
+		case "QB", "RB", "WR", "TE":
+			fixedSlots[slot]++
+		case "FLEX", "WRRB_FLEX", "WR_RB_FLEX":
+			flexSlots++
+		case "SUPER_FLEX":
+			superFlexSlots++
+		case "REC_FLEX", "WR_TE_FLEX":
+			recFlexSlots++
+		}
+	}
+
+	used := map[string]int{}
+	take := func(pos string) (int, bool) {
+		idx := used[pos]
+		list := byPos[pos]
+		if idx >= len(list) {
+			return 0, false
+		}
+		used[pos] = idx + 1
+		return list[idx].value, true
+	}
+
+	total := 0
+	for pos, n := range fixedSlots {
+		for i := 0; i < n; i++ {
+			if v, ok := take(pos); ok {
+				total += v
+			}
+		}
+	}
+
+	// Remaining candidates across all positions, best value first, greedily
+	// claimed by the narrowest flex slot type they still fit.
+	var remaining []candidate
+	for pos, list := range byPos {
+		remaining = append(remaining, list[used[pos]:]...)
+	}
+	sort.Slice(remaining, func(i, j int) bool { return remaining[i].value > remaining[j].value })
+
+	for _, c := range remaining {
+		switch c.pos {
+		case "WR", "TE":
+			if recFlexSlots > 0 {
+				total += c.value
+				recFlexSlots--
+			} else if flexSlots > 0 {
+				total += c.value
+				flexSlots--
+			} else if superFlexSlots > 0 {
+				total += c.value
+				superFlexSlots--
+			}
+		case "RB":
+			if flexSlots > 0 {
+				total += c.value
+				flexSlots--
+			} else if superFlexSlots > 0 {
+				total += c.value
+				superFlexSlots--
+			}
+		case "QB":
+			if superFlexSlots > 0 {
+				total += c.value
+				superFlexSlots--
+			}
+		}
+	}
+
+	return total
+}
+
 func calculatePowerRankings(teamAges []TeamAgeData) []PowerRanking {
 	rankings := []PowerRanking{}
 
-	// Create power rankings from team data
 	for _, team := range teamAges {
-		// Determine strategy based on age and record
-		strategy := "Contending"
-		if team.AvgAge > 27.0 {
-			strategy = "Win Now"
-		} else if team.AvgAge < 24.5 {
-			strategy = "Rebuilding"
-		}
-
 		rankings = append(rankings, PowerRanking{
 			TeamName:     team.TeamName,
+			RosterID:     team.RosterID,
 			RosterValue:  team.RosterValue,
+			StarterValue: team.StarterValue,
 			Wins:         team.Wins,
 			Losses:       team.Losses,
 			AvgAge:       team.AvgAge,
-			Strategy:     strategy,
 			IsUserTeam:   team.IsUserTeam,
 			StandingRank: team.Rank,
 		})
 	}
 
-	// Sort by roster value (highest first) and assign value ranks
+	// Rank by starter value (highest first), not full roster value -- this
+	// is the number superflex teams can't inflate by hoarding backup QBs on
+	// the bench, since bench players never make it into calculateStarterValue.
 	sort.Slice(rankings, func(i, j int) bool {
-		return rankings[i].RosterValue > rankings[j].RosterValue
+		return rankings[i].StarterValue > rankings[j].StarterValue
 	})
 
 	for i := range rankings {
 		rankings[i].ValueRank = i + 1
+	}
+
+	// A team is only "contending" if its starting lineup is actually
+	// top-half in the league by value -- age alone used to decide this,
+	// which let a young team full of weak starters get called "Contending"
+	// just for not being old, and let a strong veteran-laden team that
+	// wasn't literally the oldest miss "Win Now".
+	topHalf := (len(rankings) + 1) / 2
+	for i := range rankings {
+		valueStrong := rankings[i].ValueRank <= topHalf
+		switch {
+		case rankings[i].AvgAge < 24.5:
+			rankings[i].Strategy = "Rebuilding"
+		case valueStrong && rankings[i].AvgAge > 27.0:
+			rankings[i].Strategy = "Win Now"
+		case valueStrong:
+			rankings[i].Strategy = "Contending"
+		default:
+			rankings[i].Strategy = "Rebuilding"
+		}
+	}
+
+	for i := range rankings {
 		// Overall rank is average of value rank and standing rank
 		rankings[i].Rank = (rankings[i].ValueRank + rankings[i].StandingRank) / 2
 	}

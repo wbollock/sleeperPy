@@ -62,6 +62,14 @@ func (f *fakeActionFeedProvider) FetchLeagueTradedPicks(leagueID string) ([]map[
 	return nil, nil
 }
 
+func (f *fakeActionFeedProvider) FetchLeague(leagueID string) (map[string]interface{}, error) {
+	return nil, nil
+}
+
+func (f *fakeActionFeedProvider) FetchLeagueWinnersBracket(leagueID string) ([]map[string]interface{}, error) {
+	return nil, nil
+}
+
 func TestBuildDashboardPageAggregatesActionFeed(t *testing.T) {
 	origProvider := appProvider
 	origBorisTiers := fetchBorisTiers

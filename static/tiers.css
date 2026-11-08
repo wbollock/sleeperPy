@@ -286,35 +286,16 @@
 /* ---- Grid layout ---- */
 
 .league-grid-container {
+	/* Always a single full-width column: the roster card and the dynasty
+	   toolkit are two stacked sections, not a shared row-grid. Mixing a
+	   2-column roster table and a couple dozen variable-height toolkit
+	   cards into one auto-fit grid produced ragged, misaligned rows --
+	   see .dynasty-toolkit below for how the toolkit lays itself out. */
 	display: grid;
 	grid-template-columns: minmax(0, 1fr);
 	gap: 20px;
 	width: 100%;
 	align-items: start;
-}
-
-@media (min-width: 1100px) {
-	.league-grid-container {
-		grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-	}
-	.league-grid-container.single-column {
-		grid-template-columns: minmax(0, 1fr);
-	}
-	.roster-card {
-		grid-column: span 2;
-	}
-}
-
-.toolkit-group-label {
-	grid-column: 1 / -1;
-	font-size: 0.75rem;
-	font-weight: 700;
-	text-transform: uppercase;
-	letter-spacing: 0.04em;
-	color: var(--qt-text-muted);
-	padding-top: 10px;
-	margin-top: 4px;
-	border-top: 1px solid var(--qt-border);
 }
 
 .roster-card {
@@ -336,18 +317,50 @@
 	overflow-wrap: break-word;
 }
 
+/* ---- Dynasty toolkit ----
+   A CSS multi-column ("masonry") layout: cards flow down one column at a
+   time instead of being placed row-by-row, so a two-line card next to a
+   twenty-row table doesn't leave a jagged gap or misalign everything
+   below it. Each group-label spans all columns and starts a fresh
+   section, keeping related cards visually grouped like panels in a
+   desktop app rather than shuffled into whichever slot happened to be
+   free. */
 .dynasty-toolkit {
-	/* Not a real layout box -- its toolkit-card children become direct
-	   grid items of .league-grid-container so they can flow into
-	   whatever columns/rows are free instead of being trapped in one
-	   tall single-file stack next to a much shorter roster-card. */
-	display: contents;
+	display: block;
+}
+
+@media (min-width: 860px) {
+	.dynasty-toolkit {
+		column-count: 2;
+		column-gap: 20px;
+	}
+}
+
+@media (min-width: 1500px) {
+	.dynasty-toolkit {
+		column-count: 3;
+	}
+}
+
+.toolkit-group-label {
+	column-span: all;
+	font-size: 0.75rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: var(--qt-text-muted);
+	padding-top: 10px;
+	margin-top: 4px;
+	margin-bottom: 12px;
+	border-top: 1px solid var(--qt-border);
 }
 
 .dynasty-source-info {
+	column-span: all;
 	font-size: 0.8em;
 	color: var(--qt-text-muted);
 	text-align: center;
+	margin-bottom: 16px;
 }
 
 .dynasty-source-info a {
@@ -360,6 +373,8 @@
 	background: var(--qt-base);
 	border: 1px solid var(--qt-border);
 	border-radius: var(--qt-radius);
+	break-inside: avoid;
+	margin-bottom: 20px;
 }
 
 .card-header {
@@ -838,6 +853,28 @@
 	max-width: 100%;
 }
 
+/* ---- User-team row highlight, dynasty strategy tags ---- */
+
+.user-team-row td {
+	background: color-mix(in srgb, var(--qt-accent) 12%, transparent) !important;
+	border-left: 3px solid var(--qt-accent);
+}
+
+.strategy-win-now {
+	color: var(--qt-warn);
+	font-weight: 600;
+}
+
+.strategy-rebuilding {
+	color: var(--qt-accent);
+	font-weight: 600;
+}
+
+.strategy-contending {
+	color: var(--qt-ok);
+	font-weight: 600;
+}
+
 .value-low-conf {
 	color: var(--qt-warn);
 	font-weight: 700;
@@ -1174,6 +1211,26 @@
 
 .waiver-label.gave {
 	color: var(--qt-danger);
+}
+
+/* ---- Stat tiles (small accent-tinted number callouts) ---- */
+
+.qt-stat-tile {
+	background: var(--card-bg-alt);
+	border: 1px solid var(--qt-border);
+	border-radius: 8px;
+	padding: 16px;
+	text-align: center;
+}
+
+.qt-stat-tile--accent {
+	background: color-mix(in srgb, var(--qt-accent) 8%, var(--card-bg-alt));
+	border-color: color-mix(in srgb, var(--qt-accent) 25%, var(--qt-border));
+}
+
+.qt-stat-tile--warn {
+	background: color-mix(in srgb, var(--qt-warn) 8%, var(--card-bg-alt));
+	border-color: color-mix(in srgb, var(--qt-warn) 25%, var(--qt-border));
 }
 
 /* ---- Legend ---- */

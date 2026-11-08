@@ -1104,25 +1104,12 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 				debugLog("[DEBUG] Could not fetch league users: %v", err)
 			}
 
-			// Create a map of user_id -> display_name
-			userNames = make(map[string]string)
-			if leagueUsers != nil {
-				for _, u := range leagueUsers {
-					if uid, ok := u["user_id"].(string); ok {
-						displayName := ""
-						if dn, ok := u["display_name"].(string); ok && dn != "" {
-							displayName = dn
-						} else if un, ok := u["username"].(string); ok {
-							displayName = un
-						}
-						userNames[uid] = displayName
-					}
-				}
-			}
+			userNames = buildUserNameMap(leagueUsers)
 		}
 
 		// Calculate average age for all teams in the league (for dynasty mode)
 		var teamAges []TeamAgeData
+		var powerRankings []PowerRanking
 		if isDynasty {
 
 			// Calculate average age and roster value for each roster
@@ -1187,15 +1174,21 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 					}
 				}
 
+				starterValue := 0
+				if dynastyValues != nil {
+					starterValue = calculateStarterValue(rosterPlayers, players, dynastyValues, isSuperFlex, leagueRosterPositions)
+				}
+
 				teamAges = append(teamAges, TeamAgeData{
-					TeamName:    teamName,
-					OwnerName:   ownerName,
-					AvgAge:      avgAge,
-					Wins:        wins,
-					Losses:      losses,
-					RosterID:    int(rosterID),
-					IsUserTeam:  (ownerID == userID),
-					RosterValue: rosterValue,
+					TeamName:     teamName,
+					OwnerName:    ownerName,
+					AvgAge:       avgAge,
+					Wins:         wins,
+					Losses:       losses,
+					RosterID:     int(rosterID),
+					IsUserTeam:   (ownerID == userID),
+					RosterValue:  rosterValue,
+					StarterValue: starterValue,
 				})
 			}
 
@@ -1221,12 +1214,33 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 				teamAges[i].Rank = rankByRosterID[teamAges[i].RosterID]
 			}
 
+			// Compute power rankings (needs standings Rank set above) and
+			// copy each team's resulting Strategy back onto teamAges so the
+			// League Age Analysis table and the Power Rankings table always
+			// agree on Win Now / Contending / Rebuilding for a given team.
+			powerRankings = calculatePowerRankings(teamAges)
+			strategyByRoster := make(map[int]string, len(powerRankings))
+			for _, pr := range powerRankings {
+				strategyByRoster[pr.RosterID] = pr.Strategy
+			}
+			for i := range teamAges {
+				teamAges[i].Strategy = strategyByRoster[teamAges[i].RosterID]
+			}
+
 			// Sort teams by age (oldest to youngest) for display
 			sort.Slice(teamAges, func(i, j int) bool {
 				return teamAges[i].AvgAge > teamAges[j].AvgAge
 			})
 
 			debugLog("[DEBUG] Calculated ages for %d teams", len(teamAges))
+		}
+
+		// League history: past seasons' champions, walked back through
+		// Sleeper's previous_league_id chain (cached -- see league_history.go).
+		var leagueHistory []LeagueChampion
+		if isDynasty {
+			leagueHistory = fetchLeagueHistory(leagueID, userID)
+			debugLog("[DEBUG] Resolved %d past champion(s) for league history", len(leagueHistory))
 		}
 
 		// Fetch draft picks for dynasty leagues
@@ -1500,7 +1514,8 @@ func lookupHandler(w http.ResponseWriter, r *http.Request) {
 			TotalRosterValue:     totalRosterValue,
 			UserAvgAge:           userAvgAge,
 			TeamAges:             teamAges,
-			PowerRankings:        calculatePowerRankings(teamAges),
+			PowerRankings:        powerRankings,
+			LeagueHistory:        leagueHistory,
 			DraftPicks:           draftPicks,
 			ProjectedDraftPicks:  projectedDraftPicks,
 			TradeTargets:         tradeTargets,

@@ -86,6 +86,12 @@ var rosterValueTrendCache = &valueTrendCache{
 	ttl:  24 * time.Hour, // Compare values over 24 hours
 }
 
+var leagueHistoryCache = &leagueHistoryCacheT{
+	data:      make(map[string][]LeagueChampion),
+	timestamp: make(map[string]time.Time),
+	ttl:       24 * time.Hour, // Past champions are immutable once a season ends
+}
+
 // gzipResponseWriter wraps http.ResponseWriter to support gzip compression
 type gzipResponseWriter struct {
 	io.Writer

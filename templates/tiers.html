@@ -174,17 +174,17 @@
             </div>
             {{end}}
 
-            <div class="league-grid-container{{if not $l.IsDynasty}} single-column{{end}}">
+            <div class="league-grid-container">
                 <div class="roster-card">
             <div class="table-scroll">
             <table class="sortable-table pretty-table roster-table">
                 {{if $l.IsDynasty}}
                 <colgroup>
+                    <col style="width:10%">
+                    <col style="width:38%">
+                    <col style="width:14%">
                     <col style="width:12%">
-                    <col style="width:60%">
-                    <col style="width:0">
-                    <col style="width:8%">
-                    <col style="width:20%">
+                    <col style="width:26%">
                 </colgroup>
                 {{else}}
                 <colgroup>
@@ -198,7 +198,7 @@
                         <th>Position</th>
                         <th>Player</th>
                         {{if $l.IsDynasty}}
-                        <th class="inseason-only" style="display:none;">Tier</th>
+                        <th>Tier</th>
                         <th class="dynasty-only">Age</th>
                         <th>Dynasty Value</th>
                         {{else}}
@@ -212,22 +212,22 @@
                         <td>{{.Pos}}</td>
                         <td>{{if eq .Tier 1}}<span class="tier1-star">★</span> {{end}}{{.Name | safe}}{{if .OnBye}}<span class="bye-badge" title="On bye this week">BYE</span>{{end}}{{if .InjuryStatus}}<span class="injury-badge" title="Injury status">{{.InjuryStatus}}</span>{{end}}</td>
                         {{if $l.IsDynasty}}
-                        <td class="inseason-only" style="display:none;">{{.Tier}}{{if .ADPTier}} <span class="adp-tier-note" title="ADP tier (FantasyFootballCalculator draft-market data)">ADP T{{.ADPTier}}</span>{{end}}{{if .IsFlex}} <span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">FLEX</span>{{else if .IsSuperflex}} <span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">SF</span>{{end}}</td>
+                        <td>{{.Tier}}{{if .ADPTier}} <span class="adp-tier-note" title="ADP tier (FantasyFootballCalculator draft-market data)">ADP T{{.ADPTier}}</span>{{end}}{{if .IsFlex}} <span style="background:var(--qt-accent);color:var(--qt-accent-fg);padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">FLEX</span>{{else if .IsSuperflex}} <span style="background:var(--qt-accent);color:var(--qt-accent-fg);padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">SF</span>{{end}}</td>
                         <td class="dynasty-only">{{if .Age}}{{.Age}}{{else}}-{{end}}</td>
                         <td>{{if .DynastyValue}}{{.DynastyValue}}{{if .DynastyValueLowConf}} <span class="value-low-conf" title="DynastyProcess and FantasyCalc disagree by 30%+ on this player -- treat as a rough estimate.">~</span>{{end}}{{else}}-{{end}}</td>
                         {{else}}
-                        <td>{{.Tier}}{{if .ADPTier}} <span class="adp-tier-note" title="ADP tier (FantasyFootballCalculator draft-market data)">ADP T{{.ADPTier}}</span>{{end}}{{if .IsFlex}} <span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">FLEX</span>{{else if .IsSuperflex}} <span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">SF</span>{{end}}</td>
+                        <td>{{.Tier}}{{if .ADPTier}} <span class="adp-tier-note" title="ADP tier (FantasyFootballCalculator draft-market data)">ADP T{{.ADPTier}}</span>{{end}}{{if .IsFlex}} <span style="background:var(--qt-accent);color:var(--qt-accent-fg);padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">FLEX</span>{{else if .IsSuperflex}} <span style="background:var(--qt-accent);color:var(--qt-accent-fg);padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">SF</span>{{end}}</td>
                         {{end}}
                     </tr>
                 {{end}}
                 {{range $l.Unranked}}
                     <tr>
                         <td>
-                            {{if eq .Pos "FLEX"}}<span style="color:#7bb0ff;font-weight:bold;">FLEX</span>{{else if eq .Pos "SUPERFLEX"}}<span style="color:#7bb0ff;font-weight:bold;">SUPERFLEX</span>{{else}}{{.Pos}}{{end}}
+                            {{if eq .Pos "FLEX"}}<span style="color:var(--qt-accent);font-weight:bold;">FLEX</span>{{else if eq .Pos "SUPERFLEX"}}<span style="color:var(--qt-accent);font-weight:bold;">SUPERFLEX</span>{{else}}{{.Pos}}{{end}}
                         </td>
                         <td>{{.Name | safe}}{{if .OnBye}}<span class="bye-badge" title="On bye this week">BYE</span>{{end}}{{if .InjuryStatus}}<span class="injury-badge" title="Injury status">{{.InjuryStatus}}</span>{{end}}</td>
                         {{if $l.IsDynasty}}
-                        <td class="inseason-only" style="display:none;">{{.Tier}}</td>
+                        <td>{{.Tier}}</td>
                         <td class="dynasty-only">{{if .Age}}{{.Age}}{{else}}-{{end}}</td>
                         <td>-</td>
                         {{else}}
@@ -257,7 +257,7 @@
                         </td>
                     </tr>
                     {{else}}
-                    <tr class="{{if $l.IsDynasty}}inseason-only{{end}}"><td colspan="{{if $l.IsDynasty}}4{{else}}3{{end}}" class="summary" style="padding:16px;font-style:italic;color:#9fb3d4;">Offseason - No active matchups</td></tr>
+                    <tr class="{{if $l.IsDynasty}}inseason-only{{end}}"><td colspan="{{if $l.IsDynasty}}4{{else}}3{{end}}" class="summary" style="padding:16px;font-style:italic;color:var(--qt-text-muted);">Offseason - No active matchups</td></tr>
                     {{end}}
                     {{if $l.IsDynasty}}
                     <tr class="dynasty-only">
@@ -273,11 +273,11 @@
                             <td>{{.Pos}}</td>
                             <td>{{if eq .Tier 1}}<span class="tier1-star">★</span> {{end}}{{if .ShouldSwapIn}}<span class="swap-icon">⇄</span> {{end}}{{.Name | safe}}{{if .OnBye}}<span class="bye-badge" title="On bye this week">BYE</span>{{end}}{{if .InjuryStatus}}<span class="injury-badge" title="Injury status">{{.InjuryStatus}}</span>{{end}}</td>
                             {{if $l.IsDynasty}}
-                            <td class="inseason-only" style="display:none;">{{.Tier}}{{if .ADPTier}} <span class="adp-tier-note" title="ADP tier (FantasyFootballCalculator draft-market data)">ADP T{{.ADPTier}}</span>{{end}}{{if .IsFlex}} <span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">FLEX</span>{{end}}</td>
+                            <td>{{.Tier}}{{if .ADPTier}} <span class="adp-tier-note" title="ADP tier (FantasyFootballCalculator draft-market data)">ADP T{{.ADPTier}}</span>{{end}}{{if .IsFlex}} <span style="background:var(--qt-accent);color:var(--qt-accent-fg);padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">FLEX</span>{{end}}</td>
                             <td class="dynasty-only">{{if .Age}}{{.Age}}{{else}}-{{end}}</td>
                             <td>{{if .DynastyValue}}{{.DynastyValue}}{{if .DynastyValueLowConf}} <span class="value-low-conf" title="DynastyProcess and FantasyCalc disagree by 30%+ on this player -- treat as a rough estimate.">~</span>{{end}}{{else}}-{{end}}</td>
                             {{else}}
-                            <td>{{.Tier}}{{if .ADPTier}} <span class="adp-tier-note" title="ADP tier (FantasyFootballCalculator draft-market data)">ADP T{{.ADPTier}}</span>{{end}}{{if .IsFlex}} <span style="background:#7bb0ff;color:#1a1f2e;padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">FLEX</span>{{end}}</td>
+                            <td>{{.Tier}}{{if .ADPTier}} <span class="adp-tier-note" title="ADP tier (FantasyFootballCalculator draft-market data)">ADP T{{.ADPTier}}</span>{{end}}{{if .IsFlex}} <span style="background:var(--qt-accent);color:var(--qt-accent-fg);padding:2px 5px;border-radius:3px;font-size:0.85em;font-weight:bold;">FLEX</span>{{end}}</td>
                             {{end}}
                         </tr>
                     {{end}}
@@ -286,15 +286,15 @@
                             <td>{{.Pos}}</td>
                             <td>{{.Name | safe}}{{if .OnBye}}<span class="bye-badge" title="On bye this week">BYE</span>{{end}}{{if .InjuryStatus}}<span class="injury-badge" title="Injury status">{{.InjuryStatus}}</span>{{end}}</td>
                             {{if $l.IsDynasty}}
-                            <td class="inseason-only">{{.Tier}}</td>
-                            <td class="dynasty-only" style="display:none;">{{if .Age}}{{.Age}}{{else}}-{{end}}</td>
+                            <td>{{.Tier}}</td>
+                            <td class="dynasty-only">{{if .Age}}{{.Age}}{{else}}-{{end}}</td>
                             <td>-</td>
                             {{else}}
                             <td>{{.Tier}}</td>
                             {{end}}
                         </tr>
                     {{end}}
-                    <tr><td colspan="{{if $l.IsDynasty}}4{{else}}3{{end}}" style="padding-top:8px;font-size:0.9em;color:#9fb3d4;font-style:italic;">Note: RB/WR/TE bench players ranked using FLEX tiers</td></tr>
+                    <tr><td colspan="{{if $l.IsDynasty}}4{{else}}3{{end}}" style="padding-top:8px;font-size:0.9em;color:var(--qt-text-muted);font-style:italic;">Note: RB/WR/TE bench players ranked using FLEX tiers</td></tr>
                 </tfoot>
             </table>
             </div>
@@ -360,7 +360,7 @@
                                     </div>
                                     <div style="padding:12px;background:var(--card-bg-alt);border-radius:8px;">
                                         <div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Strategy</div>
-                                        <div style="font-weight:600;font-size:0.95rem;color:#3b82f6;">{{$l.SeasonPlan.Strategy}}</div>
+                                        <div style="font-weight:600;font-size:0.95rem;color:var(--qt-accent);">{{$l.SeasonPlan.Strategy}}</div>
                                         {{if ne $l.SeasonPlan.TradeWindow ""}}
                                         <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:4px;">Trade: {{$l.SeasonPlan.TradeWindow}}</div>
                                         {{end}}
@@ -368,7 +368,7 @@
                                     {{if ne $l.SeasonPlan.ScheduleDifficulty ""}}
                                     <div style="padding:12px;background:var(--card-bg-alt);border-radius:8px;">
                                         <div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Schedule Difficulty</div>
-                                        <div style="font-weight:600;font-size:0.95rem;color:{{if eq $l.SeasonPlan.ScheduleDifficulty "Hard"}}#ef4444{{else if eq $l.SeasonPlan.ScheduleDifficulty "Easy"}}#10b981{{else}}#f59e0b{{end}};">{{$l.SeasonPlan.ScheduleDifficulty}}</div>
+                                        <div style="font-weight:600;font-size:0.95rem;color:{{if eq $l.SeasonPlan.ScheduleDifficulty "Hard"}}var(--qt-danger){{else if eq $l.SeasonPlan.ScheduleDifficulty "Easy"}}var(--qt-ok){{else}}var(--qt-warn){{end}};">{{$l.SeasonPlan.ScheduleDifficulty}}</div>
                                         {{if ne $l.SeasonPlan.ScheduleNote ""}}
                                         <div style="font-size:0.8rem;color:var(--text-secondary);margin-top:4px;">{{$l.SeasonPlan.ScheduleNote}}</div>
                                         {{end}}
@@ -389,7 +389,7 @@
                                 <div class="key-dates">
                                     <div style="font-weight:600;margin-bottom:8px;font-size:0.9rem;">Key Dates</div>
                                     {{range $l.SeasonPlan.KeyDates}}
-                                    <div style="padding:10px;margin-bottom:8px;background:var(--card-bg-alt);border-radius:6px;border-left:3px solid {{if eq .Importance "Critical"}}#ef4444{{else if eq .Importance "High"}}#f59e0b{{else}}#3b82f6{{end}};">
+                                    <div style="padding:10px;margin-bottom:8px;background:var(--card-bg-alt);border-radius:6px;border-left:3px solid {{if eq .Importance "Critical"}}var(--qt-danger){{else if eq .Importance "High"}}var(--qt-warn){{else}}var(--qt-accent){{end}};">
                                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
                                             <div style="font-weight:600;font-size:0.9rem;">{{.Label}}</div>
                                             <div style="font-size:0.8rem;color:var(--text-secondary);">{{.DaysAway}} days</div>
@@ -437,13 +437,13 @@
                             <div class="value-changes-list">
                                 {{range $l.ValueChanges}}
                                 {{if .IsOwned}}
-                                <div class="value-change-item" style="padding:10px;margin-bottom:8px;background:var(--card-bg-alt);border-radius:6px;border-left:3px solid {{if .IsRiser}}#10b981{{else}}#ef4444{{end}};">
+                                <div class="value-change-item" style="padding:10px;margin-bottom:8px;background:var(--card-bg-alt);border-radius:6px;border-left:3px solid {{if .IsRiser}}var(--qt-ok){{else}}var(--qt-danger){{end}};">
                                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
                                         <div>
                                             <span style="font-weight:600;">{{.PlayerName}}</span>
                                             <span style="color:var(--text-secondary);font-size:0.875rem;margin-left:6px;">{{.Position}}</span>
                                         </div>
-                                        <div style="font-weight:600;color:{{if .IsRiser}}#10b981{{else}}#ef4444{{end}};">
+                                        <div style="font-weight:600;color:{{if .IsRiser}}var(--qt-ok){{else}}var(--qt-danger){{end}};">
                                             {{if .IsRiser}}+{{end}}{{.Delta}}
                                         </div>
                                     </div>
@@ -470,7 +470,7 @@
                         <div class="card-content" id="waiver-recs-{{$i}}-content">
                             <div class="waiver-recs-list">
                                 {{range $l.WaiverRecommendations}}
-                                <div class="waiver-rec-item" style="padding:12px;margin-bottom:10px;background:var(--card-bg-alt);border-radius:8px;border-left:3px solid {{if eq .Priority "High"}}#10b981{{else if eq .Priority "Medium"}}#f59e0b{{else}}#6b7280{{end}};">
+                                <div class="waiver-rec-item" style="padding:12px;margin-bottom:10px;background:var(--card-bg-alt);border-radius:8px;border-left:3px solid {{if eq .Priority "High"}}var(--qt-ok){{else if eq .Priority "Medium"}}var(--qt-warn){{else}}var(--qt-text-muted){{end}};">
                                     <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:6px;">
                                         <div>
                                             <div style="font-weight:600;font-size:0.95rem;">{{.Player.Name}}</div>
@@ -480,7 +480,7 @@
                                             </div>
                                         </div>
                                         <div style="text-align:right;">
-                                            <div style="font-size:0.75rem;color:{{if eq .Priority "High"}}#10b981{{else if eq .Priority "Medium"}}#f59e0b{{else}}#6b7280{{end}};font-weight:600;">{{.Priority}}</div>
+                                            <div style="font-size:0.75rem;color:{{if eq .Priority "High"}}var(--qt-ok){{else if eq .Priority "Medium"}}var(--qt-warn){{else}}var(--qt-text-muted){{end}};font-weight:600;">{{.Priority}}</div>
                                             <div style="font-size:0.85rem;font-weight:600;margin-top:2px;">{{.SuggestedBid}}% FAAB</div>
                                         </div>
                                     </div>
@@ -492,7 +492,7 @@
                                         Role: {{.Role}} · Usage: {{.UsageSignal}}
                                     </div>
                                     {{if gt .TierDelta 0.0}}
-                                    <div style="font-size:0.75rem;color:#10b981;">
+                                    <div style="font-size:0.75rem;color:var(--qt-ok);">
                                         +{{printf "%.1f" .TierDelta}} tier upgrade
                                     </div>
                                     {{end}}
@@ -806,7 +806,7 @@
                                         {{if .Fairness.DisplayBadge}}
                                         <div class="trade-fairness" style="margin-top:10px;padding:8px;background:var(--card-bg-alt);border-radius:6px;">
                                             <div style="display:flex;align-items:center;justify-content:space-between;font-size:0.875rem;">
-                                                <span style="font-weight:600;color:{{if .Fairness.Fleeced}}#ef4444{{else if gt .Fairness.ValueDeltaPct 5.0}}#10b981{{else}}var(--text-secondary){{end}};">
+                                                <span style="font-weight:600;color:{{if .Fairness.Fleeced}}var(--qt-danger){{else if gt .Fairness.ValueDeltaPct 5.0}}var(--qt-ok){{else}}var(--text-secondary){{end}};">
                                                     {{.Fairness.DisplayBadge}}
                                                 </span>
                                             </div>
@@ -818,13 +818,13 @@
                                         </div>
                                         {{end}}
                                         {{if and (ne .Retrospective.Winner "") (gt .Retrospective.DaysElapsed 0)}}
-                                        <div class="trade-retrospective" style="margin-top:10px;padding:8px;background:var(--card-bg-alt);border-radius:6px;border-left:3px solid #3b82f6;">
+                                        <div class="trade-retrospective" style="margin-top:10px;padding:8px;background:var(--card-bg-alt);border-radius:6px;border-left:3px solid var(--qt-accent);">
                                             <div style="font-size:0.875rem;font-weight:600;margin-bottom:4px;">
                                                 Trade Update ({{.Retrospective.DaysElapsed}} days later)
                                             </div>
                                             <div style="font-size:0.8rem;color:var(--text-secondary);">
                                                 {{if ne .Retrospective.Winner "Even"}}
-                                                Winner: <span style="color:#10b981;font-weight:600;">{{.Retrospective.Winner}}</span> ({{.Retrospective.WinnerGain}})
+                                                Winner: <span style="color:var(--qt-ok);font-weight:600;">{{.Retrospective.Winner}}</span> ({{.Retrospective.WinnerGain}})
                                                 {{else}}
                                                 Still roughly even in value
                                                 {{end}}
@@ -885,19 +885,19 @@
                         </div>
                         <div class="card-content" id="league-trends-{{$i}}-content">
                             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin-bottom:20px;">
-                                <div style="background:rgba(123,176,255,0.08);border:1px solid rgba(123,176,255,0.2);border-radius:8px;padding:16px;text-align:center;">
-                                    <div style="font-size:2em;font-weight:700;color:#7bb0ff;">{{$l.LeagueTrends.TradeVolume}}</div>
-                                    <div style="font-size:0.9em;color:#9fb3d4;margin-top:4px;">Trades (4 weeks)</div>
+                                <div class="qt-stat-tile qt-stat-tile--accent">
+                                    <div style="font-size:2em;font-weight:700;color:var(--qt-accent);">{{$l.LeagueTrends.TradeVolume}}</div>
+                                    <div style="font-size:0.9em;color:var(--qt-text-muted);margin-top:4px;">Trades (4 weeks)</div>
                                 </div>
-                                <div style="background:rgba(255,157,92,0.08);border:1px solid rgba(255,157,92,0.2);border-radius:8px;padding:16px;text-align:center;">
-                                    <div style="font-size:2em;font-weight:700;color:#ff9d5c;">{{$l.LeagueTrends.WaiverVolume}}</div>
-                                    <div style="font-size:0.9em;color:#9fb3d4;margin-top:4px;">Waiver Claims (4 weeks)</div>
+                                <div class="qt-stat-tile qt-stat-tile--warn">
+                                    <div style="font-size:2em;font-weight:700;color:var(--qt-warn);">{{$l.LeagueTrends.WaiverVolume}}</div>
+                                    <div style="font-size:0.9em;color:var(--qt-text-muted);margin-top:4px;">Waiver Claims (4 weeks)</div>
                                 </div>
                             </div>
 
                             {{if gt (len $l.LeagueTrends.MostActiveTeams) 0}}
                             <div style="margin-bottom:24px;">
-                                <div style="font-weight:600;color:#c5d5f0;margin-bottom:12px;font-size:0.95em;">Most Active Teams</div>
+                                <div style="font-weight:600;color:var(--qt-text);margin-bottom:12px;font-size:0.95em;">Most Active Teams</div>
                                 <div class="table-scroll">
                                 <table class="age-chart-table">
                                     <thead>
@@ -918,11 +918,11 @@
                                             <td>{{.WaiverClaims}}</td>
                                             <td>
                                                 {{if eq .ActivityLevel "Very Active"}}
-                                                    <span style="color:#3ae87a;font-weight:600;">Very Active</span>
+                                                    <span style="color:var(--qt-ok);font-weight:600;">Very Active</span>
                                                 {{else if eq .ActivityLevel "Active"}}
-                                                    <span style="color:#7bb0ff;font-weight:600;">Active</span>
+                                                    <span style="color:var(--qt-accent);font-weight:600;">Active</span>
                                                 {{else}}
-                                                    <span style="color:#9fb3d4;">Quiet</span>
+                                                    <span style="color:var(--qt-text-muted);">Quiet</span>
                                                 {{end}}
                                             </td>
                                         </tr>
@@ -935,8 +935,8 @@
 
                             {{if gt (len $l.LeagueTrends.HotWaiverPlayers) 0}}
                             <div style="margin-bottom:24px;">
-                                <div style="font-weight:600;color:#c5d5f0;margin-bottom:12px;font-size:0.95em;">Hot Waiver Players</div>
-                                <div style="font-size:0.85em;color:#9fb3d4;font-style:italic;margin-bottom:12px;">Players claimed multiple times in the past 4 weeks</div>
+                                <div style="font-weight:600;color:var(--qt-text);margin-bottom:12px;font-size:0.95em;">Hot Waiver Players</div>
+                                <div style="font-size:0.85em;color:var(--qt-text-muted);font-style:italic;margin-bottom:12px;">Players claimed multiple times in the past 4 weeks</div>
                                 <div class="table-scroll">
                                 <table class="age-chart-table">
                                     <thead>
@@ -952,8 +952,8 @@
                                         <tr>
                                             <td style="text-align:left;">{{.PlayerName}}</td>
                                             <td>{{.Position}}</td>
-                                            <td style="font-weight:600;color:#ff9d5c;">{{.ClaimCount}}</td>
-                                            <td style="color:#9fb3d4;font-size:0.9em;">{{.LastClaimed}}</td>
+                                            <td style="font-weight:600;color:var(--qt-warn);">{{.ClaimCount}}</td>
+                                            <td style="color:var(--qt-text-muted);font-size:0.9em;">{{.LastClaimed}}</td>
                                         </tr>
                                     {{end}}
                                     </tbody>
@@ -964,13 +964,13 @@
 
                             {{if $l.LeagueTrends.PositionScarcity}}
                             <div>
-                                <div style="font-weight:600;color:#c5d5f0;margin-bottom:12px;font-size:0.95em;">Position Scarcity</div>
-                                <div style="font-size:0.85em;color:#9fb3d4;font-style:italic;margin-bottom:12px;">Available players by position on waivers</div>
+                                <div style="font-weight:600;color:var(--qt-text);margin-bottom:12px;font-size:0.95em;">Position Scarcity</div>
+                                <div style="font-size:0.85em;color:var(--qt-text-muted);font-style:italic;margin-bottom:12px;">Available players by position on waivers</div>
                                 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:12px;">
                                     {{range $pos, $count := $l.LeagueTrends.PositionScarcity}}
-                                    <div style="background:rgba(30,38,54,0.5);border:1px solid rgba(123,176,255,0.15);border-radius:6px;padding:12px;text-align:center;">
-                                        <div style="font-size:1.5em;font-weight:700;color:#7bb0ff;">{{$count}}</div>
-                                        <div style="font-size:0.85em;color:#9fb3d4;margin-top:4px;">{{$pos}}</div>
+                                    <div class="qt-stat-tile" style="border-radius:6px;padding:12px;">
+                                        <div style="font-size:1.5em;font-weight:700;color:var(--qt-accent);">{{$count}}</div>
+                                        <div style="font-size:0.85em;color:var(--qt-text-muted);margin-top:4px;">{{$pos}}</div>
                                     </div>
                                     {{end}}
                                 </div>
@@ -1011,7 +1011,7 @@
                             <span class="collapse-icon" id="projected-picks-{{$i}}-icon">▼</span>
                         </div>
                         <div class="card-content" id="projected-picks-{{$i}}-content">
-                            <div class="rookies-desc" style="font-size:0.85em;color:#9fb3d4;font-style:italic;margin-bottom:12px;">
+                            <div class="rookies-desc" style="font-size:0.85em;color:var(--qt-text-muted);font-style:italic;margin-bottom:12px;">
                                 Projected draft positions based on current standings. Worst record gets pick 1.01.
                             </div>
                             <div class="table-scroll">
@@ -1029,19 +1029,19 @@
                                 </thead>
                                 <tbody>
                                 {{range $l.ProjectedDraftPicks}}
-                                    <tr{{if .IsYours}} style="background:rgba(123,176,255,0.15);border-left:3px solid #7bb0ff;"{{end}}>
-                                        <td style="text-align:center;font-weight:700;color:#7bb0ff;">{{.Year}}</td>
+                                    <tr{{if .IsYours}} class="user-team-row"{{end}}>
+                                        <td style="text-align:center;font-weight:700;color:var(--qt-accent);">{{.Year}}</td>
                                         <td style="text-align:center;">{{.Round}}</td>
-                                        <td style="text-align:center;font-weight:700;color:#3ae87a;">{{.Round}}.{{printf "%02d" .ProjectedPosition}}</td>
+                                        <td style="text-align:center;font-weight:700;color:var(--qt-ok);">{{.Round}}.{{printf "%02d" .ProjectedPosition}}</td>
                                         <td style="text-align:left;">
                                             {{if .OriginalOwner}}
-                                                {{.OwnerName}} <span style="color:#3ae87a;font-size:0.85em;font-style:italic;">(from {{.OriginalOwner}})</span>
+                                                {{.OwnerName}} <span style="color:var(--qt-ok);font-size:0.85em;font-style:italic;">(from {{.OriginalOwner}})</span>
                                             {{else}}
                                                 {{.OwnerName}}
                                             {{end}}
                                         </td>
                                         <td style="text-align:center;">{{.CurrentStanding}}</td>
-                                        <td style="text-align:center;color:#9fb3d4;">{{.TeamRecord}}</td>
+                                        <td style="text-align:center;color:var(--qt-text-muted);">{{.TeamRecord}}</td>
                                     </tr>
                                 {{end}}
                                 </tbody>
@@ -1063,7 +1063,7 @@
                                 <div class="strategy-overview" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;">
                                     <div style="padding:12px;background:var(--card-bg-alt);border-radius:8px;">
                                         <div style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:4px;">Draft Approach</div>
-                                        <div style="font-weight:600;font-size:0.95rem;color:#3b82f6;">{{$l.DraftStrategy.OverallApproach}}</div>
+                                        <div style="font-weight:600;font-size:0.95rem;color:var(--qt-accent);">{{$l.DraftStrategy.OverallApproach}}</div>
                                     </div>
                                     {{if ne $l.DraftStrategy.PickInventory ""}}
                                     <div style="padding:12px;background:var(--card-bg-alt);border-radius:8px;">
@@ -1079,11 +1079,11 @@
                                     <div style="font-weight:600;margin-bottom:8px;font-size:0.9rem;">Positional Needs</div>
                                     {{range $l.DraftStrategy.Needs}}
                                     {{if le .Priority 3}}
-                                    <div style="padding:12px;margin-bottom:8px;background:var(--card-bg-alt);border-radius:6px;border-left:3px solid {{if eq .Priority 1}}#ef4444{{else if eq .Priority 2}}#f59e0b{{else}}#3b82f6{{end}};">
+                                    <div style="padding:12px;margin-bottom:8px;background:var(--card-bg-alt);border-radius:6px;border-left:3px solid {{if eq .Priority 1}}var(--qt-danger){{else if eq .Priority 2}}var(--qt-warn){{else}}var(--qt-accent){{end}};">
                                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
                                             <div>
                                                 <span style="font-weight:600;font-size:0.95rem;">{{.Position}}</span>
-                                                <span style="margin-left:8px;padding:2px 6px;background:var(--card-bg);border-radius:4px;font-size:0.75rem;color:{{if eq .Priority 1}}#ef4444{{else if eq .Priority 2}}#f59e0b{{else}}#3b82f6{{end}};">
+                                                <span style="margin-left:8px;padding:2px 6px;background:var(--card-bg);border-radius:4px;font-size:0.75rem;color:{{if eq .Priority 1}}var(--qt-danger){{else if eq .Priority 2}}var(--qt-warn){{else}}var(--qt-accent){{end}};">
                                                     {{if eq .Priority 1}}Critical{{else if eq .Priority 2}}High{{else}}Medium{{end}}
                                                 </span>
                                             </div>
@@ -1136,27 +1136,27 @@
                                     <tr>
                                         <th style="text-align:left;">Team</th>
                                         <th>Avg Age</th>
-                                        <th>Roster Value</th>
+                                        <th>Starter Value<span class="info-icon" title="Dynasty value of the best lineup this roster can field under your league's starting slots -- bench depth at any position (e.g. extra QBs in superflex) isn't counted.">?</span></th>
                                         <th>Record</th>
                                         <th>Strategy</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                 {{range $l.TeamAges}}
-                                    <tr{{if .IsUserTeam}} style="background:rgba(123,176,255,0.15);border-left:3px solid #7bb0ff;"{{end}}>
+                                    <tr{{if .IsUserTeam}} class="user-team-row"{{end}}>
                                         <td style="text-align:left;">
                                             {{if .IsUserTeam}}<b>{{.TeamName}}</b> (You){{else}}{{.TeamName}}{{end}}
                                         </td>
                                         <td>{{printf "%.1f" .AvgAge}}</td>
-                                        <td>{{if .RosterValue}}{{.RosterValue}}{{else}}-{{end}}</td>
+                                        <td>{{if .StarterValue}}{{.StarterValue}}{{else}}-{{end}}</td>
                                         <td>{{.Wins}}-{{.Losses}}</td>
                                         <td>
-                                            {{if gt .AvgAge 27.0}}
-                                                <span style="color:#ff9d5c;">Win Now</span>
-                                            {{else if lt .AvgAge 24.5}}
-                                                <span style="color:#7bb0ff;">Rebuild</span>
+                                            {{if eq .Strategy "Win Now"}}
+                                                <span class="strategy-win-now">Win Now</span>
+                                            {{else if eq .Strategy "Rebuilding"}}
+                                                <span class="strategy-rebuilding">Rebuild</span>
                                             {{else}}
-                                                <span style="color:#3ae87a;">Contending</span>
+                                                <span class="strategy-contending">Contending</span>
                                             {{end}}
                                         </td>
                                     </tr>
@@ -1175,34 +1175,64 @@
                             <span class="collapse-icon" id="power-rankings-{{$i}}-icon">▼</span>
                         </div>
                         <div class="card-content" id="power-rankings-{{$i}}-content">
-                            <div class="age-chart-desc" style="margin-bottom:12px;">Combined ranking based on dynasty value and current record</div>
+                            <div class="age-chart-desc" style="margin-bottom:12px;">Combined ranking based on starter value and current record</div>
                             <table class="age-chart-table">
                                 <thead>
                                     <tr>
                                         <th style="text-align:center;">Rank</th>
                                         <th style="text-align:left;">Team</th>
-                                        <th>Value</th>
+                                        <th>Starter Value<span class="info-icon" title="Dynasty value of the best lineup this roster can field under your league's starting slots -- bench depth at any position (e.g. extra QBs in superflex) isn't counted.">?</span></th>
                                         <th>Record</th>
                                         <th>Strategy</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                 {{range $l.PowerRankings}}
-                                    <tr{{if .IsUserTeam}} style="background:rgba(123,176,255,0.15);border-left:3px solid #7bb0ff;"{{end}}>
-                                        <td style="text-align:center;font-weight:700;color:#7bb0ff;">{{.Rank}}</td>
+                                    <tr{{if .IsUserTeam}} class="user-team-row"{{end}}>
+                                        <td style="text-align:center;font-weight:700;color:var(--qt-accent);">{{.Rank}}</td>
                                         <td style="text-align:left;">
                                             {{if .IsUserTeam}}<b>{{.TeamName}}</b> (You){{else}}{{.TeamName}}{{end}}
                                         </td>
-                                        <td style="font-weight:600;">{{.RosterValue}}</td>
+                                        <td style="font-weight:600;">{{.StarterValue}}</td>
                                         <td>{{.Wins}}-{{.Losses}}</td>
                                         <td>
                                             {{if eq .Strategy "Win Now"}}
-                                                <span style="color:#ff9d5c;">Win Now</span>
+                                                <span class="strategy-win-now">Win Now</span>
                                             {{else if eq .Strategy "Rebuilding"}}
-                                                <span style="color:#7bb0ff;">Rebuilding</span>
+                                                <span class="strategy-rebuilding">Rebuilding</span>
                                             {{else}}
-                                                <span style="color:#3ae87a;">Contending</span>
+                                                <span class="strategy-contending">Contending</span>
                                             {{end}}
+                                        </td>
+                                    </tr>
+                                {{end}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {{end}}
+
+                    {{if $l.LeagueHistory}}
+                    <div class="toolkit-card collapseable">
+                        <div class="card-header" onclick="toggleSection('league-history-{{$i}}')">
+                            <span class="card-title">League History</span>
+                            <span class="collapse-icon" id="league-history-{{$i}}-icon">▼</span>
+                        </div>
+                        <div class="card-content" id="league-history-{{$i}}-content">
+                            <div class="age-chart-desc" style="margin-bottom:12px;">Past champions, most recent season first</div>
+                            <table class="age-chart-table">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:left;">Season</th>
+                                        <th style="text-align:left;">Champion</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {{range $l.LeagueHistory}}
+                                    <tr{{if .IsUserTeam}} class="user-team-row"{{end}}>
+                                        <td style="text-align:left;font-weight:700;">{{.Season}}</td>
+                                        <td style="text-align:left;">
+                                            <span class="tier1-star">★</span> {{if .IsUserTeam}}<b>{{.TeamName}}</b> (You){{else}}{{.TeamName}}{{end}}
                                         </td>
                                     </tr>
                                 {{end}}
@@ -1224,14 +1254,14 @@
                         </div>
                         <div class="card-content" id="trade-targets-{{$i}}-content">
                             {{if $l.TradeTargets}}
-                                <div class="trade-targets-desc" style="margin-bottom:16px;font-size:0.85em;color:#9fb3d4;font-style:italic;">Potential trade partners based on positional complementarity</div>
+                                <div class="trade-targets-desc" style="margin-bottom:16px;font-size:0.85em;color:var(--qt-text-muted);font-style:italic;">Potential trade partners based on positional complementarity</div>
                                 {{range $l.TradeTargets}}
                                 <div class="trade-target-item">
                                     <div class="target-team">{{.TeamName}}</div>
                                     <div class="target-reason">{{.Reason}}</div>
 
                                     {{if .Proposal}}
-                                    <div class="trade-proposal" style="margin-top:12px;padding:12px;background:var(--card-bg-alt);border-radius:8px;border-left:3px solid #3b82f6;">
+                                    <div class="trade-proposal" style="margin-top:12px;padding:12px;background:var(--card-bg-alt);border-radius:8px;border-left:3px solid var(--qt-accent);">
                                         <div style="font-weight:600;margin-bottom:8px;font-size:0.9rem;">Suggested Trade</div>
 
                                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
@@ -1325,7 +1355,7 @@
                             <span class="collapse-icon" id="rookies-{{$i}}-icon">▼</span>
                         </div>
                         <div class="card-content" id="rookies-{{$i}}-content">
-                            <div class="rookies-desc" style="font-size:0.85em;color:#9fb3d4;font-style:italic;margin-bottom:12px;">First-year NFL players with a known dynasty value, ranked highest first</div>
+                            <div class="rookies-desc" style="font-size:0.85em;color:var(--qt-text-muted);font-style:italic;margin-bottom:12px;">First-year NFL players with a known dynasty value, ranked highest first</div>
                             <div class="table-scroll">
                             <table class="rookies-table">
                                 <thead>
@@ -1340,10 +1370,10 @@
                                 <tbody>
                                     {{range $l.TopRookies}}
                                     <tr>
-                                        <td style="text-align:center;font-weight:700;color:#7bb0ff;">{{.Rank}}</td>
+                                        <td style="text-align:center;font-weight:700;color:var(--qt-accent);">{{.Rank}}</td>
                                         <td style="font-weight:600;">{{.Name}}</td>
                                         <td>{{.Position}}</td>
-                                        <td style="font-size:0.9em;color:#9fb3d4;">{{.College}}</td>
+                                        <td style="font-size:0.9em;color:var(--qt-text-muted);">{{.College}}</td>
                                         <td style="text-align:right;font-weight:600;">{{.Value}}</td>
                                     </tr>
                                     {{end}}
@@ -1373,7 +1403,7 @@
                             <td>
                                 {{if .IsUpgrade}}<span class="fa-upgrade-icon">⬆</span> {{end}}{{.Name | safe}}
                                 {{if .IsUpgrade}}
-                                    <div style="font-size:0.85em;color:#3ae87a;margin-top:2px;">Upgrade for {{.UpgradeType}}: {{.UpgradeFor}}</div>
+                                    <div style="font-size:0.85em;color:var(--qt-ok);margin-top:2px;">Upgrade for {{.UpgradeType}}: {{.UpgradeFor}}</div>
                                 {{end}}
                             </td>
                             <td>{{.Tier}}</td>
@@ -1398,11 +1428,11 @@
                     {{range $l.LowestValueRoster}}
                         <tr>
                             <td>{{.YourPlayer.Pos}}</td>
-                            <td>{{.YourPlayer.Name | safe}}{{if .YourPlayer.IsTaxiSquad}} <span title="Currently on your taxi squad" style="font-size:0.85em;color:#9fb3d4;">🚕 Taxi</span>{{end}}</td>
+                            <td>{{.YourPlayer.Name | safe}}{{if .YourPlayer.IsTaxiSquad}} <span title="Currently on your taxi squad" style="font-size:0.85em;color:var(--qt-text-muted);">🚕 Taxi</span>{{end}}</td>
                             <td>{{.YourPlayer.DynastyValue}}</td>
-                            <td>{{if .BestAvailable.Name}}{{.BestAvailable.Name | safe}}{{if .BestAvailable.IsTaxiEligible}} <span title="Taxi eligible -- stash, don't necessarily start">🚕</span>{{end}}{{else}}<span style="color:#9fb3d4;">Nothing better available</span>{{end}}</td>
+                            <td>{{if .BestAvailable.Name}}{{.BestAvailable.Name | safe}}{{if .BestAvailable.IsTaxiEligible}} <span title="Taxi eligible -- stash, don't necessarily start">🚕</span>{{end}}{{else}}<span style="color:var(--qt-text-muted);">Nothing better available</span>{{end}}</td>
                             <td>{{if .BestAvailable.Name}}{{.BestAvailable.DynastyValue}}{{else}}-{{end}}</td>
-                            <td>{{if gt .ValueGap 0}}<span style="color:#3ae87a;">+{{.ValueGap}}</span>{{else if .BestAvailable.Name}}<span style="color:#9fb3d4;">even/better</span>{{else}}-{{end}}</td>
+                            <td>{{if gt .ValueGap 0}}<span style="color:var(--qt-ok);">+{{.ValueGap}}</span>{{else if .BestAvailable.Name}}<span style="color:var(--qt-text-muted);">even/better</span>{{else}}-{{end}}</td>
                         </tr>
                     {{end}}
                     </tbody>
@@ -1414,7 +1444,7 @@
             {{if $l.TaxiSuggestions}}
             <div class="fa-section dynasty-only">
                 <div class="fa-header">🚕 Taxi Squad Suggestions</div>
-                <div style="font-size:0.85em;color:#9fb3d4;margin-bottom:8px;">{{if gt $l.OpenTaxiSlots 0}}{{$l.OpenTaxiSlots}} open taxi slot{{if ne $l.OpenTaxiSlots 1}}s{{end}}{{else}}Taxi squad full -- suggested swaps shown{{end}}</div>
+                <div style="font-size:0.85em;color:var(--qt-text-muted);margin-bottom:8px;">{{if gt $l.OpenTaxiSlots 0}}{{$l.OpenTaxiSlots}} open taxi slot{{if ne $l.OpenTaxiSlots 1}}s{{end}}{{else}}Taxi squad full -- suggested swaps shown{{end}}</div>
                 <div class="table-scroll">
                 <table class="sortable-table pretty-table">
                     <thead>
@@ -1426,7 +1456,7 @@
                             <td>{{.Prospect.Pos}}</td>
                             <td>{{.Prospect.Name | safe}}</td>
                             <td>{{.Prospect.DynastyValue}}</td>
-                            <td>{{if .HasOpenSlot}}<span style="color:#3ae87a;">Add -- open slot</span>{{else}}Add, drop {{.DropFromTaxi.Name}} from taxi{{end}}</td>
+                            <td>{{if .HasOpenSlot}}<span style="color:var(--qt-ok);">Add -- open slot</span>{{else}}Add, drop {{.DropFromTaxi.Name}} from taxi{{end}}</td>
                         </tr>
                     {{end}}
                     </tbody>
@@ -1449,8 +1479,8 @@
                             <td>{{.Pos}}</td>
                             <td>{{if .IsUpgrade}}<span class="fa-upgrade-icon">⬆</span> {{end}}{{.Name | safe}}{{if .IsTaxiEligible}} <span title="Taxi eligible -- stash, don't necessarily start">🚕</span>{{end}}</td>
                             <td>{{.DynastyValue}}</td>
-                            <td>{{if .UpgradeFor}}{{.UpgradeFor}} <span style="font-size:0.85em;color:#9fb3d4;">({{.UpgradeType}})</span>{{else}}-{{end}}</td>
-                            <td>{{if .UpgradeValueDiff}}<span style="color:#3ae87a;">+{{.UpgradeValueDiff}}</span>{{else}}-{{end}}</td>
+                            <td>{{if .UpgradeFor}}{{.UpgradeFor}} <span style="font-size:0.85em;color:var(--qt-text-muted);">({{.UpgradeType}})</span>{{else}}-{{end}}</td>
+                            <td>{{if .UpgradeValueDiff}}<span style="color:var(--qt-ok);">+{{.UpgradeValueDiff}}</span>{{else}}-{{end}}</td>
                         </tr>
                     {{end}}
                     </tbody>
@@ -1464,7 +1494,7 @@
             <div class="fa-section dynasty-only">
                 <div class="fa-header">All Unowned Free Agents — Ranked by Dynasty Value</div>
                 {{if $l.HasTaxiSquad}}
-                <div style="font-size:0.85em;color:#9fb3d4;margin-bottom:8px;">🚕 Taxi Eligible = {{$l.TaxiYears}} year{{if ne $l.TaxiYears 1}}s{{end}} of NFL experience or less</div>
+                <div style="font-size:0.85em;color:var(--qt-text-muted);margin-bottom:8px;">🚕 Taxi Eligible = {{$l.TaxiYears}} year{{if ne $l.TaxiYears 1}}s{{end}} of NFL experience or less</div>
                 {{end}}
                 <div class="table-scroll">
                 <table class="sortable-table pretty-table">
@@ -1493,11 +1523,11 @@
 </div>
 
 <div class="legend">
-    <span style="font-weight:600; margin-right:8px; color:#7bb0ff; text-transform:uppercase; letter-spacing:0.5px; font-size:0.85em;">Legend:</span>
+    <span style="font-weight:600; margin-right:8px; color:var(--qt-accent); text-transform:uppercase; letter-spacing:0.5px; font-size:0.85em;">Legend:</span>
     <span style="display:inline-flex; align-items:center; gap:6px;"><span class="tier1-star">★</span> <span style="font-weight:500;">Tier 1</span></span>
-    <span style="display:inline-flex; align-items:center; gap:6px;"><span style="background:#7bb0ff;color:#1a1f2e;padding:3px 7px;border-radius:6px;font-size:0.8em;font-weight:bold;">FLEX</span> <span style="font-weight:500;">FLEX tier</span></span>
+    <span style="display:inline-flex; align-items:center; gap:6px;"><span style="background:var(--qt-accent);color:var(--qt-accent-fg);padding:3px 7px;border-radius:6px;font-size:0.8em;font-weight:bold;">FLEX</span> <span style="font-weight:500;">FLEX tier</span></span>
     <span style="display:inline-flex; align-items:center; gap:6px;"><span class="swap-icon">⇄</span> <span style="font-weight:500;">Swap</span></span>
-    <span style="display:inline-flex; align-items:center; gap:6px;"><span style="background:#3a1e1e; color:#ffb6b6; padding:3px 8px; border-radius:6px; font-weight:500;">Red</span> <span style="font-weight:500;">Suboptimal</span></span>
+    <span style="display:inline-flex; align-items:center; gap:6px;"><span style="background:var(--qt-danger); color:var(--qt-accent-fg); padding:3px 8px; border-radius:6px; font-weight:500;">Red</span> <span style="font-weight:500;">Suboptimal</span></span>
 </div>
 
 </div>

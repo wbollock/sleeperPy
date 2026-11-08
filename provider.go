@@ -10,10 +10,12 @@ type LeagueProvider interface {
 	FetchUser(username string) (map[string]interface{}, error)
 	FetchUserLeagues(userID string, season int) ([]map[string]interface{}, error)
 	FetchNFLState() (map[string]interface{}, error)
+	FetchLeague(leagueID string) (map[string]interface{}, error)
 	FetchLeagueRosters(leagueID string) ([]map[string]interface{}, error)
 	FetchLeagueMatchups(leagueID string, week int) ([]map[string]interface{}, error)
 	FetchLeagueUsers(leagueID string) ([]map[string]interface{}, error)
 	FetchLeagueTradedPicks(leagueID string) ([]map[string]interface{}, error)
+	FetchLeagueWinnersBracket(leagueID string) ([]map[string]interface{}, error)
 }
 
 type SleeperProvider struct {
@@ -45,8 +47,16 @@ func (p *SleeperProvider) FetchNFLState() (map[string]interface{}, error) {
 	return p.fetchJSON(fmt.Sprintf("%s/state/nfl", p.baseURL))
 }
 
+func (p *SleeperProvider) FetchLeague(leagueID string) (map[string]interface{}, error) {
+	return p.fetchJSON(fmt.Sprintf("%s/league/%s", p.baseURL, leagueID))
+}
+
 func (p *SleeperProvider) FetchLeagueRosters(leagueID string) ([]map[string]interface{}, error) {
 	return p.fetchJSONArray(fmt.Sprintf("%s/league/%s/rosters", p.baseURL, leagueID))
+}
+
+func (p *SleeperProvider) FetchLeagueWinnersBracket(leagueID string) ([]map[string]interface{}, error) {
+	return p.fetchJSONArray(fmt.Sprintf("%s/league/%s/winners_bracket", p.baseURL, leagueID))
 }
 
 func (p *SleeperProvider) FetchLeagueMatchups(leagueID string, week int) ([]map[string]interface{}, error) {

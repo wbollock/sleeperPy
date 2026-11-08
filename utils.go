@@ -77,6 +77,26 @@ func findTier(tiers [][]string, name string) int {
 	return 0
 }
 
+// buildUserNameMap resolves a league's /users response into user_id ->
+// display name (falling back to username when no display_name is set).
+func buildUserNameMap(leagueUsers []map[string]interface{}) map[string]string {
+	userNames := make(map[string]string)
+	for _, u := range leagueUsers {
+		uid, ok := u["user_id"].(string)
+		if !ok {
+			continue
+		}
+		displayName := ""
+		if dn, ok := u["display_name"].(string); ok && dn != "" {
+			displayName = dn
+		} else if un, ok := u["username"].(string); ok {
+			displayName = un
+		}
+		userNames[uid] = displayName
+	}
+	return userNames
+}
+
 // normalizeName standardizes player names for comparison
 func normalizeName(name string) string {
 	name = strings.ToLower(name)

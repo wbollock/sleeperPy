@@ -75,7 +75,48 @@ func mockAPIHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Winners bracket (league history / past champions)
+	if strings.Contains(path, "/winners_bracket") {
+		json.NewEncoder(w).Encode(getMockWinnersBracket(path))
+		return
+	}
+
+	// Bare league info lookup, e.g. /league/mock_league_2 -- must come after
+	// every more specific /league/<id>/<something> pattern above, since
+	// those also contain "/league/".
+	if idx := strings.Index(path, "/league/"); idx != -1 {
+		rest := path[idx+len("/league/"):]
+		if !strings.Contains(rest, "/") {
+			json.NewEncoder(w).Encode(getMockLeagueInfo(rest))
+			return
+		}
+	}
+
 	http.Error(w, "Mock endpoint not found", 404)
+}
+
+// getMockLeagueInfo simulates a 2-season previous_league_id chain for
+// mock_league_2 so League History has something to walk in test mode.
+func getMockLeagueInfo(leagueID string) map[string]interface{} {
+	switch leagueID {
+	case "mock_league_2":
+		return map[string]interface{}{"league_id": "mock_league_2", "season": "2026", "previous_league_id": "mock_league_2_s1"}
+	case "mock_league_2_s1":
+		return map[string]interface{}{"league_id": "mock_league_2_s1", "season": "2025", "previous_league_id": ""}
+	}
+	return map[string]interface{}{"league_id": leagueID, "season": "2026", "previous_league_id": ""}
+}
+
+// getMockWinnersBracket gives the prior mock season a decided championship
+// (roster 2) while leaving the current season undecided, so League History
+// exercises both "past champion found" and "season still in progress".
+func getMockWinnersBracket(path string) []map[string]interface{} {
+	if strings.Contains(path, "mock_league_2_s1") {
+		return []map[string]interface{}{
+			{"r": 2.0, "m": 3.0, "p": 1.0, "t1": 2.0, "t2": 3.0, "w": 2.0, "l": 3.0},
+		}
+	}
+	return []map[string]interface{}{}
 }
 
 // Boris Chen tier files handler for test mode
@@ -137,6 +178,9 @@ func getMockLeagues() []map[string]interface{} {
 			"name":      "Test League - Superflex Half PPR",
 			"scoring_settings": map[string]interface{}{
 				"rec": 0.5,
+			},
+			"settings": map[string]interface{}{
+				"type": 2.0,
 			},
 			"roster_positions": []interface{}{"QB", "RB", "RB", "WR", "WR", "TE", "SUPER_FLEX", "FLEX", "K", "DEF", "BN", "BN", "BN", "BN"},
 		},
